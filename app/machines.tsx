@@ -1,23 +1,26 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
-import { Stack } from "expo-router";
-import { useCategories } from "./hooks/useStorage";
+import { useRouter, useLocalSearchParams, Stack } from "expo-router";
+import { useMachines } from "./hooks/useStorage";
 import { useState } from "react";
 import { AddModal } from "./components/AddModal";
 import { EmptyState } from "./components/EmptyState";
 import { Ionicons } from "@expo/vector-icons";
 import { s } from "./styles/theme";
 
-export default function Index() {
+export function MachinesScreen() {
   const router = useRouter();
-  const { categories, addCategory } = useCategories();
+  const { categoryId, categoryName } = useLocalSearchParams<{
+    categoryId: string;
+    categoryName: string;
+  }>();
+  const { machines, addMachine } = useMachines(categoryId);
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
     <View style={s.container}>
       <Stack.Screen
         options={{
-          title: "Ferragem",
+          title: categoryName ?? "Máquinas",
           headerRight: () => (
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <Ionicons name="add-circle" size={28} color="#F4A261" />
@@ -26,17 +29,17 @@ export default function Index() {
         }}
       />
 
-      <Text style={s.subtitle}>categorias de treino</Text>
+      <Text style={s.subtitle}>máquinas</Text>
 
-      {categories.length === 0 ? (
+      {machines.length === 0 ? (
         <EmptyState
-          icon="barbell-outline"
-          message="Nenhuma categoria ainda"
-          hint='Toque no "+" para criar'
+          icon="cog-outline"
+          message="Nenhuma máquina ainda"
+          hint='Toque no "+" para adicionar'
         />
       ) : (
         <FlatList
-          data={categories}
+          data={machines}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ gap: 10, paddingBottom: 40 }}
           renderItem={({ item }) => (
@@ -45,18 +48,22 @@ export default function Index() {
               activeOpacity={0.7}
               onPress={() =>
                 router.push({
-                  pathname: "/machines",
-                  params: { categoryId: item.id, categoryName: item.name },
+                  pathname: "/detail",
+                  params: {
+                    categoryId,
+                    machineId: item.id,
+                    machineName: item.name,
+                  },
                 })
               }
             >
               <View style={s.cardIcon}>
-                <Ionicons name="fitness" size={24} color="#F4A261" />
+                <Ionicons name="cog" size={24} color="#F4A261" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cardTitle}>{item.name}</Text>
                 <Text style={s.cardSub}>
-                  {item.machineCount} máquina{item.machineCount !== 1 ? "s" : ""}
+                  {item.currentWeight ? `${item.currentWeight} kg` : "sem registro"}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#7A2E00" />
@@ -67,14 +74,16 @@ export default function Index() {
 
       <AddModal
         visible={modalVisible}
-        title="Nova Categoria"
-        placeholder="Ex: Peito, Costas, Pernas..."
+        title="Nova Máquina"
+        placeholder="Ex: Supino Reto, Leg Press..."
         onClose={() => setModalVisible(false)}
         onAdd={(name) => {
-          addCategory(name);
+          addMachine(name);
           setModalVisible(false);
         }}
       />
     </View>
   );
 }
+
+export default MachinesScreen;
