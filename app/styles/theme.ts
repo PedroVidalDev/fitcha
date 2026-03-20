@@ -1,106 +1,138 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 
 export const colors = {
   bg: "#0d0500",
   card: "#1a0a00",
   surface: "#2a1508",
-  border: "#7A2E00",
+  border: "rgba(244, 162, 97, 0.12)",
+  borderSolid: "#7A2E00",
   accent: "#F4A261",
-  textMuted: "#7A2E00",
+  accentDark: "#E07A2F",
+  textMuted: "#8B4513",
+  textDim: "#5a2a0a",
 };
 
 export const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0d0500", padding: 16 },
+  container: { flex: 1, backgroundColor: colors.bg, padding: 16 },
+  headerBtn: { padding: 4 },
+
   subtitle: {
-    color: "#7A2E00",
-    fontSize: 12,
-    fontWeight: "600",
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 16,
+    letterSpacing: 2,
+    marginBottom: 18,
+    marginLeft: 2,
   },
 
   // Cards
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1a0a00",
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 0.5,
-    borderColor: "#7A2E00",
-    gap: 14,
-  },
   cardIcon: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: "#2a1508",
+    borderRadius: 13,
+    backgroundColor: "rgba(244, 162, 97, 0.08)",
     justifyContent: "center",
     alignItems: "center",
   },
-  cardTitle: { color: "#F4A261", fontSize: 16, fontWeight: "600" },
-  cardSub: { color: "#7A2E00", fontSize: 12, marginTop: 2 },
+  cardTitle: { color: colors.accent, fontSize: 16, fontWeight: "700" },
+  cardSub: { color: colors.textMuted, fontSize: 12, marginTop: 3, fontWeight: "500" },
 
-  // Detail
-  currentBlock: { alignItems: "center", paddingVertical: 28 },
-  currentLabel: {
-    color: "#7A2E00",
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 1,
+  // Detail — Hero
+  heroBlock: {
+    alignItems: "center",
+    paddingVertical: 32,
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#F4A261",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1,
+        shadowRadius: 16,
+      },
+      android: { elevation: 8 },
+    }),
   },
-  currentWeight: {
-    color: "#F4A261",
-    fontSize: 56,
-    fontWeight: "800",
+  heroLabel: {
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 2,
+  },
+  heroWeight: {
+    color: colors.accent,
+    fontSize: 64,
+    fontWeight: "900",
     marginTop: 4,
   },
-  currentUnit: { fontSize: 20, color: "#F4A261" },
+  heroUnit: { fontSize: 22, color: colors.accentDark },
 
-  inputRow: {
+  // Delta
+  deltaRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 24,
+    alignItems: "center",
+    gap: 4,
+    marginTop: 8,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
+  deltaText: { fontSize: 13, fontWeight: "700" },
+
+  // Input
+  inputRow: { flexDirection: "row", gap: 10, marginBottom: 24 },
   input: {
     flex: 1,
-    backgroundColor: "#2a1508",
-    borderRadius: 12,
-    padding: 14,
-    color: "#F4A261",
+    backgroundColor: "rgba(42, 21, 8, 0.6)",
+    borderRadius: 14,
+    padding: 16,
+    color: colors.accent,
     fontSize: 16,
+    fontWeight: "600",
     borderWidth: 0.5,
-    borderColor: "#7A2E00",
+    borderColor: colors.border,
   },
-  saveBtn: {
-    width: 50,
-    backgroundColor: "#F4A261",
-    borderRadius: 12,
+  saveBtn: { width: 54, borderRadius: 14, overflow: "hidden" },
+  saveBtnGradient: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 14,
   },
 
+  // History
   sectionLabel: {
-    color: "#7A2E00",
-    fontSize: 12,
-    fontWeight: "600",
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 10,
+    letterSpacing: 2,
+    marginBottom: 12,
+    marginLeft: 2,
   },
-  emptyHist: { color: "#7A2E00", textAlign: "center", marginTop: 20, fontSize: 14 },
+  emptyHist: {
+    color: colors.textDim,
+    textAlign: "center",
+    marginTop: 24,
+    fontSize: 14,
+    fontWeight: "500",
+  },
   histRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#2a1508",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    backgroundColor: "rgba(35, 16, 5, 0.7)",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 0.5,
-    borderColor: "#7A2E00",
+    borderColor: colors.border,
   },
-  histDate: { color: "#7A2E00", fontSize: 13 },
-  histWeight: { color: "#F4A261", fontSize: 15, fontWeight: "600" },
+  histDate: { color: colors.textMuted, fontSize: 13, fontWeight: "500" },
+  histWeight: { color: colors.accent, fontSize: 15, fontWeight: "700" },
 });
