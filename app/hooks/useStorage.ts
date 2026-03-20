@@ -6,17 +6,21 @@ const STORAGE_KEY = "app_data";
 // ── Types ──
 type Category = { id: string; name: string; machineCount: number };
 type Machine = { id: string; name: string; currentWeight: number | null };
-type HistoryEntry = { id: string; weight: number; date: string; label: string };
+type HistoryEntry = {
+  id: string;
+  sets: [number, number, number]; // peso de cada uma das 3 séries
+  date: string;
+  label: string;
+};
 type AppData = {
   categories: Category[];
-  machines: Record<string, Machine[]>; // categoryId -> machines
-  history: Record<string, HistoryEntry[]>; // machineId -> entries
+  machines: Record<string, Machine[]>;
+  history: Record<string, HistoryEntry[]>;
 };
 
 // ── Helpers ──
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-// Cache em memória pra evitar awaits repetidos
 let cache: AppData | null = null;
 
 async function getData(): Promise<AppData> {
@@ -78,7 +82,8 @@ export function useMachines(categoryId: string) {
       const list = (data.machines[categoryId] ?? []).map((m) => {
         const hist = data.history[m.id] ?? [];
         const last = hist[0];
-        return { ...m, currentWeight: last?.weight ?? null };
+        const maxWeight = last ? Math.max(...last.sets) : null;
+        return { ...m, currentWeight: maxWeight };
       });
       setMachines(list);
     });
@@ -103,7 +108,7 @@ export function useMachines(categoryId: string) {
 // ── Hook: Detalhe da Máquina ──
 export function useMachineDetail(categoryId: string, machineId: string) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [currentWeight, setCurrentWeight] = useState<number | null>(null);
+  const [currentSets, setCurrentSets] = useState<[number, number, number] | null>(null);
 
   useEffect(() => {
     getData().then((data) => {
@@ -112,16 +117,16 @@ export function useMachineDetail(categoryId: string, machineId: string) {
         label: formatDateLabel(e.date),
       }));
       setHistory(entries);
-      setCurrentWeight(entries[0]?.weight ?? null);
+      setCurrentSets(entries[0]?.sets ?? null);
     });
   }, [machineId]);
 
   const addEntry = useCallback(
-    async (weight: number) => {
+    async (sets: [number, number, number]) => {
       const data = await getData();
       const entry: HistoryEntry = {
         id: uid(),
-        weight,
+        sets,
         date: new Date().toISOString(),
         label: "hoje",
       };
@@ -134,10 +139,10 @@ export function useMachineDetail(categoryId: string, machineId: string) {
         label: formatDateLabel(e.date),
       }));
       setHistory(entries);
-      setCurrentWeight(weight);
+      setCurrentSets(sets);
     },
     [machineId]
   );
 
-  return { currentWeight, history, addEntry };
+  return { currentSets, history, addEntry };
 }

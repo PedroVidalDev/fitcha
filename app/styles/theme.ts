@@ -63,13 +63,102 @@ export const s = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 2,
   },
-  heroWeight: {
-    color: colors.accent,
-    fontSize: 64,
+  heroPlaceholder: {
+    color: colors.textMuted,
+    fontSize: 48,
     fontWeight: "900",
-    marginTop: 4,
+    marginTop: 8,
   },
-  heroUnit: { fontSize: 22, color: colors.accentDark },
+  heroMax: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 12,
+  },
+  heroMaxValue: {
+    color: colors.accent,
+    fontWeight: "800",
+    fontSize: 15,
+  },
+
+  // Set chips (hero)
+  setsRow: {
+    flexDirection: "row" as const,
+    gap: 12,
+    marginTop: 16,
+  },
+  setChip: {
+    alignItems: "center" as const,
+    backgroundColor: "rgba(244, 162, 97, 0.06)",
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderWidth: 0.5,
+    borderColor: "rgba(244, 162, 97, 0.12)",
+  },
+  setChipLabel: {
+    color: colors.textDim,
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+  },
+  setChipValue: {
+    color: colors.accent,
+    fontSize: 28,
+    fontWeight: "900",
+    marginTop: 2,
+  },
+  setChipUnit: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+
+  // Set inputs
+  setsInputRow: {
+    flexDirection: "row" as const,
+    gap: 10,
+    marginBottom: 14,
+  },
+  setInputWrap: {
+    flex: 1,
+  },
+  setInputLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: "700",
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+  setInput: {
+    backgroundColor: "rgba(42, 21, 8, 0.6)",
+    borderRadius: 12,
+    padding: 14,
+    color: colors.accent,
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center" as const,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+  },
+
+  // Save button full width
+  saveBtnFull: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginBottom: 4,
+  },
+  saveBtnText: {
+    color: "#0d0500",
+    fontSize: 16,
+    fontWeight: "800",
+  },
 
   // Delta
   deltaRow: {
@@ -134,5 +223,10 @@ export const s = StyleSheet.create({
     borderColor: colors.border,
   },
   histDate: { color: colors.textMuted, fontSize: 13, fontWeight: "500" },
-  histWeight: { color: colors.accent, fontSize: 15, fontWeight: "700" },
+  histSets: {
+    flexDirection: "row",
+    gap: 14,
+  },
+  histSetValue: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  histSetUnit: { color: colors.textMuted, fontSize: 11, fontWeight: "500" },
 });
