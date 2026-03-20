@@ -7,7 +7,7 @@ import { AnimatedCard } from "./components/AnimatedCard";
 import { EmptyState } from "./components/EmptyState";
 import { GradientCard } from "./components/GradientCard";
 import { useCategories } from "./hooks/useStorage";
-import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import { useTheme } from "./contexts/ThemeContext";
 
 function InnerIndex() {
   const router = useRouter();
@@ -19,7 +19,7 @@ function InnerIndex() {
     <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
       <Stack.Screen
         options={{
-          title: "Ferragem",
+          title: "Fitcha",
           headerLeft: () => (
             <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
               <Ionicons name="add-circle" size={28} color={t.accent} />

@@ -1,6 +1,6 @@
 import {
   View, Text, FlatList, TouchableOpacity, TextInput,
-  Animated as RNAnimated,
+  Animated as RNAnimated, Image, Alert, ScrollView,
 } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { useMachineDetail } from "./hooks/useStorage";
@@ -9,14 +9,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { AnimatedCard } from "./components/AnimatedCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "./contexts/ThemeContext";
+import * as ImagePicker from "expo-image-picker";
 
 function WeightDelta({ current, previous }: { current: number; previous?: number }) {
-  const { t } = useTheme();
   if (!previous) return null;
   const diff = current - previous;
   if (diff === 0) return null;
-  const isUp = diff > 0
-
+  const isUp = diff > 0;
+  const { t } = useTheme();
   return (
     <View style={{
       flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8,
@@ -34,7 +34,7 @@ export default function DetailScreen() {
   const { categoryId, machineId, machineName } = useLocalSearchParams<{
     categoryId: string; machineId: string; machineName: string;
   }>();
-  const { currentSets, history, addEntry } = useMachineDetail(categoryId, machineId);
+  const { currentSets, history, photo, addEntry, updatePhoto, removePhoto } = useMachineDetail(categoryId, machineId);
   const [set1, setSet1] = useState("");
   const [set2, setSet2] = useState("");
   const [set3, setSet3] = useState("");
@@ -49,6 +49,55 @@ export default function DetailScreen() {
       RNAnimated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
     ]).start();
   }, [currentSets]);
+
+  const pickFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão necessária", "Precisamos de acesso à galeria.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) updatePhoto(result.assets[0].uri);
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão necessária", "Precisamos de acesso à câmera.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) updatePhoto(result.assets[0].uri);
+  };
+
+  const showPhotoSource = () => {
+    Alert.alert("Adicionar foto", "De onde?", [
+      { text: "Câmera", onPress: takePhoto },
+      { text: "Galeria", onPress: pickFromGallery },
+      { text: "Cancelar", style: "cancel" },
+    ]);
+  };
+
+  const handlePhotoPress = () => {
+    if (photo) {
+      Alert.alert("Foto da máquina", "", [
+        { text: "Trocar foto", onPress: showPhotoSource },
+        { text: "Remover foto", style: "destructive", onPress: removePhoto },
+        { text: "Cancelar", style: "cancel" },
+      ]);
+    } else {
+      showPhotoSource();
+    }
+  };
 
   const parseW = (v: string) => parseFloat(v.replace(",", "."));
 
@@ -74,8 +123,43 @@ export default function DetailScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: t.bg }} contentContainerStyle={{ padding: 16, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
       <Stack.Screen options={{ title: machineName ?? "Detalhe" }} />
+
+      {/* Foto da máquina */}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={handlePhotoPress}
+        style={{
+          width: "100%", height: photo ? 180 : 80, borderRadius: 16, marginBottom: 16,
+          backgroundColor: t.inputBg, borderWidth: 0.5, borderColor: t.border,
+          overflow: "hidden", justifyContent: "center", alignItems: "center",
+        }}
+      >
+        {photo ? (
+          <Image
+            source={{ uri: photo }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={{ alignItems: "center", gap: 6 }}>
+            <Ionicons name="camera-outline" size={28} color={t.textDim} />
+            <Text style={{ color: t.textDim, fontSize: 12, fontWeight: "600" }}>
+              adicionar foto da máquina
+            </Text>
+          </View>
+        )}
+        {photo && (
+          <View style={{
+            position: "absolute", bottom: 8, right: 8,
+            backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 20,
+            width: 32, height: 32, justifyContent: "center", alignItems: "center",
+          }}>
+            <Ionicons name="pencil" size={14} color="#FFF" />
+          </View>
+        )}
+      </TouchableOpacity>
 
       {/* Hero */}
       <LinearGradient colors={t.gradientHero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -160,13 +244,9 @@ export default function DetailScreen() {
           Nenhum registro ainda
         </Text>
       ) : (
-        <FlatList
-          data={history}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ gap: 8, paddingBottom: 40 }}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item, index }) => (
-            <AnimatedCard index={index}>
+        <View style={{ gap: 8 }}>
+          {history.map((item, index) => (
+            <AnimatedCard key={item.id} index={index}>
               <View style={{
                 flexDirection: "row", justifyContent: "space-between", alignItems: "center",
                 backgroundColor: t.histBg, borderRadius: 12,
@@ -182,9 +262,9 @@ export default function DetailScreen() {
                 </View>
               </View>
             </AnimatedCard>
-          )}
-        />
+          ))}
+        </View>
       )}
-    </View>
+    </ScrollView>
   );
 }

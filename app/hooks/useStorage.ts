@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const STORAGE_KEY = "app_data";
 
 type Category = { id: string; name: string; machineCount: number };
-type Machine = { id: string; name: string; currentWeight: number | null };
+type Machine = { id: string; name: string; currentWeight: number | null; photo?: string };
 type HistoryEntry = {
   id: string;
   sets: [number, number, number];
@@ -103,6 +103,7 @@ export function useMachines(categoryId: string) {
 export function useMachineDetail(categoryId: string, machineId: string) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [currentSets, setCurrentSets] = useState<[number, number, number] | null>(null);
+  const [photo, setPhoto] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     getData().then((data) => {
@@ -111,8 +112,36 @@ export function useMachineDetail(categoryId: string, machineId: string) {
       }));
       setHistory(entries);
       setCurrentSets(entries[0]?.sets ?? null);
+
+      const machine = (data.machines[categoryId] ?? []).find((m) => m.id === machineId);
+      setPhoto(machine?.photo);
     });
   }, [machineId]);
+
+  const updatePhoto = useCallback(
+    async (uri: string) => {
+      const data = await getData();
+      const machines = data.machines[categoryId] ?? [];
+      const idx = machines.findIndex((m) => m.id === machineId);
+      if (idx !== -1) {
+        machines[idx].photo = uri;
+        await saveData(data);
+        setPhoto(uri);
+      }
+    },
+    [categoryId, machineId]
+  );
+
+  const removePhoto = useCallback(async () => {
+    const data = await getData();
+    const machines = data.machines[categoryId] ?? [];
+    const idx = machines.findIndex((m) => m.id === machineId);
+    if (idx !== -1) {
+      delete machines[idx].photo;
+      await saveData(data);
+      setPhoto(undefined);
+    }
+  }, [categoryId, machineId]);
 
   const addEntry = useCallback(
     async (sets: [number, number, number]) => {
@@ -128,5 +157,5 @@ export function useMachineDetail(categoryId: string, machineId: string) {
     [machineId]
   );
 
-  return { currentSets, history, addEntry };
+  return { currentSets, history, photo, addEntry, updatePhoto, removePhoto };
 }
