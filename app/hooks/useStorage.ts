@@ -3,12 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const STORAGE_KEY = "app_data";
 
-// ── Types ──
 type Category = { id: string; name: string; machineCount: number };
 type Machine = { id: string; name: string; currentWeight: number | null };
 type HistoryEntry = {
   id: string;
-  sets: [number, number, number]; // peso de cada uma das 3 séries
+  sets: [number, number, number];
   date: string;
   label: string;
 };
@@ -18,7 +17,6 @@ type AppData = {
   history: Record<string, HistoryEntry[]>;
 };
 
-// ── Helpers ──
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 let cache: AppData | null = null;
@@ -47,15 +45,13 @@ function formatDateLabel(dateStr: string): string {
   return d.toLocaleDateString("pt-BR");
 }
 
-// ── Hook: Categorias ──
 export function useCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     getData().then((data) => {
       const cats = data.categories.map((c) => ({
-        ...c,
-        machineCount: (data.machines[c.id] ?? []).length,
+        ...c, machineCount: (data.machines[c.id] ?? []).length,
       }));
       setCategories(cats);
     });
@@ -73,7 +69,6 @@ export function useCategories() {
   return { categories, addCategory };
 }
 
-// ── Hook: Máquinas ──
 export function useMachines(categoryId: string) {
   const [machines, setMachines] = useState<Machine[]>([]);
 
@@ -105,7 +100,6 @@ export function useMachines(categoryId: string) {
   return { machines, addMachine };
 }
 
-// ── Hook: Detalhe da Máquina ──
 export function useMachineDetail(categoryId: string, machineId: string) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [currentSets, setCurrentSets] = useState<[number, number, number] | null>(null);
@@ -113,8 +107,7 @@ export function useMachineDetail(categoryId: string, machineId: string) {
   useEffect(() => {
     getData().then((data) => {
       const entries = (data.history[machineId] ?? []).map((e) => ({
-        ...e,
-        label: formatDateLabel(e.date),
+        ...e, label: formatDateLabel(e.date),
       }));
       setHistory(entries);
       setCurrentSets(entries[0]?.sets ?? null);
@@ -124,20 +117,11 @@ export function useMachineDetail(categoryId: string, machineId: string) {
   const addEntry = useCallback(
     async (sets: [number, number, number]) => {
       const data = await getData();
-      const entry: HistoryEntry = {
-        id: uid(),
-        sets,
-        date: new Date().toISOString(),
-        label: "hoje",
-      };
+      const entry: HistoryEntry = { id: uid(), sets, date: new Date().toISOString(), label: "hoje" };
       if (!data.history[machineId]) data.history[machineId] = [];
       data.history[machineId].unshift(entry);
       await saveData(data);
-
-      const entries = data.history[machineId].map((e) => ({
-        ...e,
-        label: formatDateLabel(e.date),
-      }));
+      const entries = data.history[machineId].map((e) => ({ ...e, label: formatDateLabel(e.date) }));
       setHistory(entries);
       setCurrentSets(sets);
     },

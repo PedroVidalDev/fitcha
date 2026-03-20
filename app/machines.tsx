@@ -8,8 +8,9 @@ import { AnimatedCard } from "./components/AnimatedCard";
 import { GradientCard } from "./components/GradientCard";
 import { Ionicons } from "@expo/vector-icons";
 import { s } from "./styles/theme";
+import { useTheme } from "./contexts/ThemeContext";
 
-export function MachinesScreen() {
+export default function MachinesScreen() {
   const router = useRouter();
   const { categoryId, categoryName } = useLocalSearchParams<{
     categoryId: string;
@@ -17,31 +18,33 @@ export function MachinesScreen() {
   }>();
   const { machines, addMachine } = useMachines(categoryId);
   const [modalVisible, setModalVisible] = useState(false);
+  const { t } = useTheme();
 
   return (
-    <View style={s.container}>
+    <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
       <Stack.Screen
         options={{
           title: categoryName ?? "Máquinas",
+          headerLeft: undefined,
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              style={s.headerBtn}
-            >
-              <Ionicons name="add-circle" size={28} color="#F4A261" />
-            </TouchableOpacity>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
+                <Ionicons name="add-circle" size={28} color={t.accent} />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
 
-      <Text style={s.subtitle}>máquinas</Text>
+      <Text style={{
+        color: t.textDim, fontSize: 11, fontWeight: "700",
+        textTransform: "uppercase", letterSpacing: 2, marginBottom: 18, marginLeft: 2,
+      }}>
+        máquinas
+      </Text>
 
       {machines.length === 0 ? (
-        <EmptyState
-          icon="cog-outline"
-          message="Nenhuma máquina ainda"
-          hint='Toque no "+" para adicionar'
-        />
+        <EmptyState icon="cog-outline" message="Nenhuma máquina ainda" hint='Toque no "+" para adicionar' />
       ) : (
         <FlatList
           data={machines}
@@ -54,24 +57,25 @@ export function MachinesScreen() {
                 onPress={() =>
                   router.push({
                     pathname: "/detail",
-                    params: {
-                      categoryId,
-                      machineId: item.id,
-                      machineName: item.name,
-                    },
+                    params: { categoryId, machineId: item.id, machineName: item.name },
                   })
                 }
               >
-                <View style={s.cardIcon}>
-                  <Ionicons name="cog" size={22} color="#F4A261" />
+                <View style={{
+                  width: 44, height: 44, borderRadius: 13,
+                  backgroundColor: t.chipBg, justifyContent: "center", alignItems: "center",
+                }}>
+                  <Ionicons name="cog" size={22} color={t.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={s.cardTitle}>{item.name}</Text>
-                  <Text style={s.cardSub}>
+                  <Text style={{ color: t.textPrimary, fontSize: 16, fontWeight: "700" }}>
+                    {item.name}
+                  </Text>
+                  <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 3, fontWeight: "500" }}>
                     {item.currentWeight ? `${item.currentWeight} kg` : "sem registro"}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#8B4513" />
+                <Ionicons name="chevron-forward" size={18} color={t.textMuted} />
               </GradientCard>
             </AnimatedCard>
           )}
@@ -83,13 +87,8 @@ export function MachinesScreen() {
         title="Nova Máquina"
         placeholder="Ex: Supino Reto, Leg Press..."
         onClose={() => setModalVisible(false)}
-        onAdd={(name) => {
-          addMachine(name);
-          setModalVisible(false);
-        }}
+        onAdd={(name) => { addMachine(name); setModalVisible(false); }}
       />
     </View>
   );
 }
-
-export default MachinesScreen;
