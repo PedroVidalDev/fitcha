@@ -1,50 +1,68 @@
-# Welcome to your Expo app 👋
+# 💪 Fitcha
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Seu caderno de treino digital. Registre categorias de exercício, máquinas e o peso de cada série — tudo salvo localmente no celular.
 
-## Get started
+## Sobre
 
-1. Install dependencies
+Fitcha é um app mobile para quem treina e quer acompanhar sua evolução de cargas de forma simples. Sem cadastro, sem nuvem, sem complicação. Abriu, registrou, fechou.
 
-   ```bash
-   npm install
-   ```
+## Funcionalidades
 
-2. Start the app
+- **Categorias de treino** — organize por grupo muscular (Peito, Costas, Pernas, etc.)
+- **Máquinas e exercícios** — adicione cada equipamento dentro da categoria
+- **Registro de 3 séries** — anote o peso de cada série individualmente
+- **Histórico de evolução** — veja todos os registros anteriores com indicador de progresso (delta)
+- **Foto da máquina** — tire uma foto ou escolha da galeria para identificar visualmente cada equipamento
+- **Tema claro/escuro** — troca instantânea com preferência salva localmente
+- **Remoção com long press** — segure qualquer categoria, máquina ou registro para remover
+- **100% offline** — todos os dados ficam no dispositivo via AsyncStorage
 
-   ```bash
-   npx expo start
-   ```
+## Tech Stack
 
-In the output, you'll find options to open the app in a
+- **React Native** com Expo (SDK 54)
+- **Expo Router** — navegação file-based com tipagem
+- **AsyncStorage** — persistência local
+- **expo-image-picker** — câmera e galeria
+- **expo-linear-gradient** — gradientes nos cards e botões
+- **TypeScript** — tipagem em todo o projeto
+- **React Compiler** — otimização automática habilitada
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Instalação
 
 ```bash
-npm run reset-project
+# Clone o repositório
+git clone https://github.com/pedrovidaldev/fitcha.git
+cd fitcha
+
+# Instale as dependências
+npm install
+
+# Rode o projeto
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Dependências necessárias
 
-## Learn more
+```bash
+npx expo install @react-native-async-storage/async-storage expo-linear-gradient expo-image-picker
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Build (APK)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+O projeto usa **EAS Build** com GitHub Actions. A cada push na `main`, um APK é gerado automaticamente e publicado como GitHub Release.
 
-## Join the community
+Para buildar manualmente:
 
-Join our community of developers creating universal apps.
+```bash
+npm install -g eas-cli
+eas login
+eas build --platform android --profile preview
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Download
+
+Acesse a aba [Releases](../../releases) para baixar o APK mais recente.
+
+## Licença
+
+MIT
