@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK & Release
 
 on:
   push:
@@ -29,10 +29,35 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build APK
-        run: eas build --platform android --profile preview --non-interactive
+        run: eas build --platform android --profile preview --non-interactive --wait
 
-      # Opcional: comenta o link do APK na última commit
-      - name: Get build URL
-        if: success()
+      - name: Download APK from EAS
         run: |
-          echo "✅ Build iniciado! Acesse https://expo.dev/accounts para baixar o APK."
+          # Pega a URL do último build finalizado
+          BUILD_URL=$(eas build:list --platform android --status finished --limit 1 --non-interactive --json | jq -r '.[0].artifacts.buildUrl')
+          echo "Downloading APK from: $BUILD_URL"
+          curl -L -o app-release.apk "$BUILD_URL"
+
+      - name: Generate version tag
+        id: version
+        run: |
+          # Gera tag baseada na data + short SHA
+          TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Generated tag: $TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Build ${{ steps.version.outputs.tag }}"
+          body: |
+            **Build automático** gerado a partir do commit `${{ github.sha }}`.
+
+            📱 Baixe o APK abaixo e instale no seu Android.
+
+            > Pode ser necessário habilitar "Instalar de fontes desconhecidas" nas configurações do celular.
+          files: app-release.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
