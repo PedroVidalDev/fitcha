@@ -31,7 +31,7 @@ Fitcha é um app mobile para quem treina e quer acompanhar sua evolução de car
 
 ```bash
 # Clone o repositório
-git clone https://github.com/pedrovidaldev/fitcha.git
+git clone https://github.com/PedroVidalDev/fitcha.git
 cd fitcha
 
 # Instale as dependências
