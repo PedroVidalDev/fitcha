@@ -1,5 +1,5 @@
 import {
-  View, Text, FlatList, TouchableOpacity, TextInput,
+  View, Text, TouchableOpacity, TextInput,
   Animated as RNAnimated, Image, Alert, ScrollView,
 } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
@@ -7,16 +7,18 @@ import { useMachineDetail } from "./hooks/useStorage";
 import { useState, useRef, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { AnimatedCard } from "./components/AnimatedCard";
+import { ConfirmModal } from "./components/ConfirmModal";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "./contexts/ThemeContext";
 import * as ImagePicker from "expo-image-picker";
 
 function WeightDelta({ current, previous }: { current: number; previous?: number }) {
+  const { t } = useTheme();
+
   if (!previous) return null;
   const diff = current - previous;
   if (diff === 0) return null;
   const isUp = diff > 0;
-  const { t } = useTheme();
   return (
     <View style={{
       flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8,
@@ -34,10 +36,12 @@ export default function DetailScreen() {
   const { categoryId, machineId, machineName } = useLocalSearchParams<{
     categoryId: string; machineId: string; machineName: string;
   }>();
-  const { currentSets, history, photo, addEntry, updatePhoto, removePhoto } = useMachineDetail(categoryId, machineId);
+  const { currentSets, history, photo, addEntry, updatePhoto, removePhoto, deleteHistoryEntry } =
+    useMachineDetail(categoryId, machineId);
   const [set1, setSet1] = useState("");
   const [set2, setSet2] = useState("");
   const [set3, setSet3] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const { t } = useTheme();
 
   const scaleAnim = useRef(new RNAnimated.Value(0.8)).current;
@@ -57,10 +61,7 @@ export default function DetailScreen() {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.7,
+      mediaTypes: ["images"], allowsEditing: true, aspect: [16, 9], quality: 0.7,
     });
     if (!result.canceled && result.assets[0]) updatePhoto(result.assets[0].uri);
   };
@@ -72,9 +73,7 @@ export default function DetailScreen() {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.7,
+      allowsEditing: true, aspect: [16, 9], quality: 0.7,
     });
     if (!result.canceled && result.assets[0]) updatePhoto(result.assets[0].uri);
   };
@@ -104,12 +103,10 @@ export default function DetailScreen() {
   const handleSave = () => {
     const s1 = parseW(set1), s2 = parseW(set2), s3 = parseW(set3);
     if ([s1, s2, s3].some((v) => isNaN(v) || v <= 0)) return;
-
     RNAnimated.sequence([
       RNAnimated.spring(scaleAnim, { toValue: 1.1, tension: 100, friction: 5, useNativeDriver: true }),
       RNAnimated.spring(scaleAnim, { toValue: 1, tension: 50, friction: 7, useNativeDriver: true }),
     ]).start();
-
     addEntry([s1, s2, s3]);
     setSet1(""); setSet2(""); setSet3("");
   };
@@ -123,13 +120,16 @@ export default function DetailScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: t.bg }} contentContainerStyle={{ padding: 16, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: t.bg }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
+    >
       <Stack.Screen options={{ title: machineName ?? "Detalhe" }} />
 
-      {/* Foto da máquina */}
+      {/* Foto */}
       <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={handlePhotoPress}
+        activeOpacity={0.8} onPress={handlePhotoPress}
         style={{
           width: "100%", height: photo ? 180 : 80, borderRadius: 16, marginBottom: 16,
           backgroundColor: t.inputBg, borderWidth: 0.5, borderColor: t.border,
@@ -137,11 +137,7 @@ export default function DetailScreen() {
         }}
       >
         {photo ? (
-          <Image
-            source={{ uri: photo }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: photo }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
         ) : (
           <View style={{ alignItems: "center", gap: 6 }}>
             <Ionicons name="camera-outline" size={28} color={t.textDim} />
@@ -152,9 +148,8 @@ export default function DetailScreen() {
         )}
         {photo && (
           <View style={{
-            position: "absolute", bottom: 8, right: 8,
-            backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 20,
-            width: 32, height: 32, justifyContent: "center", alignItems: "center",
+            position: "absolute", bottom: 8, right: 8, backgroundColor: "rgba(0,0,0,0.5)",
+            borderRadius: 20, width: 32, height: 32, justifyContent: "center", alignItems: "center",
           }}>
             <Ionicons name="pencil" size={14} color="#FFF" />
           </View>
@@ -169,7 +164,6 @@ export default function DetailScreen() {
         }}
       >
         <Text style={labelStyle}>séries atuais</Text>
-
         {currentSets ? (
           <RNAnimated.View style={{ transform: [{ scale: scaleAnim }], opacity: fadeAnim, alignItems: "center" }}>
             <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
@@ -193,7 +187,6 @@ export default function DetailScreen() {
         ) : (
           <Text style={{ color: t.textMuted, fontSize: 48, fontWeight: "900", marginTop: 8 }}>—</Text>
         )}
-
         {maxW != null && prevMax != null && <WeightDelta current={maxW} previous={prevMax} />}
       </LinearGradient>
 
@@ -247,24 +240,42 @@ export default function DetailScreen() {
         <View style={{ gap: 8 }}>
           {history.map((item, index) => (
             <AnimatedCard key={item.id} index={index}>
-              <View style={{
-                flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-                backgroundColor: t.histBg, borderRadius: 12,
-                paddingHorizontal: 16, paddingVertical: 12, borderWidth: 0.5, borderColor: t.border,
-              }}>
-                <Text style={{ color: t.textMuted, fontSize: 13, fontWeight: "500" }}>{item.label}</Text>
-                <View style={{ flexDirection: "row", gap: 14 }}>
-                  {item.sets.map((w, i) => (
-                    <Text key={i} style={{ color: t.accent, fontSize: 14, fontWeight: "700" }}>
-                      {w}<Text style={{ color: t.textMuted, fontSize: 11, fontWeight: "500" }}>kg</Text>
-                    </Text>
-                  ))}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onLongPress={() => setDeleteTarget({ id: item.id, label: item.label })}
+                delayLongPress={400}
+              >
+                <View style={{
+                  flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+                  backgroundColor: t.histBg, borderRadius: 12,
+                  paddingHorizontal: 16, paddingVertical: 12, borderWidth: 0.5, borderColor: t.border,
+                }}>
+                  <Text style={{ color: t.textMuted, fontSize: 13, fontWeight: "500" }}>{item.label}</Text>
+                  <View style={{ flexDirection: "row", gap: 14 }}>
+                    {item.sets.map((w, i) => (
+                      <Text key={i} style={{ color: t.accent, fontSize: 14, fontWeight: "700" }}>
+                        {w}<Text style={{ color: t.textMuted, fontSize: 11, fontWeight: "500" }}>kg</Text>
+                      </Text>
+                    ))}
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </AnimatedCard>
           ))}
         </View>
       )}
+
+      <ConfirmModal
+        visible={!!deleteTarget}
+        title="Remover registro"
+        message={`Deseja remover o registro de "${deleteTarget?.label}"?`}
+        confirmLabel="Remover"
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteHistoryEntry(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
     </ScrollView>
   );
 }

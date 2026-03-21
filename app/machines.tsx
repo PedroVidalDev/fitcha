@@ -3,21 +3,21 @@ import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import { useMachines } from "./hooks/useStorage";
 import { useState } from "react";
 import { AddModal } from "./components/AddModal";
+import { ConfirmModal } from "./components/ConfirmModal";
 import { EmptyState } from "./components/EmptyState";
 import { AnimatedCard } from "./components/AnimatedCard";
 import { GradientCard } from "./components/GradientCard";
 import { Ionicons } from "@expo/vector-icons";
-import { s } from "./styles/theme";
 import { useTheme } from "./contexts/ThemeContext";
 
 export default function MachinesScreen() {
   const router = useRouter();
   const { categoryId, categoryName } = useLocalSearchParams<{
-    categoryId: string;
-    categoryName: string;
+    categoryId: string; categoryName: string;
   }>();
-  const { machines, addMachine } = useMachines(categoryId);
+  const { machines, addMachine, deleteMachine } = useMachines(categoryId);
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const { t } = useTheme();
 
   return (
@@ -25,7 +25,6 @@ export default function MachinesScreen() {
       <Stack.Screen
         options={{
           title: categoryName ?? "Máquinas",
-          headerLeft: undefined,
           headerRight: () => (
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
@@ -60,6 +59,7 @@ export default function MachinesScreen() {
                     params: { categoryId, machineId: item.id, machineName: item.name },
                   })
                 }
+                onLongPress={() => setDeleteTarget({ id: item.id, name: item.name })}
               >
                 <View style={{
                   width: 44, height: 44, borderRadius: 13,
@@ -88,6 +88,18 @@ export default function MachinesScreen() {
         placeholder="Ex: Supino Reto, Leg Press..."
         onClose={() => setModalVisible(false)}
         onAdd={(name) => { addMachine(name); setModalVisible(false); }}
+      />
+
+      <ConfirmModal
+        visible={!!deleteTarget}
+        title="Remover máquina"
+        message={`Deseja remover "${deleteTarget?.name}"? Todo o histórico será apagado.`}
+        confirmLabel="Remover"
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteMachine(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
       />
     </View>
   );

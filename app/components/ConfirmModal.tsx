@@ -1,0 +1,71 @@
+import {
+  Modal, View, Text, TouchableOpacity, Animated, Platform,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRef, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext";
+
+type Props = {
+  visible: boolean; title: string; message: string;
+  confirmLabel?: string; onClose: () => void; onConfirm: () => void;
+};
+
+export function ConfirmModal({ visible, title, message, confirmLabel = "Confirmar", onClose, onConfirm }: Props) {
+  const scale = useRef(new Animated.Value(0.9)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  const { t } = useTheme();
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(scale, { toValue: 1, tension: 65, friction: 8, useNativeDriver: true }),
+        Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
+    } else {
+      scale.setValue(0.9);
+      fade.setValue(0);
+    }
+  }, [visible]);
+
+  return (
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+      <Animated.View style={{
+        flex: 1, backgroundColor: t.overlay, justifyContent: "center",
+        alignItems: "center", padding: 24, opacity: fade,
+      }}>
+        <Animated.View style={{ transform: [{ scale }], width: "100%" }}>
+          <LinearGradient colors={t.gradientModal} style={{
+            width: "100%", borderRadius: 20, padding: 24,
+            borderWidth: 0.5, borderColor: t.border,
+            ...Platform.select({
+              ios: { shadowColor: t.shadow, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 24 },
+              android: { elevation: 12 },
+            }),
+          }}>
+            <Text style={{ color: t.accent, fontSize: 20, fontWeight: "800", marginBottom: 10 }}>
+              {title}
+            </Text>
+            <Text style={{ color: t.textMuted, fontSize: 14, lineHeight: 20, marginBottom: 22 }}>
+              {message}
+            </Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+              <TouchableOpacity onPress={onClose} style={{ padding: 12, justifyContent: "center" }}>
+                <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "600" }}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onConfirm} activeOpacity={0.75}
+                style={{
+                  backgroundColor: "#EF5350", paddingHorizontal: 24,
+                  paddingVertical: 12, borderRadius: 12,
+                }}
+              >
+                <Text style={{ color: "#FFF", fontSize: 15, fontWeight: "800" }}>
+                  {confirmLabel}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
+  );
+}

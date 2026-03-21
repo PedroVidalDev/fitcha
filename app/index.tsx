@@ -8,11 +8,13 @@ import { EmptyState } from "./components/EmptyState";
 import { GradientCard } from "./components/GradientCard";
 import { useCategories } from "./hooks/useStorage";
 import { useTheme } from "./contexts/ThemeContext";
+import { ConfirmModal } from "./components/ConfirmModal";
 
 function InnerIndex() {
   const router = useRouter();
-  const { categories, addCategory } = useCategories();
+  const { categories, addCategory, deleteCategory } = useCategories();
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const { t } = useTheme();
 
   return (
@@ -52,6 +54,7 @@ function InnerIndex() {
                     params: { categoryId: item.id, categoryName: item.name },
                   })
                 }
+                onLongPress={() => setDeleteTarget({ id: item.id, name: item.name })}
               >
                 <View style={{
                   width: 44, height: 44, borderRadius: 13,
@@ -80,6 +83,18 @@ function InnerIndex() {
         placeholder="Ex: Peito, Costas, Pernas..."
         onClose={() => setModalVisible(false)}
         onAdd={(name) => { addCategory(name); setModalVisible(false); }}
+      />
+
+      <ConfirmModal
+        visible={!!deleteTarget}
+        title="Remover categoria"
+        message={`Deseja remover "${deleteTarget?.name}"? Todas as máquinas e históricos desta categoria serão apagados.`}
+        confirmLabel="Remover"
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteCategory(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
       />
     </View>
   );

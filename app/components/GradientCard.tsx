@@ -1,13 +1,15 @@
-import { TouchableOpacity, StyleSheet, Platform } from "react-native";
+import { TouchableOpacity, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../contexts/ThemeContext";
 
-type Props = { children: React.ReactNode; onPress?: () => void };
+type Props = { children: React.ReactNode; onPress?: () => void; onLongPress?: () => void };
 
-export function GradientCard({ children, onPress }: Props) {
+export function GradientCard({ children, onPress, onLongPress }: Props) {
   const { t } = useTheme();
   return (
-    <TouchableOpacity activeOpacity={0.75} onPress={onPress}
+    <TouchableOpacity
+      activeOpacity={0.75} onPress={onPress}
+      onLongPress={onLongPress} delayLongPress={400}
       style={{
         borderRadius: 16,
         ...Platform.select({
