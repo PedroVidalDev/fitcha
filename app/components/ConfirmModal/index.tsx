@@ -3,14 +3,12 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useEffect } from "react";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { ConfirmModalProps } from "./types";
 
-type Props = {
-  visible: boolean; title: string; message: string;
-  confirmLabel?: string; onClose: () => void; onConfirm: () => void;
-};
+export function ConfirmModal(props: ConfirmModalProps) {
+  const { visible, title, message, confirmLabel = "Confirmar", onClose, onConfirm } = props;
 
-export function ConfirmModal({ visible, title, message, confirmLabel = "Confirmar", onClose, onConfirm }: Props) {
   const scale = useRef(new Animated.Value(0.9)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const { t } = useTheme();

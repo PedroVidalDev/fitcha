@@ -4,14 +4,12 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState, useRef, useEffect } from "react";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { AddModalProps } from "./types";
 
-type Props = {
-  visible: boolean; title: string; placeholder: string;
-  onClose: () => void; onAdd: (name: string) => void;
-};
+export function AddModal(props: AddModalProps) {
+  const { visible, title, placeholder, onClose, onAdd } = props;
 
-export function AddModal({ visible, title, placeholder, onClose, onAdd }: Props) {
   const [value, setValue] = useState("");
   const scale = useRef(new Animated.Value(0.9)).current;
   const fade = useRef(new Animated.Value(0)).current;

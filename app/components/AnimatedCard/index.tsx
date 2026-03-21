@@ -1,13 +1,11 @@
 import { useRef, useEffect } from "react";
-import { Animated, ViewStyle } from "react-native";
+import { Animated } from "react-native";
+import { AnimatedCardProps } from "./types";
 
-type Props = {
-  index: number;
-  children: React.ReactNode;
-  style?: ViewStyle;
-};
 
-export function AnimatedCard({ index, children, style }: Props) {
+export function AnimatedCard(props: AnimatedCardProps) {
+  const { index, children, style } = props;
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
 

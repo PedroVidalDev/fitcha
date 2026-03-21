@@ -1,11 +1,13 @@
 import { View, Text, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useEffect } from "react";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { EmptyStateProps } from "./types";
 
-type Props = { icon: string; message: string; hint: string };
 
-export function EmptyState({ icon, message, hint }: Props) {
+export function EmptyState(props: EmptyStateProps) {
+  const { icon, message, hint } = props;
+
   const fade = useRef(new Animated.Value(0)).current;
   const { t } = useTheme();
 

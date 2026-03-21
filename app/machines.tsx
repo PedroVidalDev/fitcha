@@ -1,14 +1,14 @@
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { useRouter, useLocalSearchParams, Stack } from "expo-router";
-import { useMachines } from "./hooks/useStorage";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddModal } from "./components/AddModal";
+import { AnimatedCard } from "./components/AnimatedCard";
 import { ConfirmModal } from "./components/ConfirmModal";
 import { EmptyState } from "./components/EmptyState";
-import { AnimatedCard } from "./components/AnimatedCard";
 import { GradientCard } from "./components/GradientCard";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "./contexts/ThemeContext";
+import { useMachines } from "./hooks/useStorage";
 
 export default function MachinesScreen() {
   const router = useRouter();

@@ -1,10 +1,12 @@
-import { TouchableOpacity, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme } from "../contexts/ThemeContext";
+import { Platform, TouchableOpacity } from "react-native";
+import { useTheme } from "../../contexts/ThemeContext";
+import { GradientCardProps } from "./types";
 
-type Props = { children: React.ReactNode; onPress?: () => void; onLongPress?: () => void };
 
-export function GradientCard({ children, onPress, onLongPress }: Props) {
+export function GradientCard(props: GradientCardProps) {
+  const { children, onPress, onLongPress } = props;
+
   const { t } = useTheme();
   return (
     <TouchableOpacity

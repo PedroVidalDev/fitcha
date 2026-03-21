@@ -1,16 +1,22 @@
-import {
-  View, Text, TouchableOpacity, TextInput,
-  Animated as RNAnimated, Image, Alert, ScrollView,
-} from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
-import { useMachineDetail } from "./hooks/useStorage";
-import { useState, useRef, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  Image,
+  Animated as RNAnimated,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { AnimatedCard } from "./components/AnimatedCard";
 import { ConfirmModal } from "./components/ConfirmModal";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "./contexts/ThemeContext";
-import * as ImagePicker from "expo-image-picker";
+import { useMachineDetail } from "./hooks/useStorage";
 
 function WeightDelta({ current, previous }: { current: number; previous?: number }) {
   const { t } = useTheme();

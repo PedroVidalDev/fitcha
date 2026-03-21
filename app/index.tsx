@@ -4,11 +4,11 @@ import { useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddModal } from "./components/AddModal";
 import { AnimatedCard } from "./components/AnimatedCard";
+import { ConfirmModal } from "./components/ConfirmModal";
 import { EmptyState } from "./components/EmptyState";
 import { GradientCard } from "./components/GradientCard";
-import { useCategories } from "./hooks/useStorage";
 import { useTheme } from "./contexts/ThemeContext";
-import { ConfirmModal } from "./components/ConfirmModal";
+import { useCategories } from "./hooks/useStorage";
 
 function InnerIndex() {
   const router = useRouter();
