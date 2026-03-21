@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "fitcha",
+    "name": "Fitcha",
     "slug": "fitcha",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,20 +17,16 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#0d0500",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#0d0500"
           }
         }
       ]
