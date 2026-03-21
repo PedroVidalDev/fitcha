@@ -32,7 +32,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build APK
-        run: eas build --platform android --profile preview --non-interactive --wait --verbose
+        run: eas build --platform android --profile preview --non-interactive --wait --json
 
       - name: Download APK from EAS
         run: |
