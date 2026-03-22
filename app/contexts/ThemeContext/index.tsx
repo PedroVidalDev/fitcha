@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeCtx>({
 
 export const useTheme = () => useContext(ThemeContext);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [mode, setMode] = useState<Mode>("dark");
   const [ready, setReady] = useState(false);
 

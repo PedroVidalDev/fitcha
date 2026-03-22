@@ -3,7 +3,7 @@ import { Animated } from "react-native";
 import { AnimatedCardProps } from "./types";
 
 
-export function AnimatedCard(props: AnimatedCardProps) {
+export const AnimatedCard = (props: AnimatedCardProps) => {
   const { index, children, style } = props;
 
   const fadeAnim = useRef(new Animated.Value(0)).current;

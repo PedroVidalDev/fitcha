@@ -2,15 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
-import { AddModal } from "./components/AddModal";
-import { AnimatedCard } from "./components/AnimatedCard";
-import { ConfirmModal } from "./components/ConfirmModal";
-import { EmptyState } from "./components/EmptyState";
-import { GradientCard } from "./components/GradientCard";
-import { useTheme } from "./contexts/ThemeContext";
-import { useMachines } from "./hooks/useStorage";
+import { AddModal } from "./../../components/AddModal";
+import { AnimatedCard } from "./../../components/AnimatedCard";
+import { ConfirmModal } from "./../../components/ConfirmModal";
+import { EmptyState } from "./../../components/EmptyState";
+import { GradientCard } from "./../../components/GradientCard";
+import { useTheme } from "./../../contexts/ThemeContext";
+import { useMachines } from "./../../hooks/useStorage";
 
-export default function MachinesScreen() {
+export const MachinesScreen = () => {
   const router = useRouter();
   const { categoryId, categoryName } = useLocalSearchParams<{
     categoryId: string; categoryName: string;

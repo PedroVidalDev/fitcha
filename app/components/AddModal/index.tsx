@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { AddModalProps } from "./types";
 
-export function AddModal(props: AddModalProps) {
+export const AddModal = (props: AddModalProps) => {
   const { visible, title, placeholder, onClose, onAdd } = props;
 
   const [value, setValue] = useState("");

@@ -3,8 +3,7 @@ import { Platform, TouchableOpacity } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { GradientCardProps } from "./types";
 
-
-export function GradientCard(props: GradientCardProps) {
+export const GradientCard = (props: GradientCardProps) => {
   const { children, onPress, onLongPress } = props;
 
   const { t } = useTheme();

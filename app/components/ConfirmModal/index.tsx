@@ -6,7 +6,7 @@ import { useRef, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { ConfirmModalProps } from "./types";
 
-export function ConfirmModal(props: ConfirmModalProps) {
+export const ConfirmModal = (props: ConfirmModalProps) => {
   const { visible, title, message, confirmLabel = "Confirmar", onClose, onConfirm } = props;
 
   const scale = useRef(new Animated.Value(0.9)).current;

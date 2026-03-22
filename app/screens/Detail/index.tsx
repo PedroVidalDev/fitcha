@@ -13,10 +13,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AnimatedCard } from "./components/AnimatedCard";
-import { ConfirmModal } from "./components/ConfirmModal";
-import { useTheme } from "./contexts/ThemeContext";
-import { useMachineDetail } from "./hooks/useStorage";
+import { AnimatedCard } from "./../../components/AnimatedCard";
+import { ConfirmModal } from "./../../components/ConfirmModal";
+import { useTheme } from "./../../contexts/ThemeContext";
+import { useMachineDetail } from "./../../hooks/useStorage";
 
 function WeightDelta({ current, previous }: { current: number; previous?: number }) {
   const { t } = useTheme();
@@ -38,7 +38,7 @@ function WeightDelta({ current, previous }: { current: number; previous?: number
   );
 }
 
-export default function DetailScreen() {
+export const DetailScreen = () => {
   const { categoryId, machineId, machineName } = useLocalSearchParams<{
     categoryId: string; machineId: string; machineName: string;
   }>();

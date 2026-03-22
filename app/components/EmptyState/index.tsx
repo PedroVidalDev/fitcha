@@ -5,7 +5,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { EmptyStateProps } from "./types";
 
 
-export function EmptyState(props: EmptyStateProps) {
+export const EmptyState = (props: EmptyStateProps) => {
   const { icon, message, hint } = props;
 
   const fade = useRef(new Animated.Value(0)).current;
