@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, Alert } from "react-native";
 import { AddModal } from "./../../components/AddModal";
 import { AnimatedCard } from "./../../components/AnimatedCard";
 import { ConfirmModal } from "./../../components/ConfirmModal";
@@ -10,13 +10,17 @@ import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useCategories } from "./../../hooks/useStorage";
 import { DayBadges } from "@/app/components/DayBadges";
+import { AIWizard } from "../../components/AIWizard";
 
 const Categories = () => {
   const router = useRouter();
+
+  const { t } = useTheme();
+
   const { categories, addCategory, deleteCategory } = useCategories();
   const [modalVisible, setModalVisible] = useState(false);
+  const [wizardVisible, setWizardVisible] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const { t } = useTheme();
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
@@ -24,9 +28,14 @@ const Categories = () => {
         options={{
           title: "Fitcha",
           headerLeft: () => (
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
-              <Ionicons name="add-circle" size={28} color={t.accent} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
+                <Ionicons name="add-circle" size={28} color={t.accent} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setWizardVisible(true)} style={{ padding: 4 }}>
+                <Ionicons name="sparkles" size={26} color={t.accent} />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
@@ -100,6 +109,20 @@ const Categories = () => {
         onConfirm={() => {
           if (deleteTarget) deleteCategory(deleteTarget.id);
           setDeleteTarget(null);
+        }}
+      />
+
+      <AIWizard
+        visible={wizardVisible}
+        onClose={() => setWizardVisible(false)}
+        onFinish={(prompt) => {
+          Alert.alert(
+            "Prompt gerado",
+            prompt.substring(0, 200) + "...",
+            [{ text: "OK" }]
+          );
+          console.log("=== PROMPT COMPLETO ===");
+          console.log(prompt);
         }}
       />
     </View>
