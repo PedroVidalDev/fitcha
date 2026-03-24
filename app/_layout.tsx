@@ -3,9 +3,15 @@ import { StatusBar } from "expo-status-bar";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import { useEffect } from "react";
+import { requestNotificationPermission } from "./services/notifications";
 
 function InnerLayout() {
   const { t, toggle } = useTheme();
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   return (
     <>

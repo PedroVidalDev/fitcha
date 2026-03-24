@@ -58,11 +58,12 @@ const Categories = () => {
           renderItem={({ item, index }) => (
             <AnimatedCard index={index}>
               <GradientCard
-                onPress={() =>
-                  router.push({
-                    pathname: "/screens/Machines",
-                    params: { categoryId: item.id, categoryName: item.name },
-                  })
+                onPress={() => {
+                    router.push({
+                      pathname: "/screens/Machines",
+                      params: { categoryId: item.id, categoryName: item.name },
+                    })
+                  }
                 }
                 onLongPress={() => setDeleteTarget({ id: item.id, name: item.name })}
               >

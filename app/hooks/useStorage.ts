@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import {
+  scheduleWeeklyNotifications,
+  cancelCategoryNotifications,
+} from "../services/notifications";
 const STORAGE_KEY = "app_data";
 
 type Category = { id: string; name: string; machineCount: number; days: number[] };
@@ -61,6 +64,8 @@ export function useCategories() {
       setCategories(data.categories.map((c) => ({
         ...c, machineCount: (data.machines[c.id] ?? []).length,
       })));
+      
+      await scheduleWeeklyNotifications(categoryId, cat.name, days);
     }
   }, []);
 
@@ -73,6 +78,8 @@ export function useCategories() {
     setCategories(data.categories.map((c) => ({
       ...c, machineCount: (data.machines[c.id] ?? []).length,
     })));
+
+    await scheduleWeeklyNotifications(cat.id, name, days);
   }, []);
 
   const deleteCategory = useCallback(async (categoryId: string) => {
@@ -89,6 +96,8 @@ export function useCategories() {
     setCategories(data.categories.map((c) => ({
       ...c, machineCount: (data.machines[c.id] ?? []).length,
     })));
+
+    await cancelCategoryNotifications(categoryId);
   }, []);
 
   return { categories, addCategory, deleteCategory, updateCategoryDays };
