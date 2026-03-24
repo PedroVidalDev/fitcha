@@ -4,7 +4,6 @@ import { useRef, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { EmptyStateProps } from "./types";
 
-
 export const EmptyState = (props: EmptyStateProps) => {
   const { icon, message, hint } = props;
 

@@ -1,4 +1,4 @@
-import { Categories } from "./screens/Categories";
+import Categories from "./screens/Categories";
 
 export default function Index() {
   return (

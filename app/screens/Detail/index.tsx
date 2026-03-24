@@ -38,7 +38,7 @@ function WeightDelta({ current, previous }: { current: number; previous?: number
   );
 }
 
-export const DetailScreen = () => {
+const DetailScreen = () => {
   const { categoryId, machineId, machineName } = useLocalSearchParams<{
     categoryId: string; machineId: string; machineName: string;
   }>();
@@ -285,3 +285,5 @@ export const DetailScreen = () => {
     </ScrollView>
   );
 }
+
+export default DetailScreen;

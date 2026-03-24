@@ -9,8 +9,9 @@ import { EmptyState } from "./../../components/EmptyState";
 import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useCategories } from "./../../hooks/useStorage";
+import { DayBadges } from "@/app/components/DayBadges";
 
-export const Categories = () => {
+const Categories = () => {
   const router = useRouter();
   const { categories, addCategory, deleteCategory } = useCategories();
   const [modalVisible, setModalVisible] = useState(false);
@@ -50,7 +51,7 @@ export const Categories = () => {
               <GradientCard
                 onPress={() =>
                   router.push({
-                    pathname: "/machines",
+                    pathname: "/screens/Machines",
                     params: { categoryId: item.id, categoryName: item.name },
                   })
                 }
@@ -69,6 +70,7 @@ export const Categories = () => {
                   <Text style={{ color: t.textMuted, fontSize: 12, marginTop: 3, fontWeight: "500" }}>
                     {item.machineCount} máquina{item.machineCount !== 1 ? "s" : ""}
                   </Text>
+                  <DayBadges days={item.days} />
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={t.textMuted} />
               </GradientCard>
@@ -81,8 +83,12 @@ export const Categories = () => {
         visible={modalVisible}
         title="Nova Categoria"
         placeholder="Ex: Peito, Costas, Pernas..."
+        showDayPicker
         onClose={() => setModalVisible(false)}
-        onAdd={(name) => { addCategory(name); setModalVisible(false); }}
+        onAdd={(name, days) => {
+          addCategory(name, days ?? []);
+          setModalVisible(false);
+        }}
       />
 
       <ConfirmModal
@@ -99,3 +105,5 @@ export const Categories = () => {
     </View>
   );
 }
+
+export default Categories;

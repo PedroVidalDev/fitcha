@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const STORAGE_KEY = "app_data";
 
-type Category = { id: string; name: string; machineCount: number };
+type Category = { id: string; name: string; machineCount: number; days: number[] };
 type Machine = { id: string; name: string; currentWeight: number | null; photo?: string };
 type HistoryEntry = { id: string; sets: [number, number, number]; date: string; label: string };
 type AppData = {
@@ -52,9 +52,21 @@ export function useCategories() {
     });
   }, []);
 
-  const addCategory = useCallback(async (name: string) => {
+  const updateCategoryDays = useCallback(async (categoryId: string, days: number[]) => {
     const data = await getData();
-    const cat: Category = { id: uid(), name, machineCount: 0 };
+    const cat = data.categories.find((c) => c.id === categoryId);
+    if (cat) {
+      cat.days = days;
+      await saveData(data);
+      setCategories(data.categories.map((c) => ({
+        ...c, machineCount: (data.machines[c.id] ?? []).length,
+      })));
+    }
+  }, []);
+
+  const addCategory = useCallback(async (name: string, days: number[]) => {
+    const data = await getData();
+    const cat: Category = { id: uid(), name, machineCount: 0, days };
     data.categories.push(cat);
     data.machines[cat.id] = [];
     await saveData(data);
@@ -79,7 +91,7 @@ export function useCategories() {
     })));
   }, []);
 
-  return { categories, addCategory, deleteCategory };
+  return { categories, addCategory, deleteCategory, updateCategoryDays };
 }
 
 // ── Máquinas ──

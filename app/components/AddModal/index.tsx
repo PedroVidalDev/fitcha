@@ -1,16 +1,17 @@
 import {
-  Modal, View, Text, TextInput, TouchableOpacity,
-  Animated, Platform,
+  Modal, View, Text, TextInput, TouchableOpacity, Animated, Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
+import { DayPicker } from "./../DayPicker";
 import { AddModalProps } from "./types";
 
-export const AddModal = (props: AddModalProps) => {
-  const { visible, title, placeholder, onClose, onAdd } = props;
+export function AddModal(props: AddModalProps) {
+  const { visible, title, placeholder, showDayPicker = false, onClose, onAdd } = props;
 
   const [value, setValue] = useState("");
+  const [days, setDays] = useState<number[]>([]);
   const scale = useRef(new Animated.Value(0.9)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const { t } = useTheme();
@@ -30,12 +31,19 @@ export const AddModal = (props: AddModalProps) => {
   const handleAdd = () => {
     const trimmed = value.trim();
     if (!trimmed) return;
-    onAdd(trimmed);
+    onAdd(trimmed, days);
     setValue("");
+    setDays([]);
+  };
+
+  const handleClose = () => {
+    setValue("");
+    setDays([]);
+    onClose();
   };
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
       <Animated.View style={{
         flex: 1, backgroundColor: t.overlay, justifyContent: "center",
         alignItems: "center", padding: 24, opacity: fade,
@@ -60,8 +68,21 @@ export const AddModal = (props: AddModalProps) => {
               placeholder={placeholder} placeholderTextColor={t.textDim}
               value={value} onChangeText={setValue} autoFocus onSubmitEditing={handleAdd}
             />
+
+            {showDayPicker && (
+              <>
+                <Text style={{
+                  color: t.textDim, fontSize: 11, fontWeight: "700",
+                  textTransform: "uppercase", letterSpacing: 1, marginTop: 16, marginLeft: 2,
+                }}>
+                  dias de treino (opcional)
+                </Text>
+                <DayPicker selected={days} onChange={setDays} />
+              </>
+            )}
+
             <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12, marginTop: 22 }}>
-              <TouchableOpacity onPress={onClose} style={{ padding: 12, justifyContent: "center" }}>
+              <TouchableOpacity onPress={handleClose} style={{ padding: 12, justifyContent: "center" }}>
                 <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "600" }}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleAdd} activeOpacity={0.75}>

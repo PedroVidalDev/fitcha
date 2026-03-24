@@ -10,7 +10,7 @@ import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useMachines } from "./../../hooks/useStorage";
 
-export const MachinesScreen = () => {
+const MachinesScreen = () => {
   const router = useRouter();
   const { categoryId, categoryName } = useLocalSearchParams<{
     categoryId: string; categoryName: string;
@@ -55,7 +55,7 @@ export const MachinesScreen = () => {
               <GradientCard
                 onPress={() =>
                   router.push({
-                    pathname: "/detail",
+                    pathname: "/screens/Detail",
                     params: { categoryId, machineId: item.id, machineName: item.name },
                   })
                 }
@@ -104,3 +104,5 @@ export const MachinesScreen = () => {
     </View>
   );
 }
+
+export default MachinesScreen;
