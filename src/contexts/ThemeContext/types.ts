@@ -1,4 +1,4 @@
-import { ThemePalette } from "@/app/styles/theme";
+import { ThemePalette } from "@/src/styles/theme";
 
 export type ThemeCtx = {
   t: ThemePalette;
