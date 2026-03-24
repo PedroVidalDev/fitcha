@@ -4,7 +4,7 @@ import {
   KeyboardAvoidingView, Platform, Alert, ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -17,7 +17,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const { register } = useAuth();
   const { t } = useTheme();
-  const router = useRouter();
+  const navigation = useNavigation();
 
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(40)).current;
@@ -102,7 +102,7 @@ export default function Register() {
           <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }] }}>
             {/* Voltar */}
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => navigation.goBack()}
               style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 32 }}
             >
               <Ionicons name="arrow-back" size={22} color={t.accent} />
@@ -131,7 +131,7 @@ export default function Register() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20, alignItems: "center", padding: 8 }}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, alignItems: "center", padding: 8 }}>
               <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "500" }}>
                 Já tem conta? <Text style={{ color: t.accent, fontWeight: "800" }}>Entrar</Text>
               </Text>

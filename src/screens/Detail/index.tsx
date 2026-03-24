@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -17,6 +16,10 @@ import { AnimatedCard } from "./../../components/AnimatedCard";
 import { ConfirmModal } from "./../../components/ConfirmModal";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useMachineDetail } from "./../../hooks/useStorage";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { RootStackParamList } from "@/src/router";
+
+type Route = RouteProp<RootStackParamList, "Detail">;
 
 function WeightDelta({ current, previous }: { current: number; previous?: number }) {
   const { t } = useTheme();
@@ -39,9 +42,11 @@ function WeightDelta({ current, previous }: { current: number; previous?: number
 }
 
 const DetailScreen = () => {
-  const { categoryId, machineId, machineName } = useLocalSearchParams<{
-    categoryId: string; machineId: string; machineName: string;
-  }>();
+  const navigation = useNavigation();
+
+  const route = useRoute<Route>();
+  const { categoryId, machineId, machineName } = route.params;
+
   const { currentSets, history, photo, addEntry, updatePhoto, removePhoto, deleteHistoryEntry } =
     useMachineDetail(categoryId, machineId);
   const [set1, setSet1] = useState("");
@@ -125,15 +130,18 @@ const DetailScreen = () => {
     textTransform: "uppercase" as const, letterSpacing: 2,
   };
 
+  useEffect(() => {
+    navigation.setOptions({
+      title: machineName ?? "Detalhe"
+    });
+  }, [machineName]);
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: t.bg }}
       contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
       showsVerticalScrollIndicator={false}
     >
-      <Stack.Screen options={{ title: machineName ?? "Detalhe" }} />
-
-      {/* Foto */}
       <TouchableOpacity
         activeOpacity={0.8} onPress={handlePhotoPress}
         style={{

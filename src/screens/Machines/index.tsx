@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddModal } from "./../../components/AddModal";
 import { AnimatedCard } from "./../../components/AnimatedCard";
@@ -9,31 +8,36 @@ import { EmptyState } from "./../../components/EmptyState";
 import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useMachines } from "./../../hooks/useStorage";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { RootStackParamList } from "@/src/router";
+
+type Route = RouteProp<RootStackParamList, "Machines">;
 
 const MachinesScreen = () => {
-  const router = useRouter();
-  const { categoryId, categoryName } = useLocalSearchParams<{
-    categoryId: string; categoryName: string;
-  }>();
+  const navigation = useNavigation();
+
+  const route = useRoute<Route>();
+  const { categoryId, categoryName } = route.params;
   const { machines, addMachine, deleteMachine } = useMachines(categoryId);
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const { t } = useTheme();
 
+  useEffect(() => {
+    navigation.setOptions({
+      title: categoryName ?? "Máquinas",
+      headerRight: () => (
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
+            <Ionicons name="add-circle" size={28} color={t.accent} />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [categoryName, navigation, t]);
+
   return (
     <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
-      <Stack.Screen
-        options={{
-          title: categoryName ?? "Máquinas",
-          headerRight: () => (
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
-                <Ionicons name="add-circle" size={28} color={t.accent} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
-      />
 
       <Text style={{
         color: t.textDim, fontSize: 11, fontWeight: "700",
@@ -54,10 +58,7 @@ const MachinesScreen = () => {
             <AnimatedCard index={index}>
               <GradientCard
                 onPress={() =>
-                  router.push({
-                    pathname: "/screens/Detail",
-                    params: { categoryId, machineId: item.id, machineName: item.name },
-                  })
+                  navigation.navigate("Detail", { categoryId, machineId: item.id, machineName: item.name })
                 }
                 onLongPress={() => setDeleteTarget({ id: item.id, name: item.name })}
               >

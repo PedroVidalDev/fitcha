@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View, Alert } from "react-native";
 import { AddModal } from "./../../components/AddModal";
 import { AnimatedCard } from "./../../components/AnimatedCard";
@@ -9,11 +9,12 @@ import { EmptyState } from "./../../components/EmptyState";
 import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useCategories } from "./../../hooks/useStorage";
-import { DayBadges } from "@/app/components/DayBadges";
+import { DayBadges } from "../../components/DayBadges";
 import { AIWizard } from "../../components/AIWizard";
+import { useNavigation } from "@react-navigation/native";
 
 const Categories = () => {
-  const router = useRouter();
+  const navigation = useNavigation();
 
   const { t } = useTheme();
 
@@ -22,24 +23,24 @@ const Categories = () => {
   const [wizardVisible, setWizardVisible] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
+  useEffect(() => {
+    navigation.setOptions({
+      title: "Fitcha",
+      headerLeft: () => (
+        <View style={{ flexDirection: "row", gap: 6 }}>
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
+            <Ionicons name="add-circle" size={28} color={t.accent} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setWizardVisible(true)} style={{ padding: 4 }}>
+            <Ionicons name="sparkles" size={26} color={t.accent} />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, t]);
+
   return (
     <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
-      <Stack.Screen
-        options={{
-          title: "Fitcha",
-          headerLeft: () => (
-            <View style={{ flexDirection: "row", gap: 6 }}>
-              <TouchableOpacity onPress={() => setModalVisible(true)} style={{ padding: 4 }}>
-                <Ionicons name="add-circle" size={28} color={t.accent} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setWizardVisible(true)} style={{ padding: 4 }}>
-                <Ionicons name="sparkles" size={26} color={t.accent} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
-      />
-
       <Text style={{
         color: t.textDim, fontSize: 11, fontWeight: "700",
         textTransform: "uppercase", letterSpacing: 2, marginBottom: 18, marginLeft: 2,
@@ -59,10 +60,10 @@ const Categories = () => {
             <AnimatedCard index={index}>
               <GradientCard
                 onPress={() => {
-                    router.push({
-                      pathname: "/screens/Machines",
-                      params: { categoryId: item.id, categoryName: item.name },
-                    })
+                    navigation.navigate(
+                      "Machines",
+                      { categoryId: item.id, categoryName: item.name },
+                    )
                   }
                 }
                 onLongPress={() => setDeleteTarget({ id: item.id, name: item.name })}

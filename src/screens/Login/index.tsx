@@ -4,7 +4,7 @@ import {
   KeyboardAvoidingView, Platform, Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -15,7 +15,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const { t } = useTheme();
-  const router = useRouter();
+  const navigation = useNavigation();
 
   const logoFade = useRef(new Animated.Value(0)).current;
   const logoSlide = useRef(new Animated.Value(-30)).current;
@@ -148,7 +148,7 @@ export default function Login() {
 
           {/* Link registro */}
           <TouchableOpacity
-            onPress={() => router.push("/screens/Register")}
+            onPress={() => navigation.navigate("Register")}
             activeOpacity={0.7}
             style={{
               paddingVertical: 16, borderRadius: 14, alignItems: "center",
