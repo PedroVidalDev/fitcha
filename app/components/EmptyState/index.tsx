@@ -1,4 +1,4 @@
-import { View, Text, Animated } from "react-native";
+import { Text, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
