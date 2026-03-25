@@ -7,9 +7,9 @@ import { ConfirmModal } from "./../../components/ConfirmModal";
 import { EmptyState } from "./../../components/EmptyState";
 import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
-import { useMachines } from "./../../hooks/useStorage";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { RootStackParamList } from "@/src/router/types";
+import { useMachines } from "./hooks/useMachines";
 
 type Route = RouteProp<RootStackParamList, "Machines">;
 

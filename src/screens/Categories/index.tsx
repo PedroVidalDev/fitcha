@@ -8,10 +8,10 @@ import { ConfirmModal } from "./../../components/ConfirmModal";
 import { EmptyState } from "./../../components/EmptyState";
 import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
-import { useCategories } from "./../../hooks/useStorage";
 import { DayBadges } from "../../components/DayBadges";
 import { AIWizard } from "../../components/AIWizard";
 import { useNavigation } from "@react-navigation/native";
+import { useCategories } from "./hooks/useCategories";
 
 const Categories = () => {
   const navigation = useNavigation();

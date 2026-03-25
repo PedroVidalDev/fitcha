@@ -15,31 +15,12 @@ import {
 import { AnimatedCard } from "./../../components/AnimatedCard";
 import { ConfirmModal } from "./../../components/ConfirmModal";
 import { useTheme } from "./../../contexts/ThemeContext";
-import { useMachineDetail } from "./../../hooks/useStorage";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { RootStackParamList } from "@/src/router/types";
+import { useMachineDetail } from "./hooks/useDetail";
+import { WeightDelta } from "./components/WeightDelta";
 
 type Route = RouteProp<RootStackParamList, "Detail">;
-
-function WeightDelta({ current, previous }: { current: number; previous?: number }) {
-  const { t } = useTheme();
-
-  if (!previous) return null;
-  const diff = current - previous;
-  if (diff === 0) return null;
-  const isUp = diff > 0;
-  return (
-    <View style={{
-      flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8,
-      backgroundColor: t.chipBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
-    }}>
-      <Ionicons name={isUp ? "arrow-up" : "arrow-down"} size={14} color={isUp ? "#4CAF50" : "#EF5350"} />
-      <Text style={{ fontSize: 13, fontWeight: "700", color: isUp ? "#4CAF50" : "#EF5350" }}>
-        {isUp ? "+" : ""}{diff.toFixed(1)} kg
-      </Text>
-    </View>
-  );
-}
 
 const DetailScreen = () => {
   const { t } = useTheme();
