@@ -9,4 +9,5 @@ export type InputProps = {
   icon: string;
   secure?: boolean;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  error?: string;
 };

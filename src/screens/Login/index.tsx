@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Animated, KeyboardAvoidingView, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Input } from "../../components/Input";
+import { useFormErrors } from "../../hooks/useFormValidations";
 
 export default function Login() {
   const { login } = useAuth();
@@ -14,21 +15,39 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { errors, setError, clearError, clearAll } = useFormErrors();
 
   const logoFade = useRef(new Animated.Value(0)).current;
   const logoSlide = useRef(new Animated.Value(-30)).current;
   const formFade = useRef(new Animated.Value(0)).current;
   const formSlide = useRef(new Animated.Value(40)).current;
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert("Atenção", "Preencha todos os campos.");
-      return;
+  const validate = (): boolean => {
+    clearAll();
+    let valid = true;
+
+    if (!email.trim()) {
+      setError("email", "Informe seu e-mail");
+      valid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
+      setError("email", "E-mail inválido");
+      valid = false;
     }
+
+    if (!password.trim()) {
+      setError("password", "Informe sua senha");
+      valid = false;
+    }
+
+    return valid;
+  };
+
+  const handleLogin = async () => {
+    if (!validate()) return;
     try {
       await login(email.trim(), password);
     } catch {
-      Alert.alert("Erro", "Não foi possível entrar.");
+      setError("password", "E-mail ou senha incorretos");
     }
   };
 
@@ -80,18 +99,20 @@ export default function Login() {
             label="E-mail"
             icon="mail-outline"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(v) => { setEmail(v); clearError("email"); }}
             placeholder="seu@email.com"
             keyboardType="email-address"
+            error={errors.email}
           />
 
           <Input
             label="Senha"
             icon="lock-closed-outline"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(v) => { setPassword(v); clearError("password"); }}
             placeholder="••••••••"
             secure
+            error={errors.password}
           />
 
           <TouchableOpacity activeOpacity={0.8} onPress={handleLogin} style={{ marginTop: 12 }}>

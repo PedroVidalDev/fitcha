@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated, KeyboardAvoidingView, Platform, Alert, ScrollView } from "react-native";
+import { Text, TouchableOpacity, Animated, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Input } from "../../components/Input";
+import { useFormErrors } from "../../hooks/useFormValidations";
 
 export default function Register() {
   const { register } = useAuth();
@@ -16,27 +17,53 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { errors, setError, clearError, clearAll } = useFormErrors();
 
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(40)).current;
 
+  const validate = (): boolean => {
+    clearAll();
+    let valid = true;
+
+    if (!name.trim()) {
+      setError("name", "Informe seu nome");
+      valid = false;
+    }
+
+    if (!email.trim()) {
+      setError("email", "Informe seu e-mail");
+      valid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
+      setError("email", "E-mail inválido");
+      valid = false;
+    }
+
+    if (!password.trim()) {
+      setError("password", "Informe uma senha");
+      valid = false;
+    } else if (password.length < 6) {
+      setError("password", "Mínimo de 6 caracteres");
+      valid = false;
+    }
+
+    if (!confirmPassword.trim()) {
+      setError("confirmPassword", "Confirme sua senha");
+      valid = false;
+    } else if (password !== confirmPassword) {
+      setError("confirmPassword", "As senhas não coincidem");
+      valid = false;
+    }
+
+    return valid;
+  };
+
   const handleRegister = async () => {
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Atenção", "Preencha todos os campos.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      Alert.alert("Atenção", "As senhas não coincidem.");
-      return;
-    }
-    if (password.length < 6) {
-      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
+    if (!validate()) return;
     try {
       await register(name.trim(), email.trim(), password);
     } catch {
-      Alert.alert("Erro", "Não foi possível criar a conta.");
+      setError("email", "Não foi possível criar a conta");
     }
   };
 
@@ -76,10 +103,34 @@ export default function Register() {
               Preencha seus dados para começar
             </Text>
 
-            <Input label="Nome" icon="person-outline" value={name} onChangeText={setName} placeholder="Seu nome" autoCapitalize="words" />
-            <Input label="E-mail" icon="mail-outline" value={email} onChangeText={setEmail} placeholder="seu@email.com" keyboardType="email-address" />
-            <Input label="Senha" icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder="Mínimo 6 caracteres" secure />
-            <Input label="Confirmar senha" icon="shield-checkmark-outline" value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Repita a senha" secure />
+            <Input
+              label="Nome" icon="person-outline"
+              value={name}
+              onChangeText={(v) => { setName(v); clearError("name"); }}
+              placeholder="Seu nome" autoCapitalize="words"
+              error={errors.name}
+            />
+            <Input
+              label="E-mail" icon="mail-outline"
+              value={email}
+              onChangeText={(v) => { setEmail(v); clearError("email"); }}
+              placeholder="seu@email.com" keyboardType="email-address"
+              error={errors.email}
+            />
+            <Input
+              label="Senha" icon="lock-closed-outline"
+              value={password}
+              onChangeText={(v) => { setPassword(v); clearError("password"); }}
+              placeholder="Mínimo 6 caracteres" secure
+              error={errors.password}
+            />
+            <Input
+              label="Confirmar senha" icon="shield-checkmark-outline"
+              value={confirmPassword}
+              onChangeText={(v) => { setConfirmPassword(v); clearError("confirmPassword"); }}
+              placeholder="Repita a senha" secure
+              error={errors.confirmPassword}
+            />
 
             <TouchableOpacity activeOpacity={0.8} onPress={handleRegister} style={{ marginTop: 12 }}>
               <LinearGradient
