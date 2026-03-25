@@ -1,17 +1,14 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  View, Text, TextInput, TouchableOpacity, Animated,
-  KeyboardAvoidingView, Platform, Alert, ScrollView,
-} from "react-native";
+import { View, Text, TouchableOpacity, Animated, KeyboardAvoidingView, Platform, Alert, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { Input } from "../../components/Input";
 
 export default function Register() {
   const { register } = useAuth();
-
   const { t } = useTheme();
   const navigation = useNavigation();
 
@@ -19,7 +16,6 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(40)).current;
@@ -53,46 +49,9 @@ export default function Register() {
     ]).start();
   }, []);
 
-  const inputBlock = (
-    label: string, icon: string, value: string, onChange: (v: string) => void,
-    opts?: { placeholder?: string; secure?: boolean; keyboard?: "email-address" | "default"; showToggle?: boolean }
-  ) => (
-    <View style={{ marginBottom: 16 }}>
-      <Text style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8, marginLeft: 4 }}>
-        {label}
-      </Text>
-      <View style={{
-        flexDirection: "row", alignItems: "center",
-        backgroundColor: t.inputBg, borderRadius: 14,
-        borderWidth: 0.5, borderColor: t.border, paddingHorizontal: 14,
-      }}>
-        <Ionicons name={icon as any} size={18} color={t.textDim} />
-        <TextInput
-          style={{ flex: 1, padding: 16, color: t.textPrimary, fontSize: 16, fontWeight: "600", marginLeft: 10 }}
-          placeholder={opts?.placeholder ?? ""}
-          placeholderTextColor={t.textDim}
-          keyboardType={opts?.keyboard ?? "default"}
-          autoCapitalize={opts?.keyboard === "email-address" ? "none" : "words"}
-          autoCorrect={false}
-          secureTextEntry={opts?.secure && !showPassword}
-          value={value}
-          onChangeText={onChange}
-        />
-        {opts?.showToggle && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={t.textDim} />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-
   return (
     <LinearGradient
-      colors={t.mode === "dark"
-        ? ["#1a0a00", "#0d0500", "#060200"]
-        : ["#FAF6F2", "#F5F0EB", "#EDE4DB"]
-      }
+      colors={t.mode === "dark" ? ["#1a0a00", "#0d0500", "#060200"] : ["#FAF6F2", "#F5F0EB", "#EDE4DB"]}
       style={{ flex: 1 }}
     >
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
@@ -102,7 +61,6 @@ export default function Register() {
           bounces={false}
         >
           <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }] }}>
-            {/* Voltar */}
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 32 }}
@@ -118,10 +76,10 @@ export default function Register() {
               Preencha seus dados para começar
             </Text>
 
-            {inputBlock("Nome", "person-outline", name, setName, { placeholder: "Seu nome" })}
-            {inputBlock("E-mail", "mail-outline", email, setEmail, { placeholder: "seu@email.com", keyboard: "email-address" })}
-            {inputBlock("Senha", "lock-closed-outline", password, setPassword, { placeholder: "Mínimo 6 caracteres", secure: true, showToggle: true })}
-            {inputBlock("Confirmar senha", "shield-checkmark-outline", confirmPassword, setConfirmPassword, { placeholder: "Repita a senha", secure: true })}
+            <Input label="Nome" icon="person-outline" value={name} onChangeText={setName} placeholder="Seu nome" autoCapitalize="words" />
+            <Input label="E-mail" icon="mail-outline" value={email} onChangeText={setEmail} placeholder="seu@email.com" keyboardType="email-address" />
+            <Input label="Senha" icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder="Mínimo 6 caracteres" secure />
+            <Input label="Confirmar senha" icon="shield-checkmark-outline" value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Repita a senha" secure />
 
             <TouchableOpacity activeOpacity={0.8} onPress={handleRegister} style={{ marginTop: 12 }}>
               <LinearGradient

@@ -1,23 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  View, Text, TextInput, TouchableOpacity, Animated,
-  KeyboardAvoidingView, Platform, Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, Animated, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { Input } from "../../components/Input";
 
 export default function Login() {
   const { login } = useAuth();
-
   const { t } = useTheme();
   const navigation = useNavigation();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const logoFade = useRef(new Animated.Value(0)).current;
   const logoSlide = useRef(new Animated.Value(-30)).current;
@@ -53,10 +49,7 @@ export default function Login() {
 
   return (
     <LinearGradient
-      colors={t.mode === "dark"
-        ? ["#1a0a00", "#0d0500", "#060200"]
-        : ["#FAF6F2", "#F5F0EB", "#EDE4DB"]
-      }
+      colors={t.mode === "dark" ? ["#1a0a00", "#0d0500", "#060200"] : ["#FAF6F2", "#F5F0EB", "#EDE4DB"]}
       style={{ flex: 1 }}
     >
       <KeyboardAvoidingView
@@ -83,50 +76,25 @@ export default function Login() {
         </Animated.View>
 
         <Animated.View style={{ opacity: formFade, transform: [{ translateY: formSlide }] }}>
-          <Text style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8, marginLeft: 4 }}>
-            E-mail
-          </Text>
-          <View style={{
-            flexDirection: "row", alignItems: "center",
-            backgroundColor: t.inputBg, borderRadius: 14,
-            borderWidth: 0.5, borderColor: t.border, marginBottom: 16, paddingHorizontal: 14,
-          }}>
-            <Ionicons name="mail-outline" size={18} color={t.textDim} />
-            <TextInput
-              style={{ flex: 1, padding: 16, color: t.textPrimary, fontSize: 16, fontWeight: "600", marginLeft: 10 }}
-              placeholder="seu@email.com"
-              placeholderTextColor={t.textDim}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
+          <Input
+            label="E-mail"
+            icon="mail-outline"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="seu@email.com"
+            keyboardType="email-address"
+          />
 
-          <Text style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8, marginLeft: 4 }}>
-            Senha
-          </Text>
-          <View style={{
-            flexDirection: "row", alignItems: "center",
-            backgroundColor: t.inputBg, borderRadius: 14,
-            borderWidth: 0.5, borderColor: t.border, marginBottom: 28, paddingHorizontal: 14,
-          }}>
-            <Ionicons name="lock-closed-outline" size={18} color={t.textDim} />
-            <TextInput
-              style={{ flex: 1, padding: 16, color: t.textPrimary, fontSize: 16, fontWeight: "600", marginLeft: 10 }}
-              placeholder="••••••••"
-              placeholderTextColor={t.textDim}
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-              <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={t.textDim} />
-            </TouchableOpacity>
-          </View>
+          <Input
+            label="Senha"
+            icon="lock-closed-outline"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            secure
+          />
 
-          <TouchableOpacity activeOpacity={0.8} onPress={handleLogin}>
+          <TouchableOpacity activeOpacity={0.8} onPress={handleLogin} style={{ marginTop: 12 }}>
             <LinearGradient
               colors={t.gradientAccent}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -145,10 +113,7 @@ export default function Login() {
           <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             activeOpacity={0.7}
-            style={{
-              paddingVertical: 16, borderRadius: 14, alignItems: "center",
-              borderWidth: 1, borderColor: t.accent,
-            }}
+            style={{ paddingVertical: 16, borderRadius: 14, alignItems: "center", borderWidth: 1, borderColor: t.accent }}
           >
             <Text style={{ color: t.accent, fontSize: 16, fontWeight: "800" }}>Criar conta</Text>
           </TouchableOpacity>
