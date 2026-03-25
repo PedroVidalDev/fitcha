@@ -1,3 +1,3 @@
 export type DayBadgesProps = {
-  days: number[];
+    days: number[];
 };

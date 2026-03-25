@@ -1,4 +1,4 @@
 export type DayPickerProps = {
-  selected: number[];
-  onChange: (days: number[]) => void;
+    selected: number[];
+    onChange: (days: number[]) => void;
 };

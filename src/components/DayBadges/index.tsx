@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { Text, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { DayBadgesProps } from "./types";
 
@@ -13,33 +13,37 @@ export function DayBadges(props: DayBadgesProps) {
 
     return (
         <View style={{ flexDirection: "row", gap: 4, marginTop: 6 }}>
-        {DAYS_SHORT.map((label, i) => {
-            const active = days.includes(i);
-            return (
-            <View
-                key={i}
-                style={{
-                width: 20,
-                height: 20,
-                borderRadius: 6,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: active ? t.accent : "transparent",
-                opacity: active ? 1 : 0.3,
-                }}
-            >
-                <Text style={{
-                fontSize: 9,
-                fontWeight: "800",
-                color: active
-                    ? (t.mode === "dark" ? "#0d0500" : "#FFF")
-                    : t.textDim,
-                }}>
-                {label}
-                </Text>
-            </View>
-            );
-        })}
+            {DAYS_SHORT.map((label, i) => {
+                const active = days.includes(i);
+                return (
+                    <View
+                        key={i}
+                        style={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: active ? t.accent : "transparent",
+                            opacity: active ? 1 : 0.3,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                fontSize: 9,
+                                fontWeight: "800",
+                                color: active
+                                    ? t.mode === "dark"
+                                        ? "#0d0500"
+                                        : "#FFF"
+                                    : t.textDim,
+                            }}
+                        >
+                            {label}
+                        </Text>
+                    </View>
+                );
+            })}
         </View>
     );
 }
