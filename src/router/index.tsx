@@ -11,22 +11,7 @@ import RegisterScreen from "../screens/Register";
 import CategoriesScreen from "../screens/Categories";
 import MachinesScreen from "../screens/Machines";
 import DetailScreen from "../screens/Detail";
-
-
-export type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Categories: undefined;
-  Machines: { categoryId: string; categoryName: string };
-  Detail: { categoryId: string; machineId: string; machineName: string };
-};
-
-// Helper pra tipagem nos screens
-declare global {
-  namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
-  }
-}
+import { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -41,8 +26,6 @@ export function AppNavigator() {
       </View>
     );
   }
-
-  const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
   return (
     <NavigationContainer
@@ -74,7 +57,6 @@ export function AppNavigator() {
         }}
       >
         {user ? (
-          // ── Telas do app (logado) ──
           <>
             <Stack.Screen
               name="Categories"
@@ -120,7 +102,6 @@ export function AppNavigator() {
             />
           </>
         ) : (
-          // ── Telas de auth (não logado) ──
           <>
             <Stack.Screen
               name="Login"

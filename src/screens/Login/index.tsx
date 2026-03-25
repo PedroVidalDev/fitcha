@@ -10,30 +10,19 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 export default function Login() {
+  const { login } = useAuth();
+
+  const { t } = useTheme();
+  const navigation = useNavigation();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
-  const { t } = useTheme();
-  const navigation = useNavigation();
 
   const logoFade = useRef(new Animated.Value(0)).current;
   const logoSlide = useRef(new Animated.Value(-30)).current;
   const formFade = useRef(new Animated.Value(0)).current;
   const formSlide = useRef(new Animated.Value(40)).current;
-
-  useEffect(() => {
-    Animated.sequence([
-      Animated.parallel([
-        Animated.timing(logoFade, { toValue: 1, duration: 600, useNativeDriver: true }),
-        Animated.spring(logoSlide, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
-      ]),
-      Animated.parallel([
-        Animated.timing(formFade, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.spring(formSlide, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
-      ]),
-    ]).start();
-  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -49,6 +38,19 @@ export default function Login() {
 
   const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
+  useEffect(() => {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(logoFade, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.spring(logoSlide, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(formFade, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.spring(formSlide, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, []);
+
   return (
     <LinearGradient
       colors={t.mode === "dark"
@@ -61,7 +63,6 @@ export default function Login() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
       >
-        {/* Logo */}
         <Animated.View style={{
           alignItems: "center", marginBottom: 48,
           opacity: logoFade, transform: [{ translateY: logoSlide }],
@@ -81,9 +82,7 @@ export default function Login() {
           </Text>
         </Animated.View>
 
-        {/* Form */}
         <Animated.View style={{ opacity: formFade, transform: [{ translateY: formSlide }] }}>
-          {/* Email */}
           <Text style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8, marginLeft: 4 }}>
             E-mail
           </Text>
@@ -105,7 +104,6 @@ export default function Login() {
             />
           </View>
 
-          {/* Senha */}
           <Text style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8, marginLeft: 4 }}>
             Senha
           </Text>
@@ -128,7 +126,6 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
-          {/* Botão Login */}
           <TouchableOpacity activeOpacity={0.8} onPress={handleLogin}>
             <LinearGradient
               colors={t.gradientAccent}
@@ -139,14 +136,12 @@ export default function Login() {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Divisor */}
           <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 28 }}>
             <View style={{ flex: 1, height: 0.5, backgroundColor: t.border }} />
             <Text style={{ color: t.textDim, fontSize: 12, marginHorizontal: 14, fontWeight: "600" }}>ou</Text>
             <View style={{ flex: 1, height: 0.5, backgroundColor: t.border }} />
           </View>
 
-          {/* Link registro */}
           <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             activeOpacity={0.7}

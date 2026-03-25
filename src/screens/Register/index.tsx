@@ -10,24 +10,19 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 export default function Register() {
+  const { register } = useAuth();
+
+  const { t } = useTheme();
+  const navigation = useNavigation();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { register } = useAuth();
-  const { t } = useTheme();
-  const navigation = useNavigation();
 
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(40)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(slide, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
-    ]).start();
-  }, []);
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
@@ -50,6 +45,13 @@ export default function Register() {
   };
 
   const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fade, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(slide, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
+    ]).start();
+  }, []);
 
   const inputBlock = (
     label: string, icon: string, value: string, onChange: (v: string) => void,

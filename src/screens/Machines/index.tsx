@@ -9,19 +9,20 @@ import { GradientCard } from "./../../components/GradientCard";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useMachines } from "./../../hooks/useStorage";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { RootStackParamList } from "@/src/router";
+import { RootStackParamList } from "@/src/router/types";
 
 type Route = RouteProp<RootStackParamList, "Machines">;
 
 const MachinesScreen = () => {
+  const { t } = useTheme();
   const navigation = useNavigation();
-
   const route = useRoute<Route>();
+
   const { categoryId, categoryName } = route.params;
-  const { machines, addMachine, deleteMachine } = useMachines(categoryId);
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const { t } = useTheme();
+
+  const { machines, addMachine, deleteMachine } = useMachines(categoryId);
 
   useEffect(() => {
     navigation.setOptions({

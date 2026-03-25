@@ -17,7 +17,7 @@ import { ConfirmModal } from "./../../components/ConfirmModal";
 import { useTheme } from "./../../contexts/ThemeContext";
 import { useMachineDetail } from "./../../hooks/useStorage";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { RootStackParamList } from "@/src/router";
+import { RootStackParamList } from "@/src/router/types";
 
 type Route = RouteProp<RootStackParamList, "Detail">;
 
@@ -42,28 +42,22 @@ function WeightDelta({ current, previous }: { current: number; previous?: number
 }
 
 const DetailScreen = () => {
+  const { t } = useTheme();
+  
   const navigation = useNavigation();
-
   const route = useRoute<Route>();
   const { categoryId, machineId, machineName } = route.params;
 
-  const { currentSets, history, photo, addEntry, updatePhoto, removePhoto, deleteHistoryEntry } =
-    useMachineDetail(categoryId, machineId);
   const [set1, setSet1] = useState("");
   const [set2, setSet2] = useState("");
   const [set3, setSet3] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
-  const { t } = useTheme();
+  
+  const { currentSets, history, photo, addEntry, updatePhoto, removePhoto, deleteHistoryEntry } =
+    useMachineDetail(categoryId, machineId);
 
   const scaleAnim = useRef(new RNAnimated.Value(0.8)).current;
   const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-
-  useEffect(() => {
-    RNAnimated.parallel([
-      RNAnimated.spring(scaleAnim, { toValue: 1, tension: 50, friction: 7, useNativeDriver: true }),
-      RNAnimated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-    ]).start();
-  }, [currentSets]);
 
   const pickFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -129,6 +123,13 @@ const DetailScreen = () => {
     color: t.textDim, fontSize: 11, fontWeight: "700" as const,
     textTransform: "uppercase" as const, letterSpacing: 2,
   };
+
+  useEffect(() => {
+    RNAnimated.parallel([
+      RNAnimated.spring(scaleAnim, { toValue: 1, tension: 50, friction: 7, useNativeDriver: true }),
+      RNAnimated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+    ]).start();
+  }, [currentSets]);
 
   useEffect(() => {
     navigation.setOptions({

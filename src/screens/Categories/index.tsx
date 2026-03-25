@@ -18,10 +18,11 @@ const Categories = () => {
 
   const { t } = useTheme();
 
-  const { categories, addCategory, deleteCategory } = useCategories();
   const [modalVisible, setModalVisible] = useState(false);
   const [wizardVisible, setWizardVisible] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  
+  const { categories, addCategory, deleteCategory } = useCategories();
 
   useEffect(() => {
     navigation.setOptions({
