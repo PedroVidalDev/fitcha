@@ -1,27 +1,42 @@
 # 💪 Fitcha
 
-Seu caderno de treino digital. Registre categorias de exercício, máquinas e o peso de cada série — tudo salvo localmente no celular.
+Sua ficha de treino digital. Organize seus treinos por dia da semana, registre cargas e acompanhe sua evolução — tudo direto no celular.
 
 ## Sobre
 
-Fitcha é um app mobile para quem treina e quer acompanhar sua evolução de cargas de forma simples. Sem cadastro, sem nuvem, sem complicação. Abriu, registrou, fechou.
+Fitcha é um app mobile para quem treina e quer acompanhar sua evolução de forma prática. Sem planilha, sem complicação. Monte sua semana, inicie o treino e registre os pesos conforme avança nas máquinas.
 
 ## Funcionalidades
 
-- **Categorias de treino** — organize por grupo muscular (Peito, Costas, Pernas, etc.)
-- **Máquinas e exercícios** — adicione cada equipamento dentro da categoria
-- **Registro de 3 séries** — anote o peso de cada série individualmente
-- **Histórico de evolução** — veja todos os registros anteriores com indicador de progresso (delta)
+- **Semana visual** — veja seus 7 dias com as categorias de cada treino, com destaque no dia atual
+- **Organização por dia** — adicione máquinas a qualquer dia da semana com nome, descrição e categoria predefinida (Peito, Costas, Pernas, Ombros, Bíceps, Tríceps, Core, Cardio)
+- **Treino ativo** — inicie o treino do dia com timer global e preencha o peso de cada máquina, uma por vez, em um fluxo guiado
+- **Registro de 3 séries** — anote o peso de cada série individualmente durante o treino
+- **Histórico de evolução** — consulte todos os registros anteriores de cada máquina
 - **Foto da máquina** — tire uma foto ou escolha da galeria para identificar visualmente cada equipamento
+- **Notificações** — receba lembretes automáticos nos dias de treino às 7h da manhã
+- **Wizard de treino com IA** — gere um plano de treino personalizado informando altura, peso, dias disponíveis, intensidade e objetivo
 - **Tema claro/escuro** — troca instantânea com preferência salva localmente
-- **Remoção com long press** — segure qualquer categoria, máquina ou registro para remover
-- **100% offline** — todos os dados ficam no dispositivo via AsyncStorage
+- **Remoção com long press** — segure qualquer máquina para remover
+
+## Fluxo do App
+
+```
+Semana → Dia → Detalhe da Máquina (histórico)
+                ↘ Iniciar Treino → Máquina 1 → Máquina 2 → ... → Finalizar
+```
+
+1. **Semana** — cards dos 7 dias mostrando badges das categorias. Long press para adicionar máquinas
+2. **Dia** — lista de máquinas com foto, categoria e último peso. Botão "Iniciar treino"
+3. **Detalhe** — histórico completo de pesos (somente leitura)
+4. **Treino ativo** — timer no topo, uma máquina por vez, 3 inputs de série. Avança ao preencher ou pula
 
 ## Tech Stack
 
 - **React Native** com Expo (SDK 54)
-- **Expo Router** — navegação file-based com tipagem
+- **React Navigation** — navegação com stack tipada
 - **AsyncStorage** — persistência local
+- **expo-notifications** — notificações locais semanais
 - **expo-image-picker** — câmera e galeria
 - **expo-linear-gradient** — gradientes nos cards e botões
 - **TypeScript** — tipagem em todo o projeto
@@ -32,7 +47,7 @@ Fitcha é um app mobile para quem treina e quer acompanhar sua evolução de car
 ```bash
 # Clone o repositório
 git clone https://github.com/PedroVidalDev/fitcha.git
-cd fitcha
+cd fitcha/frontend
 
 # Instale as dependências
 npm install
@@ -44,7 +59,7 @@ npx expo start
 ### Dependências necessárias
 
 ```bash
-npx expo install @react-native-async-storage/async-storage expo-linear-gradient expo-image-picker
+npx expo install @react-native-async-storage/async-storage expo-linear-gradient expo-image-picker expo-notifications expo-device
 ```
 
 ## Build (APK)
