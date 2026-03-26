@@ -20,12 +20,14 @@
             "output": "static"
         },
         "plugins": [
-            "expo-notifications",
-            {
-                "icon": "./src/assets/images/icon.png",
-                "color": "#F4A261",
-                "defaultChannel": "treino"
-            }
+            [
+                "expo-notifications",
+                {
+                    "icon": "./src/assets/images/icon.png",
+                    "color": "#F4A261",
+                    "defaultChannel": "treino"
+                }
+            ]
         ],
         "experiments": {
             "typedRoutes": true,
