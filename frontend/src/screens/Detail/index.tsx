@@ -17,13 +17,11 @@ export default function MachineDetailScreen() {
   const route = useRoute<Route>();
   const navigation = useNavigation();
   const { machineId } = route.params;
+
   const { machine, history } = useMachineHistory(machineId);
   const { photo, updatePhoto, removePhoto } = useMachinePhoto(machineId);
-  const { t } = useTheme();
 
-  useEffect(() => {
-    if (machine) navigation.setOptions({ title: machine.name });
-  }, [machine?.name]);
+  const { t } = useTheme();
 
   const pickFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -64,6 +62,10 @@ export default function MachineDetailScreen() {
     textTransform: "uppercase" as const, letterSpacing: 2,
   };
 
+  useEffect(() => {
+    if (machine) navigation.setOptions({ title: machine.name });
+  }, [machine?.name]);
+
   if (!machine) return null;
 
   return (
@@ -72,7 +74,6 @@ export default function MachineDetailScreen() {
       contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Foto */}
       <TouchableOpacity activeOpacity={0.8} onPress={handlePhotoPress}
         style={{
           width: "100%", height: photo ? 180 : 80, borderRadius: 16, marginBottom: 16,
@@ -90,7 +91,6 @@ export default function MachineDetailScreen() {
         )}
       </TouchableOpacity>
 
-      {/* Info */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <CategoryBadge categoryKey={machine.categoryKey} />
       </View>
@@ -100,7 +100,6 @@ export default function MachineDetailScreen() {
         </Text>
       )}
 
-      {/* Histórico */}
       <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>histórico</Text>
 
       {history.length === 0 ? (

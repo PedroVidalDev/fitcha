@@ -12,20 +12,34 @@ import {
 } from "react-native";
 import { MACHINE_CATEGORIES, MachineCategoryKey } from "../../constants/categories";
 import { useTheme } from "../../contexts/ThemeContext";
+import { AddMachineModalProps } from "./types";
 
-type Props = {
-    visible: boolean;
-    onClose: () => void;
-    onAdd: (name: string, categoryKey: MachineCategoryKey, description?: string) => void;
-};
+export function AddMachineModal(props: AddMachineModalProps) {
+    const { visible, onClose, onAdd } = props;
 
-export function AddMachineModal({ visible, onClose, onAdd }: Props) {
+    const { t } = useTheme();
+
     const [name, setName] = useState("");
     const [desc, setDesc] = useState("");
     const [catKey, setCatKey] = useState<MachineCategoryKey>("peito");
     const scale = useRef(new Animated.Value(0.9)).current;
     const fade = useRef(new Animated.Value(0)).current;
-    const { t } = useTheme();
+
+    const handleAdd = () => {
+        if (!name.trim()) return;
+        onAdd(name.trim(), catKey, desc.trim() || undefined);
+        setName("");
+        setDesc("");
+        setCatKey("peito");
+    };
+
+    const handleClose = () => {
+        setName("");
+        setDesc("");
+        setCatKey("peito");
+        onClose();
+    };
+    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     useEffect(() => {
         if (visible) {
@@ -43,22 +57,6 @@ export function AddMachineModal({ visible, onClose, onAdd }: Props) {
             fade.setValue(0);
         }
     }, [visible]);
-
-    const handleAdd = () => {
-        if (!name.trim()) return;
-        onAdd(name.trim(), catKey, desc.trim() || undefined);
-        setName("");
-        setDesc("");
-        setCatKey("peito");
-    };
-
-    const handleClose = () => {
-        setName("");
-        setDesc("");
-        setCatKey("peito");
-        onClose();
-    };
-    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     return (
         <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>

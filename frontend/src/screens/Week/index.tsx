@@ -18,14 +18,9 @@ type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 
 export default function WeekScreen() {
     const navigation = useNavigation<Nav>();
-    const { days, addMachineToDay, removeMachineFromDay, refresh } = useWeek();
+    const { days, addMachineToDay } = useWeek();
     const { t } = useTheme();
     const [addTarget, setAddTarget] = useState<number | null>(null);
-    const [deleteTarget, setDeleteTarget] = useState<{
-        day: number;
-        machineId: string;
-        name: string;
-    } | null>(null);
     const [wizardVisible, setWizardVisible] = useState(false);
 
     const today = new Date().getDay();
@@ -174,19 +169,6 @@ export default function WeekScreen() {
                 onAdd={(name, catKey, desc) => {
                     if (addTarget !== null) addMachineToDay(addTarget, name, catKey, desc);
                     setAddTarget(null);
-                }}
-            />
-
-            <ConfirmModal
-                visible={!!deleteTarget}
-                title="Remover máquina"
-                message={`Remover "${deleteTarget?.name}" deste dia?`}
-                confirmLabel="Remover"
-                onClose={() => setDeleteTarget(null)}
-                onConfirm={() => {
-                    if (deleteTarget)
-                        removeMachineFromDay(deleteTarget.day, deleteTarget.machineId);
-                    setDeleteTarget(null);
                 }}
             />
 

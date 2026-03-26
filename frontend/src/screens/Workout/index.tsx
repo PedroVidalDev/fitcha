@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -14,18 +14,8 @@ import {
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useDayMachines, useSaveWorkout } from "../../hooks/useStorage";
-import { RootStackParamList } from "@/src/router/types";
-
-type WorkoutResult = { machineId: string; sets: [number, number, number] };
-type Route = RouteProp<RootStackParamList, "Workout">;
-
-function formatTime(seconds: number): string {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
+import { formatTime } from "./helpers";
+import { Route, WorkoutResult } from "./types";
 
 export default function WorkoutScreen() {
     const navigation = useNavigation();
@@ -42,29 +32,8 @@ export default function WorkoutScreen() {
     const [results, setResults] = useState<WorkoutResult[]>([]);
     const [elapsed, setElapsed] = useState(0);
 
-    // Timer
-    useEffect(() => {
-        const interval = setInterval(() => setElapsed((p) => p + 1), 1000);
-        return () => clearInterval(interval);
-    }, []);
-
-    // Animação de entrada da máquina
     const slideAnim = useRef(new RNAnimated.Value(30)).current;
     const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-
-    useEffect(() => {
-        slideAnim.setValue(30);
-        fadeAnim.setValue(0);
-        RNAnimated.parallel([
-            RNAnimated.spring(slideAnim, {
-                toValue: 0,
-                tension: 60,
-                friction: 9,
-                useNativeDriver: true,
-            }),
-            RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        ]).start();
-    }, [currentIdx]);
 
     const machine = machines[currentIdx];
     const isLast = currentIdx === machines.length - 1;
@@ -130,11 +99,29 @@ export default function WorkoutScreen() {
         ]);
     };
 
+    useEffect(() => {
+        const interval = setInterval(() => setElapsed((p) => p + 1), 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        slideAnim.setValue(30);
+        fadeAnim.setValue(0);
+        RNAnimated.parallel([
+            RNAnimated.spring(slideAnim, {
+                toValue: 0,
+                tension: 60,
+                friction: 9,
+                useNativeDriver: true,
+            }),
+            RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        ]).start();
+    }, [currentIdx]);
+
     if (!machine) return null;
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg }}>
-            {/* Timer bar */}
             <LinearGradient
                 colors={t.gradientHero}
                 style={{
@@ -175,7 +162,6 @@ export default function WorkoutScreen() {
                 <View style={{ width: 34 }} />
             </LinearGradient>
 
-            {/* Progress bar */}
             <View
                 style={{ flexDirection: "row", gap: 4, paddingHorizontal: 20, paddingVertical: 8 }}
             >
@@ -197,7 +183,6 @@ export default function WorkoutScreen() {
                 ))}
             </View>
 
-            {/* Máquina atual */}
             <RNAnimated.View
                 style={{
                     flex: 1,
@@ -206,7 +191,6 @@ export default function WorkoutScreen() {
                     transform: [{ translateY: slideAnim }],
                 }}
             >
-                {/* Header da máquina */}
                 <View style={{ alignItems: "center", marginBottom: 24 }}>
                     {machine.photo ? (
                         <Image
@@ -247,7 +231,6 @@ export default function WorkoutScreen() {
                     <CategoryBadge categoryKey={machine.categoryKey} />
                 </View>
 
-                {/* Inputs das 3 séries */}
                 <Text
                     style={{
                         color: t.textDim,
@@ -314,7 +297,6 @@ export default function WorkoutScreen() {
                     ))}
                 </View>
 
-                {/* Botão avançar */}
                 <View style={{ flex: 1, justifyContent: "flex-end", paddingBottom: 20 }}>
                     <TouchableOpacity activeOpacity={0.75} onPress={handleNext}>
                         <LinearGradient
