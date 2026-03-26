@@ -16,13 +16,16 @@ type Nav = NativeStackNavigationProp<RootStackParamList, "Day">;
 type Route = RouteProp<RootStackParamList, "Day">;
 
 export default function DayScreen() {
+    const { t } = useTheme();
+
     const navigation = useNavigation<Nav>();
     const route = useRoute<Route>();
     const day = route.params.dayIndex;
-    const { machines, refresh } = useDayMachines(day);
+
     const { removeMachineFromDay } = useWeek();
+    const { machines, refresh } = useDayMachines(day);
+
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-    const { t } = useTheme();
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     return (

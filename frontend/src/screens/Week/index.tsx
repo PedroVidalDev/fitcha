@@ -16,9 +16,12 @@ import { useWeek } from "../../hooks/useStorage";
 type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 
 export default function WeekScreen() {
-    const navigation = useNavigation<Nav>();
-    const { days, addMachineToDay, refresh } = useWeek();
     const { t } = useTheme();
+
+    const navigation = useNavigation<Nav>();
+
+    const { days, addMachineToDay, refresh } = useWeek();
+
     const [addTarget, setAddTarget] = useState<number | null>(null);
     const [wizardVisible, setWizardVisible] = useState(false);
 

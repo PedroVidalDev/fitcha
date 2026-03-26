@@ -14,14 +14,14 @@ import { RootStackParamList } from "@/src/router/types";
 type Route = RouteProp<RootStackParamList, "MachineDetail">;
 
 export default function MachineDetailScreen() {
+  const { t } = useTheme();
+
   const route = useRoute<Route>();
   const navigation = useNavigation();
   const { machineId } = route.params;
 
   const { machine, history } = useMachineHistory(machineId);
   const { photo, updatePhoto, removePhoto } = useMachinePhoto(machineId);
-
-  const { t } = useTheme();
 
   const pickFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();

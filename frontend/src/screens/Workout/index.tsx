@@ -14,16 +14,18 @@ import {
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useDayMachines, useSaveWorkout } from "../../hooks/useStorage";
-import { Route, WorkoutResult } from "./types";
 import { formatTime } from "./helpers";
+import { Route, WorkoutResult } from "./types";
 
 export default function WorkoutScreen() {
+    const { t } = useTheme();
+
     const navigation = useNavigation();
     const route = useRoute<Route>();
     const day = route.params.dayIndex;
+
     const { machines } = useDayMachines(day);
     const saveWorkout = useSaveWorkout();
-    const { t } = useTheme();
 
     const [currentIdx, setCurrentIdx] = useState(0);
     const [set1, setSet1] = useState("");
@@ -32,30 +34,6 @@ export default function WorkoutScreen() {
     const [results, setResults] = useState<WorkoutResult[]>([]);
     const [elapsed, setElapsed] = useState(0);
     const startTime = useRef(Date.now()).current;
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setElapsed(Math.floor((Date.now() - startTime) / 1000));
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [startTime]);
-
-    const slideAnim = useRef(new RNAnimated.Value(30)).current;
-    const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-
-    useEffect(() => {
-        slideAnim.setValue(30);
-        fadeAnim.setValue(0);
-        RNAnimated.parallel([
-            RNAnimated.spring(slideAnim, {
-                toValue: 0,
-                tension: 60,
-                friction: 9,
-                useNativeDriver: true,
-            }),
-            RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        ]).start();
-    }, [currentIdx]);
 
     const machine = machines[currentIdx];
     const isLast = currentIdx === machines.length - 1;
@@ -120,6 +98,30 @@ export default function WorkoutScreen() {
             { text: "Encerrar", style: "destructive", onPress: () => finishWorkout(results) },
         ]);
     };
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setElapsed(Math.floor((Date.now() - startTime) / 1000));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [startTime]);
+
+    const slideAnim = useRef(new RNAnimated.Value(30)).current;
+    const fadeAnim = useRef(new RNAnimated.Value(0)).current;
+
+    useEffect(() => {
+        slideAnim.setValue(30);
+        fadeAnim.setValue(0);
+        RNAnimated.parallel([
+            RNAnimated.spring(slideAnim, {
+                toValue: 0,
+                tension: 60,
+                friction: 9,
+                useNativeDriver: true,
+            }),
+            RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        ]).start();
+    }, [currentIdx]);
 
     if (!machine) return null;
 
