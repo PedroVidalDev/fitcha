@@ -1,7 +1,8 @@
+import { formatDateLabel } from "@/src/utils/formatDateLabel";
 import { useEffect, useState } from "react";
 import { HistoryEntry } from "../../../dtos/HistoryEntry";
 import { Machine } from "../../../dtos/Machine";
-import { formatDateLabel, getData } from "../../../services/storage";
+import { getData } from "../../../services/storage";
 
 export function useMachineHistory(machineId: string) {
     const [machine, setMachine] = useState<Machine | null>(null);
