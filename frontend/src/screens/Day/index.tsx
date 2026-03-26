@@ -1,3 +1,5 @@
+import { useDayMachines } from "@/src/hooks/useDayMachines";
+import { useWeek } from "@/src/hooks/useWeek";
 import { RootStackParamList } from "@/src/router/types";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
@@ -10,7 +12,6 @@ import { CategoryBadge } from "../../components/CategoryBadge";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { GradientCard } from "../../components/GradientCard";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useDayMachines, useWeek } from "../../hooks/useStorage";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Day">;
 type Route = RouteProp<RootStackParamList, "Day">;
@@ -52,13 +53,13 @@ export default function DayScreen() {
                 renderItem={({ item, index }) => (
                     <AnimatedCard index={index}>
                         <GradientCard
-                            onPress={() =>
-                                navigation.push("MachineDetail", { machineId: item.id })
+                            onPress={() => navigation.push("MachineDetail", { machineId: item.id })}
+                            onLongPress={() =>
+                                setDeleteTarget({
+                                    id: item.id,
+                                    name: item.name,
+                                })
                             }
-                            onLongPress={() => setDeleteTarget({
-                              id: item.id,
-                              name: item.name,
-                            })}
                         >
                             {item.photo ? (
                                 <Image

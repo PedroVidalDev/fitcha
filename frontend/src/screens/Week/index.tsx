@@ -1,3 +1,4 @@
+import { useWeek } from "@/src/hooks/useWeek";
 import { RootStackParamList } from "@/src/router/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -11,7 +12,6 @@ import { CategoryBadge } from "../../components/CategoryBadge";
 import { GradientCard } from "../../components/GradientCard";
 import { DAYS_LABEL } from "../../constants/categories";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useWeek } from "../../hooks/useStorage";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 

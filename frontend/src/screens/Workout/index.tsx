@@ -1,3 +1,5 @@
+import { useDayMachines } from "@/src/hooks/useDayMachines";
+import { useSaveWorkout } from "@/src/hooks/useSaveWorkout";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,7 +15,6 @@ import {
 } from "react-native";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useDayMachines, useSaveWorkout } from "../../hooks/useStorage";
 import { formatTime } from "./helpers";
 import { Route, WorkoutResult } from "./types";
 
