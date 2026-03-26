@@ -14,8 +14,8 @@ import {
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useDayMachines, useSaveWorkout } from "../../hooks/useStorage";
-import { formatTime } from "./helpers";
 import { Route, WorkoutResult } from "./types";
+import { formatTime } from "./helpers";
 
 export default function WorkoutScreen() {
     const navigation = useNavigation();
@@ -31,9 +31,31 @@ export default function WorkoutScreen() {
     const [set3, setSet3] = useState("");
     const [results, setResults] = useState<WorkoutResult[]>([]);
     const [elapsed, setElapsed] = useState(0);
+    const startTime = useRef(Date.now()).current;
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setElapsed(Math.floor((Date.now() - startTime) / 1000));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [startTime]);
 
     const slideAnim = useRef(new RNAnimated.Value(30)).current;
     const fadeAnim = useRef(new RNAnimated.Value(0)).current;
+
+    useEffect(() => {
+        slideAnim.setValue(30);
+        fadeAnim.setValue(0);
+        RNAnimated.parallel([
+            RNAnimated.spring(slideAnim, {
+                toValue: 0,
+                tension: 60,
+                friction: 9,
+                useNativeDriver: true,
+            }),
+            RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        ]).start();
+    }, [currentIdx]);
 
     const machine = machines[currentIdx];
     const isLast = currentIdx === machines.length - 1;
@@ -99,29 +121,11 @@ export default function WorkoutScreen() {
         ]);
     };
 
-    useEffect(() => {
-        const interval = setInterval(() => setElapsed((p) => p + 1), 1000);
-        return () => clearInterval(interval);
-    }, []);
-
-    useEffect(() => {
-        slideAnim.setValue(30);
-        fadeAnim.setValue(0);
-        RNAnimated.parallel([
-            RNAnimated.spring(slideAnim, {
-                toValue: 0,
-                tension: 60,
-                friction: 9,
-                useNativeDriver: true,
-            }),
-            RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        ]).start();
-    }, [currentIdx]);
-
     if (!machine) return null;
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg }}>
+            {/* Timer bar */}
             <LinearGradient
                 colors={t.gradientHero}
                 style={{
@@ -162,6 +166,7 @@ export default function WorkoutScreen() {
                 <View style={{ width: 34 }} />
             </LinearGradient>
 
+            {/* Progress bar */}
             <View
                 style={{ flexDirection: "row", gap: 4, paddingHorizontal: 20, paddingVertical: 8 }}
             >
@@ -183,6 +188,7 @@ export default function WorkoutScreen() {
                 ))}
             </View>
 
+            {/* Máquina atual */}
             <RNAnimated.View
                 style={{
                     flex: 1,
@@ -191,6 +197,7 @@ export default function WorkoutScreen() {
                     transform: [{ translateY: slideAnim }],
                 }}
             >
+                {/* Header da máquina */}
                 <View style={{ alignItems: "center", marginBottom: 24 }}>
                     {machine.photo ? (
                         <Image
@@ -231,6 +238,7 @@ export default function WorkoutScreen() {
                     <CategoryBadge categoryKey={machine.categoryKey} />
                 </View>
 
+                {/* Inputs das 3 séries */}
                 <Text
                     style={{
                         color: t.textDim,
@@ -297,6 +305,7 @@ export default function WorkoutScreen() {
                     ))}
                 </View>
 
+                {/* Botão avançar */}
                 <View style={{ flex: 1, justifyContent: "flex-end", paddingBottom: 20 }}>
                     <TouchableOpacity activeOpacity={0.75} onPress={handleNext}>
                         <LinearGradient

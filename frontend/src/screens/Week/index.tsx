@@ -1,14 +1,13 @@
 import { RootStackParamList } from "@/src/router/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddMachineModal } from "../../components/AddMachineModal";
 import { AIWizard } from "../../components/AIWizard";
 import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
-import { ConfirmModal } from "../../components/ConfirmModal";
 import { GradientCard } from "../../components/GradientCard";
 import { DAYS_LABEL } from "../../constants/categories";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -18,7 +17,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 
 export default function WeekScreen() {
     const navigation = useNavigation<Nav>();
-    const { days, addMachineToDay } = useWeek();
+    const { days, addMachineToDay, refresh } = useWeek();
     const { t } = useTheme();
     const [addTarget, setAddTarget] = useState<number | null>(null);
     const [wizardVisible, setWizardVisible] = useState(false);
@@ -34,6 +33,12 @@ export default function WeekScreen() {
             ),
         });
     }, [navigation, t.accent]);
+
+    useFocusEffect(
+        useCallback(() => {
+            refresh();
+        }, [refresh]),
+    );
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
