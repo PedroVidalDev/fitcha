@@ -1,7 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+    Animated,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { buildExpectedJSON, buildGPTPrompt } from "./prompt";
 import { WizardData, WizardStep } from "./types";
@@ -16,6 +25,8 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
     const { t } = useTheme();
     const [step, setStep] = useState<WizardStep>(0);
     const [data, setData] = useState<WizardData>({
+        height: "",
+        weight: "",
         daysPerWeek: null,
         intensity: null,
         goal: null,
@@ -28,7 +39,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
     useEffect(() => {
         if (visible) {
             setStep(0);
-            setData({ daysPerWeek: null, intensity: null, goal: null });
+            setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
             Animated.parallel([
                 Animated.spring(scale, {
                     toValue: 1,
@@ -60,7 +71,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
     };
 
     const goNext = () => {
-        if (step < 3) animateStep((step + 1) as WizardStep);
+        if (step < 4) animateStep((step + 1) as WizardStep);
     };
 
     const goBack = () => {
@@ -69,19 +80,21 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
 
     const handleClose = () => {
         setStep(0);
-        setData({ daysPerWeek: null, intensity: null, goal: null });
+        setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
         onClose();
     };
 
     const canProceed =
-        (step === 0 && data.daysPerWeek !== null) ||
-        (step === 1 && data.intensity !== null) ||
-        (step === 2 && data.goal !== null) ||
-        step === 3;
+        (step === 0 && data.height.trim() !== "" && data.weight.trim() !== "") ||
+        (step === 1 && data.daysPerWeek !== null) ||
+        (step === 2 && data.intensity !== null) ||
+        (step === 3 && data.goal !== null) ||
+        step === 4;
 
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     const stepTitles = [
+        "Seus dados físicos",
         "Quantos dias por semana?",
         "Qual a intensidade?",
         "Qual seu objetivo?",
@@ -121,6 +134,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             }),
                         }}
                     >
+                        {/* Header */}
                         <View
                             style={{
                                 flexDirection: "row",
@@ -148,8 +162,9 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             </TouchableOpacity>
                         </View>
 
+                        {/* Progress */}
                         <View style={{ flexDirection: "row", gap: 6, marginBottom: 20 }}>
-                            {[0, 1, 2, 3].map((i) => (
+                            {[0, 1, 2, 3, 4].map((i) => (
                                 <View
                                     key={i}
                                     style={{
@@ -162,6 +177,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             ))}
                         </View>
 
+                        {/* Step title */}
                         <Text
                             style={{
                                 color: t.textPrimary,
@@ -173,6 +189,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             {stepTitles[step]}
                         </Text>
 
+                        {/* Step content — scrollable pra não empurrar botões pra fora */}
                         <ScrollView
                             style={{ maxHeight: 320 }}
                             showsVerticalScrollIndicator={false}
@@ -180,27 +197,36 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                         >
                             <Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
                                 {step === 0 && (
+                                    <StepBody
+                                        height={data.height}
+                                        weight={data.weight}
+                                        onHeightChange={(v) => setData({ ...data, height: v })}
+                                        onWeightChange={(v) => setData({ ...data, weight: v })}
+                                    />
+                                )}
+                                {step === 1 && (
                                     <StepDays
                                         value={data.daysPerWeek}
                                         onChange={(v) => setData({ ...data, daysPerWeek: v })}
                                     />
                                 )}
-                                {step === 1 && (
+                                {step === 2 && (
                                     <StepIntensity
                                         value={data.intensity}
                                         onChange={(v) => setData({ ...data, intensity: v })}
                                     />
                                 )}
-                                {step === 2 && (
+                                {step === 3 && (
                                     <StepGoal
                                         value={data.goal}
                                         onChange={(v) => setData({ ...data, goal: v })}
                                     />
                                 )}
-                                {step === 3 && <StepResult data={data} />}
+                                {step === 4 && <StepResult data={data} />}
                             </Animated.View>
                         </ScrollView>
 
+                        {/* Actions — sempre fixos no final do modal */}
                         <View
                             style={{
                                 flexDirection: "row",
@@ -224,7 +250,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                                 <View />
                             )}
 
-                            {step < 3 ? (
+                            {step < 4 ? (
                                 <TouchableOpacity
                                     onPress={goNext}
                                     activeOpacity={0.75}
@@ -291,6 +317,104 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
     );
 }
 
+// ── Step 0: Dados físicos ──
+function StepBody({
+    height,
+    weight,
+    onHeightChange,
+    onWeightChange,
+}: {
+    height: string;
+    weight: string;
+    onHeightChange: (v: string) => void;
+    onWeightChange: (v: string) => void;
+}) {
+    const { t } = useTheme();
+
+    return (
+        <View style={{ gap: 16 }}>
+            <View>
+                <Text
+                    style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
+                >
+                    Altura (cm)
+                </Text>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        backgroundColor: t.inputBg,
+                        borderRadius: 14,
+                        paddingHorizontal: 16,
+                        borderWidth: 0.5,
+                        borderColor: t.border,
+                    }}
+                >
+                    <Ionicons name="resize-outline" size={18} color={t.textDim} />
+                    <TextInput
+                        style={{
+                            flex: 1,
+                            padding: 16,
+                            color: t.textPrimary,
+                            fontSize: 20,
+                            fontWeight: "800",
+                        }}
+                        placeholder="175"
+                        placeholderTextColor={t.textDim}
+                        keyboardType="numeric"
+                        value={height}
+                        onChangeText={onHeightChange}
+                    />
+                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>cm</Text>
+                </View>
+            </View>
+
+            <View>
+                <Text
+                    style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
+                >
+                    Peso (kg)
+                </Text>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        backgroundColor: t.inputBg,
+                        borderRadius: 14,
+                        paddingHorizontal: 16,
+                        borderWidth: 0.5,
+                        borderColor: t.border,
+                    }}
+                >
+                    <Ionicons name="scale-outline" size={18} color={t.textDim} />
+                    <TextInput
+                        style={{
+                            flex: 1,
+                            padding: 16,
+                            color: t.textPrimary,
+                            fontSize: 20,
+                            fontWeight: "800",
+                        }}
+                        placeholder="75"
+                        placeholderTextColor={t.textDim}
+                        keyboardType="numeric"
+                        value={weight}
+                        onChangeText={onWeightChange}
+                    />
+                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>kg</Text>
+                </View>
+            </View>
+
+            <Text style={{ color: t.textDim, fontSize: 12, textAlign: "center", marginTop: 4 }}>
+                Esses dados ajudam a calibrar os pesos sugeridos
+            </Text>
+        </View>
+    );
+}
+
+// ── Step 1: Dias por semana ──
 function StepDays({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
     const { t } = useTheme();
     const options = [2, 3, 4, 5, 6];
@@ -333,6 +457,7 @@ function StepDays({ value, onChange }: { value: number | null; onChange: (v: num
     );
 }
 
+// ── Step 1: Intensidade ──
 function StepIntensity({
     value,
     onChange,
@@ -408,6 +533,7 @@ function StepIntensity({
     );
 }
 
+// ── Step 2: Objetivo ──
 function StepGoal({
     value,
     onChange,
@@ -492,6 +618,7 @@ function StepGoal({
     );
 }
 
+// ── Step 3: Resultado (preview do prompt) ──
 function StepResult({ data }: { data: WizardData }) {
     const { t } = useTheme();
     const prompt = buildGPTPrompt(data);
