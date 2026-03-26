@@ -6,11 +6,14 @@ import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 
-import CategoriesScreen from "../screens/Categories";
-import DetailScreen from "../screens/Detail";
+import DayScreen from "../screens/Day";
 import LoginScreen from "../screens/Login";
-import MachinesScreen from "../screens/Machines";
 import RegisterScreen from "../screens/Register";
+import WeekScreen from "../screens/Week";
+import WorkoutScreen from "../screens/Workout";
+
+import { DAYS_LABEL } from "../constants/categories";
+import MachineDetailScreen from "../screens/Detail";
 import { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,6 +36,12 @@ export function AppNavigator() {
             </View>
         );
     }
+
+    const ThemeToggle = () => (
+        <TouchableOpacity onPress={toggle} style={{ padding: 6 }}>
+            <Ionicons name={t.mode === "dark" ? "sunny" : "moon"} size={22} color={t.accent} />
+        </TouchableOpacity>
+    );
 
     return (
         <NavigationContainer
@@ -66,8 +75,8 @@ export function AppNavigator() {
                 {user ? (
                     <>
                         <Stack.Screen
-                            name="Categories"
-                            component={CategoriesScreen}
+                            name="Week"
+                            component={WeekScreen}
                             options={{
                                 title: "Fitcha",
                                 headerBackVisible: false,
@@ -79,13 +88,7 @@ export function AppNavigator() {
                                             alignItems: "center",
                                         }}
                                     >
-                                        <TouchableOpacity onPress={toggle} style={{ padding: 6 }}>
-                                            <Ionicons
-                                                name={t.mode === "dark" ? "sunny" : "moon"}
-                                                size={22}
-                                                color={t.accent}
-                                            />
-                                        </TouchableOpacity>
+                                        <ThemeToggle />
                                         <TouchableOpacity onPress={logout} style={{ padding: 6 }}>
                                             <Ionicons
                                                 name="log-out-outline"
@@ -97,37 +100,32 @@ export function AppNavigator() {
                                 ),
                             }}
                         />
+
                         <Stack.Screen
-                            name="Machines"
-                            component={MachinesScreen}
+                            name="Day"
+                            component={DayScreen}
                             options={({ route }) => ({
-                                title: route.params.categoryName,
-                                headerRight: () => (
-                                    <TouchableOpacity onPress={toggle} style={{ padding: 6 }}>
-                                        <Ionicons
-                                            name={t.mode === "dark" ? "sunny" : "moon"}
-                                            size={22}
-                                            color={t.accent}
-                                        />
-                                    </TouchableOpacity>
-                                ),
+                                title: DAYS_LABEL[route.params.dayIndex],
+                                headerRight: () => <ThemeToggle />,
                             })}
                         />
+
                         <Stack.Screen
-                            name="Detail"
-                            component={DetailScreen}
-                            options={({ route }) => ({
-                                title: route.params.machineName,
-                                headerRight: () => (
-                                    <TouchableOpacity onPress={toggle} style={{ padding: 6 }}>
-                                        <Ionicons
-                                            name={t.mode === "dark" ? "sunny" : "moon"}
-                                            size={22}
-                                            color={t.accent}
-                                        />
-                                    </TouchableOpacity>
-                                ),
-                            })}
+                            name="MachineDetail"
+                            component={MachineDetailScreen}
+                            options={{
+                                title: "Detalhe",
+                                headerRight: () => <ThemeToggle />,
+                            }}
+                        />
+
+                        <Stack.Screen
+                            name="Workout"
+                            component={WorkoutScreen}
+                            options={{
+                                headerShown: false,
+                                animation: "slide_from_bottom",
+                            }}
                         />
                     </>
                 ) : (

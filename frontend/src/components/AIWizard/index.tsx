@@ -3,19 +3,22 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { buildExpectedJSON, buildGPTPrompt } from "./prompt";
-import { WizardData, WizardStep } from "./types";
+import { StepBody } from "./components/StepBody";
+import { StepDays } from "./components/StepDays";
+import { StepGoal } from "./components/StepGoal";
+import { StepIntensity } from "./components/StepIntensity";
+import { StepResult } from "./components/StepResult";
+import { buildGPTPrompt } from "./prompt";
+import { AIWizardProps, WizardData, WizardStep } from "./types";
 
-type Props = {
-    visible: boolean;
-    onClose: () => void;
-    onFinish: (prompt: string) => void;
-};
+export function AIWizard(props: AIWizardProps) {
+    const { visible, onClose, onFinish } = props;
 
-export function AIWizard({ visible, onClose, onFinish }: Props) {
     const { t } = useTheme();
     const [step, setStep] = useState<WizardStep>(0);
     const [data, setData] = useState<WizardData>({
+        height: "",
+        weight: "",
         daysPerWeek: null,
         intensity: null,
         goal: null,
@@ -24,25 +27,6 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
     const scale = useRef(new Animated.Value(0.9)).current;
     const fade = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        if (visible) {
-            setStep(0);
-            setData({ daysPerWeek: null, intensity: null, goal: null });
-            Animated.parallel([
-                Animated.spring(scale, {
-                    toValue: 1,
-                    tension: 65,
-                    friction: 8,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
-            ]).start();
-        } else {
-            scale.setValue(0.9);
-            fade.setValue(0);
-        }
-    }, [visible]);
 
     const animateStep = (nextStep: WizardStep) => {
         Animated.sequence([
@@ -60,7 +44,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
     };
 
     const goNext = () => {
-        if (step < 3) animateStep((step + 1) as WizardStep);
+        if (step < 4) animateStep((step + 1) as WizardStep);
     };
 
     const goBack = () => {
@@ -69,24 +53,45 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
 
     const handleClose = () => {
         setStep(0);
-        setData({ daysPerWeek: null, intensity: null, goal: null });
+        setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
         onClose();
     };
 
     const canProceed =
-        (step === 0 && data.daysPerWeek !== null) ||
-        (step === 1 && data.intensity !== null) ||
-        (step === 2 && data.goal !== null) ||
-        step === 3;
+        (step === 0 && data.height.trim() !== "" && data.weight.trim() !== "") ||
+        (step === 1 && data.daysPerWeek !== null) ||
+        (step === 2 && data.intensity !== null) ||
+        (step === 3 && data.goal !== null) ||
+        step === 4;
 
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     const stepTitles = [
+        "Seus dados físicos",
         "Quantos dias por semana?",
         "Qual a intensidade?",
         "Qual seu objetivo?",
         "Prompt gerado",
     ];
+
+    useEffect(() => {
+        if (visible) {
+            setStep(0);
+            setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
+            Animated.parallel([
+                Animated.spring(scale, {
+                    toValue: 1,
+                    tension: 65,
+                    friction: 8,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+            ]).start();
+        } else {
+            scale.setValue(0.9);
+            fade.setValue(0);
+        }
+    }, [visible]);
 
     return (
         <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
@@ -121,6 +126,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             }),
                         }}
                     >
+                        {/* Header */}
                         <View
                             style={{
                                 flexDirection: "row",
@@ -148,8 +154,9 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             </TouchableOpacity>
                         </View>
 
+                        {/* Progress */}
                         <View style={{ flexDirection: "row", gap: 6, marginBottom: 20 }}>
-                            {[0, 1, 2, 3].map((i) => (
+                            {[0, 1, 2, 3, 4].map((i) => (
                                 <View
                                     key={i}
                                     style={{
@@ -162,6 +169,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             ))}
                         </View>
 
+                        {/* Step title */}
                         <Text
                             style={{
                                 color: t.textPrimary,
@@ -173,6 +181,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                             {stepTitles[step]}
                         </Text>
 
+                        {/* Step content — scrollable pra não empurrar botões pra fora */}
                         <ScrollView
                             style={{ maxHeight: 320 }}
                             showsVerticalScrollIndicator={false}
@@ -180,24 +189,32 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                         >
                             <Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
                                 {step === 0 && (
+                                    <StepBody
+                                        height={data.height}
+                                        weight={data.weight}
+                                        onHeightChange={(v) => setData({ ...data, height: v })}
+                                        onWeightChange={(v) => setData({ ...data, weight: v })}
+                                    />
+                                )}
+                                {step === 1 && (
                                     <StepDays
                                         value={data.daysPerWeek}
                                         onChange={(v) => setData({ ...data, daysPerWeek: v })}
                                     />
                                 )}
-                                {step === 1 && (
+                                {step === 2 && (
                                     <StepIntensity
                                         value={data.intensity}
                                         onChange={(v) => setData({ ...data, intensity: v })}
                                     />
                                 )}
-                                {step === 2 && (
+                                {step === 3 && (
                                     <StepGoal
                                         value={data.goal}
                                         onChange={(v) => setData({ ...data, goal: v })}
                                     />
                                 )}
-                                {step === 3 && <StepResult data={data} />}
+                                {step === 4 && <StepResult data={data} />}
                             </Animated.View>
                         </ScrollView>
 
@@ -224,7 +241,7 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                                 <View />
                             )}
 
-                            {step < 3 ? (
+                            {step < 4 ? (
                                 <TouchableOpacity
                                     onPress={goNext}
                                     activeOpacity={0.75}
@@ -288,274 +305,5 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
                 </Animated.View>
             </Animated.View>
         </Modal>
-    );
-}
-
-function StepDays({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
-    const { t } = useTheme();
-    const options = [2, 3, 4, 5, 6];
-
-    return (
-        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-            {options.map((n) => {
-                const active = value === n;
-                return (
-                    <TouchableOpacity
-                        key={n}
-                        onPress={() => onChange(n)}
-                        activeOpacity={0.7}
-                        style={{
-                            paddingVertical: 16,
-                            paddingHorizontal: 22,
-                            borderRadius: 14,
-                            backgroundColor: active ? t.accent : t.inputBg,
-                            borderWidth: 0.5,
-                            borderColor: active ? t.accent : t.border,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                fontSize: 18,
-                                fontWeight: "900",
-                                color: active
-                                    ? t.mode === "dark"
-                                        ? "#0d0500"
-                                        : "#FFF"
-                                    : t.textMuted,
-                            }}
-                        >
-                            {n}x
-                        </Text>
-                    </TouchableOpacity>
-                );
-            })}
-        </View>
-    );
-}
-
-function StepIntensity({
-    value,
-    onChange,
-}: {
-    value: "leve" | "moderado" | "intenso" | null;
-    onChange: (v: "leve" | "moderado" | "intenso") => void;
-}) {
-    const { t } = useTheme();
-    const options: { key: "leve" | "moderado" | "intenso"; icon: string; desc: string }[] = [
-        { key: "leve", icon: "leaf-outline", desc: "Iniciante ou retorno" },
-        { key: "moderado", icon: "flame-outline", desc: "Treino consistente" },
-        { key: "intenso", icon: "flash-outline", desc: "Alto volume e carga" },
-    ];
-
-    return (
-        <View style={{ gap: 10 }}>
-            {options.map((opt) => {
-                const active = value === opt.key;
-                return (
-                    <TouchableOpacity
-                        key={opt.key}
-                        onPress={() => onChange(opt.key)}
-                        activeOpacity={0.7}
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 14,
-                            padding: 16,
-                            borderRadius: 14,
-                            backgroundColor: active ? t.accent : t.inputBg,
-                            borderWidth: 0.5,
-                            borderColor: active ? t.accent : t.border,
-                        }}
-                    >
-                        <Ionicons
-                            name={opt.icon as any}
-                            size={22}
-                            color={active ? (t.mode === "dark" ? "#0d0500" : "#FFF") : t.textMuted}
-                        />
-                        <View>
-                            <Text
-                                style={{
-                                    fontSize: 15,
-                                    fontWeight: "800",
-                                    textTransform: "capitalize",
-                                    color: active
-                                        ? t.mode === "dark"
-                                            ? "#0d0500"
-                                            : "#FFF"
-                                        : t.textPrimary,
-                                }}
-                            >
-                                {opt.key}
-                            </Text>
-                            <Text
-                                style={{
-                                    fontSize: 12,
-                                    marginTop: 2,
-                                    color: active
-                                        ? t.mode === "dark"
-                                            ? "rgba(13,5,0,0.6)"
-                                            : "rgba(255,255,255,0.7)"
-                                        : t.textMuted,
-                                }}
-                            >
-                                {opt.desc}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                );
-            })}
-        </View>
-    );
-}
-
-function StepGoal({
-    value,
-    onChange,
-}: {
-    value: "hipertrofia" | "forca" | "resistencia" | "emagrecimento" | null;
-    onChange: (v: "hipertrofia" | "forca" | "resistencia" | "emagrecimento") => void;
-}) {
-    const { t } = useTheme();
-    const options: {
-        key: "hipertrofia" | "forca" | "resistencia" | "emagrecimento";
-        icon: string;
-        desc: string;
-    }[] = [
-        { key: "hipertrofia", icon: "body-outline", desc: "Ganho de massa muscular" },
-        { key: "forca", icon: "barbell-outline", desc: "Aumento de carga máxima" },
-        { key: "resistencia", icon: "heart-outline", desc: "Mais repetições e stamina" },
-        {
-            key: "emagrecimento",
-            icon: "trending-down-outline",
-            desc: "Perda de gordura com treino",
-        },
-    ];
-
-    return (
-        <View style={{ gap: 10 }}>
-            {options.map((opt) => {
-                const active = value === opt.key;
-                return (
-                    <TouchableOpacity
-                        key={opt.key}
-                        onPress={() => onChange(opt.key)}
-                        activeOpacity={0.7}
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 14,
-                            padding: 16,
-                            borderRadius: 14,
-                            backgroundColor: active ? t.accent : t.inputBg,
-                            borderWidth: 0.5,
-                            borderColor: active ? t.accent : t.border,
-                        }}
-                    >
-                        <Ionicons
-                            name={opt.icon as any}
-                            size={22}
-                            color={active ? (t.mode === "dark" ? "#0d0500" : "#FFF") : t.textMuted}
-                        />
-                        <View>
-                            <Text
-                                style={{
-                                    fontSize: 15,
-                                    fontWeight: "800",
-                                    textTransform: "capitalize",
-                                    color: active
-                                        ? t.mode === "dark"
-                                            ? "#0d0500"
-                                            : "#FFF"
-                                        : t.textPrimary,
-                                }}
-                            >
-                                {opt.key}
-                            </Text>
-                            <Text
-                                style={{
-                                    fontSize: 12,
-                                    marginTop: 2,
-                                    color: active
-                                        ? t.mode === "dark"
-                                            ? "rgba(13,5,0,0.6)"
-                                            : "rgba(255,255,255,0.7)"
-                                        : t.textMuted,
-                                }}
-                            >
-                                {opt.desc}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                );
-            })}
-        </View>
-    );
-}
-
-function StepResult({ data }: { data: WizardData }) {
-    const { t } = useTheme();
-    const prompt = buildGPTPrompt(data);
-    const expectedJSON = buildExpectedJSON();
-
-    return (
-        <View>
-            <Text
-                style={{
-                    color: t.textDim,
-                    fontSize: 11,
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                    marginBottom: 8,
-                }}
-            >
-                mensagem que será enviada
-            </Text>
-            <View
-                style={{
-                    backgroundColor: t.inputBg,
-                    borderRadius: 12,
-                    padding: 14,
-                    borderWidth: 0.5,
-                    borderColor: t.border,
-                    marginBottom: 16,
-                }}
-            >
-                <Text style={{ color: t.textPrimary, fontSize: 13, lineHeight: 20 }}>{prompt}</Text>
-            </View>
-
-            <Text
-                style={{
-                    color: t.textDim,
-                    fontSize: 11,
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                    marginBottom: 8,
-                }}
-            >
-                json esperado de resposta
-            </Text>
-            <View
-                style={{
-                    backgroundColor: t.inputBg,
-                    borderRadius: 12,
-                    padding: 14,
-                    borderWidth: 0.5,
-                    borderColor: t.border,
-                }}
-            >
-                <Text
-                    style={{
-                        color: t.textMuted,
-                        fontSize: 11,
-                        fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-                        lineHeight: 18,
-                    }}
-                >
-                    {expectedJSON}
-                </Text>
-            </View>
-        </View>
     );
 }

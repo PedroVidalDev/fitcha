@@ -16,12 +16,13 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useFormErrors } from "../../hooks/useFormValidations";
 
 export default function Login() {
-    const { login } = useAuth();
     const { t } = useTheme();
+    const { login } = useAuth();
     const navigation = useNavigation();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
     const { errors, setError, clearError, clearAll } = useFormErrors();
 
     const logoFade = useRef(new Animated.Value(0)).current;

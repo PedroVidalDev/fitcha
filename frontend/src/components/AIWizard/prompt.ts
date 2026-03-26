@@ -1,7 +1,7 @@
 import { WizardData } from "./types";
 
 export function buildGPTPrompt(data: WizardData): string {
-    const { daysPerWeek, intensity, goal } = data;
+    const { height, weight, daysPerWeek, intensity, goal } = data;
 
     const intensityMap = {
         leve: "iniciante, com volumes baixos e foco em aprendizado dos movimentos",
@@ -19,10 +19,13 @@ export function buildGPTPrompt(data: WizardData): string {
     return [
         `Crie um plano de treino de musculação com as seguintes especificações:`,
         ``,
+        `- Altura: ${height}cm`,
+        `- Peso: ${weight}kg`,
         `- Dias por semana: ${daysPerWeek}`,
         `- Intensidade: ${intensityMap[intensity!]}`,
         `- Objetivo: ${goalMap[goal!]}`,
         ``,
+        `Leve em conta o biotipo do usuário (altura e peso) para calibrar os pesos sugeridos.`,
         `Distribua os grupos musculares de forma equilibrada entre os ${daysPerWeek} dias.`,
         `Para cada dia, liste as máquinas/exercícios com o peso sugerido para 3 séries (em kg).`,
         ``,

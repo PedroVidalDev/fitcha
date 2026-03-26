@@ -16,14 +16,16 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useFormErrors } from "../../hooks/useFormValidations";
 
 export default function Register() {
-    const { register } = useAuth();
     const { t } = useTheme();
+
+    const { register } = useAuth();
     const navigation = useNavigation();
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+
     const { errors, setError, clearError, clearAll } = useFormErrors();
 
     const fade = useRef(new Animated.Value(0)).current;
