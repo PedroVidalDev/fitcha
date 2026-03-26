@@ -1,7 +1,9 @@
 export type RootStackParamList = {
     Login: undefined;
     Register: undefined;
-    Categories: undefined;
-    Machines: { categoryId: string; categoryName: string };
-    Detail: { categoryId: string; machineId: string; machineName: string };
+
+    Week: undefined;
+    Day: { dayIndex: number };
+    MachineDetail: { machineId: string };
+    Workout: { dayIndex: number };
 };
