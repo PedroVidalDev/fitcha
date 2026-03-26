@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { HistoryEntry } from "../dtos/HistoryEntry";
-import { getData, saveData, uid } from "./useStorage";
+import { HistoryEntry } from "../../../dtos/HistoryEntry";
+import { getData, saveData, uid } from "../../../services/storage";
 
 export function useSaveWorkout() {
     return useCallback(async (results: { machineId: string; sets: [number, number, number] }[]) => {

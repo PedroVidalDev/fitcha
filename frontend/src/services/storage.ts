@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useState } from "react";
 import { AppData } from "../dtos/AppData";
 
 const STORAGE_KEY = "fitcha_data";

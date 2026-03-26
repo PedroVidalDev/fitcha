@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Machine } from "../dtos/Machine";
-import { getData } from "./useStorage";
+import { getData } from "../services/storage";
 
 export function useDayMachines(dayIndex: number) {
     const [machines, setMachines] = useState<(Machine & { lastWeight: number | null })[]>([]);

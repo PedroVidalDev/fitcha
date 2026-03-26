@@ -1,5 +1,5 @@
 import { useDayMachines } from "@/src/hooks/useDayMachines";
-import { useSaveWorkout } from "@/src/hooks/useSaveWorkout";
+import { useSaveWorkout } from "@/src/screens/Workout/hooks/useSaveWorkout";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";

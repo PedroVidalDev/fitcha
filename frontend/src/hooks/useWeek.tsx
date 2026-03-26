@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getCategoryByKey, MachineCategoryKey } from "../constants/categories";
 import { Machine } from "../dtos/Machine";
 import { syncNotifications } from "../services/notifications";
-import { getData, saveData, uid } from "./useStorage";
+import { getData, saveData, uid } from "../services/storage";
 
 export function useWeek() {
     const [days, setDays] = useState<Record<number, Machine[]>>({});

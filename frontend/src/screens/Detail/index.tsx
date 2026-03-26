@@ -1,6 +1,6 @@
-import { useMachineHistory } from "@/src/hooks/useMachineHistory";
-import { useMachinePhoto } from "@/src/hooks/useMachinePhoto";
 import { RootStackParamList } from "@/src/router/types";
+import { useMachineHistory } from "@/src/screens/Detail/hooks/useMachineHistory";
+import { useMachinePhoto } from "@/src/screens/Detail/hooks/useMachinePhoto";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getData, saveData } from "./useStorage";
+import { getData, saveData } from "../../../services/storage";
 
 export function useMachinePhoto(machineId: string) {
     const [photo, setPhoto] = useState<string | undefined>();

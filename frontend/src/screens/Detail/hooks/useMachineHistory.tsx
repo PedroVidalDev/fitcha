@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { HistoryEntry } from "../dtos/HistoryEntry";
-import { Machine } from "../dtos/Machine";
-import { formatDateLabel, getData } from "./useStorage";
+import { HistoryEntry } from "../../../dtos/HistoryEntry";
+import { Machine } from "../../../dtos/Machine";
+import { formatDateLabel, getData } from "../../../services/storage";
 
 export function useMachineHistory(machineId: string) {
     const [machine, setMachine] = useState<Machine | null>(null);
