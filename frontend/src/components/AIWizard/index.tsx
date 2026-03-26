@@ -13,15 +13,11 @@ import {
 } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { buildExpectedJSON, buildGPTPrompt } from "./prompt";
-import { WizardData, WizardStep } from "./types";
+import { AIWizardProps, WizardData, WizardStep } from "./types";
 
-type Props = {
-    visible: boolean;
-    onClose: () => void;
-    onFinish: (prompt: string) => void;
-};
+export function AIWizard(props: AIWizardProps) {
+    const { visible, onClose, onFinish } = props;
 
-export function AIWizard({ visible, onClose, onFinish }: Props) {
     const { t } = useTheme();
     const [step, setStep] = useState<WizardStep>(0);
     const [data, setData] = useState<WizardData>({
@@ -35,25 +31,6 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
     const scale = useRef(new Animated.Value(0.9)).current;
     const fade = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        if (visible) {
-            setStep(0);
-            setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
-            Animated.parallel([
-                Animated.spring(scale, {
-                    toValue: 1,
-                    tension: 65,
-                    friction: 8,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
-            ]).start();
-        } else {
-            scale.setValue(0.9);
-            fade.setValue(0);
-        }
-    }, [visible]);
 
     const animateStep = (nextStep: WizardStep) => {
         Animated.sequence([
@@ -100,6 +77,25 @@ export function AIWizard({ visible, onClose, onFinish }: Props) {
         "Qual seu objetivo?",
         "Prompt gerado",
     ];
+
+    useEffect(() => {
+        if (visible) {
+            setStep(0);
+            setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
+            Animated.parallel([
+                Animated.spring(scale, {
+                    toValue: 1,
+                    tension: 65,
+                    friction: 8,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+            ]).start();
+        } else {
+            scale.setValue(0.9);
+            fade.setValue(0);
+        }
+    }, [visible]);
 
     return (
         <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>

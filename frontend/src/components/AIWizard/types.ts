@@ -1,3 +1,9 @@
+export type AIWizardProps = {
+    visible: boolean;
+    onClose: () => void;
+    onFinish: (prompt: string) => void;
+};
+
 export type WizardData = {
     height: string;
     weight: string;
