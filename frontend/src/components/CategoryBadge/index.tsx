@@ -1,7 +1,10 @@
 import { Text, View } from "react-native";
 import { getCategoryByKey } from "../../constants/categories";
+import { CategoryBadgeProps } from "./types";
 
-export function CategoryBadge({ categoryKey }: { categoryKey: string }) {
+export function CategoryBadge(props: CategoryBadgeProps) {
+    const { categoryKey } = props;
+
     const cat = getCategoryByKey(categoryKey);
     return (
         <View
