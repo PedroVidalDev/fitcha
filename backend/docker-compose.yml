@@ -1,0 +1,41 @@
+services:
+  api:
+    build: .
+    container_name: fitcha_api
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fitcha-network
+
+  db:
+    image: postgres:latest
+    container_name: fitcha_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - fitcha_data:/var/lib/postgresql/data
+    networks:
+      - fitcha-network
+
+volumes:
+  fitcha_data:
+
+networks:
+  fitcha-network:
+    name: fitcha-network
