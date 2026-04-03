@@ -20,34 +20,34 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	var input dtos.CreateUserType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H {"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := c.service.Register(input.Name, input.Email, input.Password)
+	authResponse, err := c.service.Register(input.Name, input.Email, input.Password)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H {"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, user)
+	ctx.JSON(http.StatusCreated, authResponse)
 }
 
 func (c *AuthController) Login(ctx *gin.Context) {
 	var input dtos.LoginType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H {"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	token, err := c.service.Login(input.Email, input.Password)
+	authResponse, err := c.service.Login(input.Email, input.Password)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H {"error": err.Error()})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, token)
+	ctx.JSON(http.StatusOK, authResponse)
 }

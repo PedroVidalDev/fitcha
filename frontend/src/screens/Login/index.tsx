@@ -22,6 +22,7 @@ export default function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { errors, setError, clearError, clearAll } = useFormErrors();
 
@@ -51,11 +52,19 @@ export default function Login() {
     };
 
     const handleLogin = async () => {
-        if (!validate()) return;
+        if (!validate() || isSubmitting) return;
+
+        setIsSubmitting(true);
+
         try {
             await login(email.trim(), password);
-        } catch {
-            setError("password", "E-mail ou senha incorretos");
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "E-mail ou senha incorretos";
+
+            setError("password", message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -171,8 +180,9 @@ export default function Login() {
 
                     <TouchableOpacity
                         activeOpacity={0.8}
+                        disabled={isSubmitting}
                         onPress={handleLogin}
-                        style={{ marginTop: 12 }}
+                        style={{ marginTop: 12, opacity: isSubmitting ? 0.8 : 1 }}
                     >
                         <LinearGradient
                             colors={t.gradientAccent}
@@ -181,7 +191,7 @@ export default function Login() {
                             style={{ paddingVertical: 16, borderRadius: 14, alignItems: "center" }}
                         >
                             <Text style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}>
-                                Entrar
+                                {isSubmitting ? "Entrando..." : "Entrar"}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
