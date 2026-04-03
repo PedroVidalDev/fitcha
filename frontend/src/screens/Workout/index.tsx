@@ -23,17 +23,7 @@ import {
     hasDraftValue,
     isDraftComplete,
 } from "./helpers";
-import { Route, WorkoutDraft, WorkoutDraftMap, WorkoutResult } from "./types";
-
-type WorkoutModalConfig = {
-    title: string;
-    message: string;
-    confirmLabel?: string;
-    cancelLabel?: string;
-    hideCancel?: boolean;
-    confirmVariant?: "danger" | "accent";
-    onConfirm: () => void;
-};
+import { Route, WorkoutDraft, WorkoutDraftMap, WorkoutModalConfig, WorkoutResult } from "./types";
 
 export default function WorkoutScreen() {
     const { t } = useTheme();
