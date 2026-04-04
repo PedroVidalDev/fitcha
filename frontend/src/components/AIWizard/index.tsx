@@ -1,14 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Animated, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { StepBody } from "./components/StepBody";
 import { StepDays } from "./components/StepDays";
 import { StepGoal } from "./components/StepGoal";
 import { StepIntensity } from "./components/StepIntensity";
 import { StepResult } from "./components/StepResult";
-import { buildGPTPrompt } from "./prompt";
 import { AIWizardProps, WizardData, WizardStep } from "./types";
 
 export function AIWizard(props: AIWizardProps) {
@@ -23,6 +22,7 @@ export function AIWizard(props: AIWizardProps) {
         intensity: null,
         goal: null,
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const scale = useRef(new Animated.Value(0.9)).current;
     const fade = useRef(new Animated.Value(0)).current;
@@ -51,9 +51,14 @@ export function AIWizard(props: AIWizardProps) {
         if (step > 0) animateStep((step - 1) as WizardStep);
     };
 
-    const handleClose = () => {
+    const resetWizard = () => {
         setStep(0);
         setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
+    };
+
+    const handleClose = () => {
+        if (isSubmitting) return;
+        resetWizard();
         onClose();
     };
 
@@ -78,6 +83,7 @@ export function AIWizard(props: AIWizardProps) {
         if (visible) {
             setStep(0);
             setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
+            setIsSubmitting(false);
             Animated.parallel([
                 Animated.spring(scale, {
                     toValue: 1,
@@ -149,7 +155,11 @@ export function AIWizard(props: AIWizardProps) {
                                     treino com ia
                                 </Text>
                             </View>
-                            <TouchableOpacity onPress={handleClose} style={{ padding: 4 }}>
+                            <TouchableOpacity
+                                onPress={handleClose}
+                                style={{ padding: 4, opacity: isSubmitting ? 0.5 : 1 }}
+                                disabled={isSubmitting}
+                            >
                                 <Ionicons name="close" size={22} color={t.textMuted} />
                             </TouchableOpacity>
                         </View>
@@ -245,8 +255,8 @@ export function AIWizard(props: AIWizardProps) {
                                 <TouchableOpacity
                                     onPress={goNext}
                                     activeOpacity={0.75}
-                                    disabled={!canProceed}
-                                    style={{ opacity: canProceed ? 1 : 0.4 }}
+                                    disabled={!canProceed || isSubmitting}
+                                    style={{ opacity: canProceed && !isSubmitting ? 1 : 0.4 }}
                                 >
                                     <LinearGradient
                                         colors={t.gradientAccent}
@@ -269,12 +279,26 @@ export function AIWizard(props: AIWizardProps) {
                                 </TouchableOpacity>
                             ) : (
                                 <TouchableOpacity
-                                    onPress={() => {
-                                        const prompt = buildGPTPrompt(data);
-                                        onFinish(prompt);
-                                        handleClose();
+                                    onPress={async () => {
+                                        try {
+                                            setIsSubmitting(true);
+                                            await onFinish(data);
+                                            resetWizard();
+                                            onClose();
+                                        } catch (error) {
+                                            Alert.alert(
+                                                "Erro ao gerar treino",
+                                                error instanceof Error
+                                                    ? error.message
+                                                    : "Nao foi possivel gerar o treino agora.",
+                                            );
+                                        } finally {
+                                            setIsSubmitting(false);
+                                        }
                                     }}
                                     activeOpacity={0.75}
+                                    disabled={isSubmitting}
+                                    style={{ opacity: isSubmitting ? 0.7 : 1 }}
                                 >
                                     <LinearGradient
                                         colors={t.gradientAccent}
@@ -295,7 +319,7 @@ export function AIWizard(props: AIWizardProps) {
                                                 fontWeight: "800",
                                             }}
                                         >
-                                            Gerar treino
+                                            {isSubmitting ? "Gerando..." : "Gerar treino"}
                                         </Text>
                                     </LinearGradient>
                                 </TouchableOpacity>

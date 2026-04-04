@@ -14,7 +14,11 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	authRepo := repositories.NewUserRepository(db)
 	authService := services.NewAuthService(authRepo)
 	authController := controllers.NewAuthController(authService)
+
 	planRepo := repositories.NewPlanRepository(db)
+
+	aiWorkoutService := services.NewAIWorkoutService(planRepo)
+	aiWorkoutController := controllers.NewAIWorkoutController(aiWorkoutService)
 
 	mpClient, mpErr := mercadopago.NewClientFromEnv()
 
@@ -23,4 +27,5 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	RegisterAuthRoutes(r, authController)
 	RegisterPlanRoutes(r, planController)
+	RegisterAIWorkoutRoutes(r, aiWorkoutController)
 }

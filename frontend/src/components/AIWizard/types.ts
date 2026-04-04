@@ -1,7 +1,7 @@
 export type AIWizardProps = {
     visible: boolean;
     onClose: () => void;
-    onFinish: (prompt: string) => void;
+    onFinish: (data: WizardData) => Promise<void>;
 };
 
 export type WizardData = {
