@@ -6,6 +6,7 @@ type GenerateAIWorkoutRequest struct {
 	DaysPerWeek int    `json:"daysPerWeek" binding:"required,min=1,max=7"`
 	Intensity   string `json:"intensity" binding:"required,oneof=leve moderado intenso"`
 	Goal        string `json:"goal" binding:"required,oneof=hipertrofia forca resistencia emagrecimento"`
+	CustomInstructions string `json:"customInstructions"`
 }
 
 type GeneratedMachine struct {

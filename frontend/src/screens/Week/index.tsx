@@ -4,12 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useLayoutEffect, useState } from "react";
-import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddMachineModal } from "../../components/AddMachineModal";
 import { AIWizard } from "../../components/AIWizard";
 import { GPTResponse, WizardData } from "../../components/AIWizard/types";
 import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
+import { ConfirmModal } from "../../components/ConfirmModal";
 import { GradientCard } from "../../components/GradientCard";
 import { DAYS_LABEL, MachineCategoryKey } from "../../constants/categories";
 import { useAuth } from "../../contexts/AuthContext";
@@ -89,6 +90,7 @@ export default function WeekScreen() {
 
     const [addTarget, setAddTarget] = useState<number | null>(null);
     const [wizardVisible, setWizardVisible] = useState(false);
+    const [successVisible, setSuccessVisible] = useState(false);
 
     const today = new Date().getDay();
 
@@ -120,11 +122,7 @@ export default function WeekScreen() {
 
             await replaceWeekWithMachines(generatedWeek);
             await refresh();
-
-            Alert.alert(
-                "Treino gerado",
-                "Seu treino automatico foi criado e substituiu a semana atual.",
-            );
+            setSuccessVisible(true);
         },
         [refresh],
     );
@@ -270,6 +268,17 @@ export default function WeekScreen() {
                 visible={wizardVisible}
                 onClose={() => setWizardVisible(false)}
                 onFinish={handleGenerateWorkout}
+            />
+
+            <ConfirmModal
+                visible={successVisible}
+                onClose={() => setSuccessVisible(false)}
+                onConfirm={() => setSuccessVisible(false)}
+                title="Treino gerado"
+                message="Seu treino automatico foi criado com sucesso e substituiu a semana atual."
+                confirmLabel="Fechar"
+                hideCancel
+                confirmVariant="accent"
             />
         </View>
     );

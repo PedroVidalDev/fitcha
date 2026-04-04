@@ -1,12 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { AppModal } from "../AppModal";
 import { useTheme } from "../../contexts/ThemeContext";
 import { StepBody } from "./components/StepBody";
 import { StepDays } from "./components/StepDays";
 import { StepGoal } from "./components/StepGoal";
 import { StepIntensity } from "./components/StepIntensity";
+import { StepInstructions } from "./components/StepInstructions";
 import { StepResult } from "./components/StepResult";
 import { AIWizardProps, WizardData, WizardStep } from "./types";
 
@@ -21,11 +23,10 @@ export function AIWizard(props: AIWizardProps) {
         daysPerWeek: null,
         intensity: null,
         goal: null,
+        customInstructions: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const scale = useRef(new Animated.Value(0.9)).current;
-    const fade = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
 
     const animateStep = (nextStep: WizardStep) => {
@@ -44,7 +45,7 @@ export function AIWizard(props: AIWizardProps) {
     };
 
     const goNext = () => {
-        if (step < 4) animateStep((step + 1) as WizardStep);
+        if (step < 5) animateStep((step + 1) as WizardStep);
     };
 
     const goBack = () => {
@@ -53,7 +54,14 @@ export function AIWizard(props: AIWizardProps) {
 
     const resetWizard = () => {
         setStep(0);
-        setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
+        setData({
+            height: "",
+            weight: "",
+            daysPerWeek: null,
+            intensity: null,
+            goal: null,
+            customInstructions: "",
+        });
     };
 
     const handleClose = () => {
@@ -67,7 +75,8 @@ export function AIWizard(props: AIWizardProps) {
         (step === 1 && data.daysPerWeek !== null) ||
         (step === 2 && data.intensity !== null) ||
         (step === 3 && data.goal !== null) ||
-        step === 4;
+        step === 4 ||
+        step === 5;
 
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
@@ -76,62 +85,27 @@ export function AIWizard(props: AIWizardProps) {
         "Quantos dias por semana?",
         "Qual a intensidade?",
         "Qual seu objetivo?",
-        "Prompt gerado",
+        "Instrucoes personalizadas",
+        "Confirmar geracao",
     ];
 
     useEffect(() => {
         if (visible) {
             setStep(0);
-            setData({ height: "", weight: "", daysPerWeek: null, intensity: null, goal: null });
+            setData({
+                height: "",
+                weight: "",
+                daysPerWeek: null,
+                intensity: null,
+                goal: null,
+                customInstructions: "",
+            });
             setIsSubmitting(false);
-            Animated.parallel([
-                Animated.spring(scale, {
-                    toValue: 1,
-                    tension: 65,
-                    friction: 8,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
-            ]).start();
-        } else {
-            scale.setValue(0.9);
-            fade.setValue(0);
         }
     }, [visible]);
 
     return (
-        <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
-            <Animated.View
-                style={{
-                    flex: 1,
-                    backgroundColor: t.overlay,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    padding: 20,
-                    opacity: fade,
-                }}
-            >
-                <Animated.View style={{ transform: [{ scale }], width: "100%" }}>
-                    <LinearGradient
-                        colors={t.gradientModal}
-                        style={{
-                            width: "100%",
-                            borderRadius: 24,
-                            padding: 24,
-                            borderWidth: 0.5,
-                            borderColor: t.border,
-                            maxHeight: "85%",
-                            ...Platform.select({
-                                ios: {
-                                    shadowColor: t.shadow,
-                                    shadowOffset: { width: 0, height: 8 },
-                                    shadowOpacity: 0.15,
-                                    shadowRadius: 24,
-                                },
-                                android: { elevation: 14 },
-                            }),
-                        }}
-                    >
+        <AppModal visible={visible} onClose={handleClose} contentStyle={{ maxHeight: "85%" }}>
                         {/* Header */}
                         <View
                             style={{
@@ -166,7 +140,7 @@ export function AIWizard(props: AIWizardProps) {
 
                         {/* Progress */}
                         <View style={{ flexDirection: "row", gap: 6, marginBottom: 20 }}>
-                            {[0, 1, 2, 3, 4].map((i) => (
+                            {[0, 1, 2, 3, 4, 5].map((i) => (
                                 <View
                                     key={i}
                                     style={{
@@ -224,7 +198,13 @@ export function AIWizard(props: AIWizardProps) {
                                         onChange={(v) => setData({ ...data, goal: v })}
                                     />
                                 )}
-                                {step === 4 && <StepResult data={data} />}
+                                {step === 4 && (
+                                    <StepInstructions
+                                        value={data.customInstructions}
+                                        onChange={(v) => setData({ ...data, customInstructions: v })}
+                                    />
+                                )}
+                                {step === 5 && <StepResult data={data} />}
                             </Animated.View>
                         </ScrollView>
 
@@ -251,7 +231,7 @@ export function AIWizard(props: AIWizardProps) {
                                 <View />
                             )}
 
-                            {step < 4 ? (
+                            {step < 5 ? (
                                 <TouchableOpacity
                                     onPress={goNext}
                                     activeOpacity={0.75}
@@ -325,9 +305,6 @@ export function AIWizard(props: AIWizardProps) {
                                 </TouchableOpacity>
                             )}
                         </View>
-                    </LinearGradient>
-                </Animated.View>
-            </Animated.View>
-        </Modal>
+        </AppModal>
     );
 }

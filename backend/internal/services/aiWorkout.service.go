@@ -148,6 +148,9 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		fmt.Sprintf("- Intensidade: %s", intensityMap[input.Intensity]),
 		fmt.Sprintf("- Objetivo: %s", goalMap[input.Goal]),
 		"",
+		"Considere as observacoes personalizadas do usuario abaixo quando fizer a divisao e a escolha dos exercicios.",
+		fmt.Sprintf("- Observacoes personalizadas: %s", buildCustomInstructionsLine(input.CustomInstructions)),
+		"",
 		"Leve em conta o biotipo do usuario (altura e peso) para calibrar as cargas sugeridas.",
 		fmt.Sprintf("Distribua os grupos musculares de forma equilibrada entre os %d dias.", input.DaysPerWeek),
 		"Para cada dia, liste exercicios de musculacao com peso sugerido para 3 series em kg.",
@@ -162,6 +165,15 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"- Nao repita dias fora da faixa 0-6.",
 		"- Nao inclua texto fora do JSON.",
 	}, "\n")
+}
+
+func buildCustomInstructionsLine(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return "nenhuma"
+	}
+
+	return trimmed
 }
 
 func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse) error {
