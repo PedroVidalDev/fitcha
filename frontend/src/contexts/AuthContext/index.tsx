@@ -15,12 +15,13 @@ import { axiosApp, ensureApiUrlConfigured, setAxiosAuthToken } from "../../servi
 
 const AUTH_KEY = "auth_session";
 const LEGACY_AUTH_KEY = "auth_user";
-const ALWAYS_LOGGED_IN_FOR_TESTS = true;
+const ALWAYS_LOGGED_IN_FOR_TESTS = false;
 
 const TEST_USER: User = {
     id: 0,
     name: "Usuario Teste",
     email: "teste@fitcha.app",
+    planActive: false,
 };
 
 const TEST_PROFILE: MockProfile = {
@@ -45,6 +46,7 @@ function normalizeUser(user: ApiUser): User {
         id: user.ID,
         createdAt: user.CreatedAt,
         updatedAt: user.UpdatedAt,
+        planActive: user.planActive,
         name: user.name,
         email: user.email,
     };
@@ -56,7 +58,8 @@ function buildProfile(user: User, profile?: Partial<MockProfile> | null): MockPr
         email:
             typeof profile?.email === "string" && profile.email.trim() ? profile.email : user.email,
         mockPassword: typeof profile?.mockPassword === "string" ? profile.mockPassword : "",
-        hasAiPlan: typeof profile?.hasAiPlan === "boolean" ? profile.hasAiPlan : false,
+        hasAiPlan:
+            typeof profile?.hasAiPlan === "boolean" ? profile.hasAiPlan : Boolean(user.planActive),
     };
 }
 
@@ -109,6 +112,7 @@ function parseStoredSession(raw: string): StoredAuthSession | null {
                 updatedAt: parsed.user.updatedAt,
                 name: parsed.user.name,
                 email: parsed.user.email,
+                planActive: parsed.user.planActive,
             },
             parsed.profile,
         );
@@ -258,10 +262,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         async (active: boolean) => {
             if (!session) return;
 
-            const nextSession = buildSession(session.token, session.user, {
-                ...session.profile,
-                hasAiPlan: active,
-            });
+            const nextSession = buildSession(
+                session.token,
+                {
+                    ...session.user,
+                    planActive: active,
+                },
+                {
+                    ...session.profile,
+                    hasAiPlan: active,
+                },
+            );
 
             await persistSession(nextSession);
         },

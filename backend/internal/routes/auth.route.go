@@ -14,5 +14,4 @@ func RegisterAuthRoutes(r *gin.Engine, controller *controllers.AuthController) {
 	authenticated := r.Group("/me")
 	authenticated.Use(middlewares.AuthMiddleware())
 	authenticated.PATCH("/password", controller.ChangePassword)
-	authenticated.PATCH("/plan", controller.UpdatePlanActive)
 }

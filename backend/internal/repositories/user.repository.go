@@ -11,7 +11,7 @@ type IUserRepository interface {
 	FindByID(userID uint) (models.User, error)
 	CreateUser(p models.User) (models.User, error)
 	UpdatePassword(userID uint, password string) (models.User, error)
-	UpdatePlanActive(userID uint, planActive bool) (models.User, error)
+	SetPlanActive(userID uint, planActive bool) (models.User, error)
 }
 
 type userRepository struct {
@@ -66,7 +66,7 @@ func (r *userRepository) UpdatePassword(userID uint, password string) (models.Us
 	return r.FindByID(userID)
 }
 
-func (r *userRepository) UpdatePlanActive(userID uint, planActive bool) (models.User, error) {
+func (r *userRepository) SetPlanActive(userID uint, planActive bool) (models.User, error) {
 	if err := r.db.Model(&models.User{}).Where("id = ?", userID).Update("plan_active", planActive).Error; err != nil {
 		return models.User{}, err
 	}

@@ -92,17 +92,3 @@ func (s *AuthService) ChangePassword(userID uint, currentPassword, newPassword s
 
 	return nil
 }
-
-func (s *AuthService) UpdatePlanActive(userID uint, planActive bool) (models.User, error) {
-	user, err := s.repo.FindByID(userID)
-	if err != nil {
-		return models.User{}, errors.New("usuario nao encontrado")
-	}
-
-	updatedUser, err := s.repo.UpdatePlanActive(user.ID, planActive)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return updatedUser, nil
-}

@@ -2,6 +2,7 @@ export type ApiUser = {
     ID?: number;
     CreatedAt?: string;
     UpdatedAt?: string;
+    planActive?: boolean;
     name: string;
     email: string;
 };
@@ -10,6 +11,7 @@ export type User = {
     id?: number;
     createdAt?: string;
     updatedAt?: string;
+    planActive?: boolean;
     name: string;
     email: string;
 };

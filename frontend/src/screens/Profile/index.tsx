@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import {
+    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -10,15 +11,35 @@ import {
     View,
 } from "react-native";
 import { Input } from "../../components/Input";
+import { PlanCheckoutModal } from "../../components/PlanCheckoutModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useProfileForm } from "./hooks/useProfileForm";
+import { useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 const PLAN_BENEFITS = [
     "Libera o botao do assistente de treino com IA na tela inicial.",
-    "Mantem a experiencia de assinatura apenas no frontend por enquanto.",
-    "Serve como fluxo ficticio para validar a UX antes do backend real.",
+    "Ativacao automatica assim que o Pix for confirmado pelo Mercado Pago.",
+    "Acesso garantido por 1 mes sem cancelamento manual durante a vigencia.",
 ];
+
+function formatDate(value?: string | null) {
+    if (!value) return null;
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(date);
+}
 
 export default function ProfileScreen() {
     const { t } = useTheme();
@@ -29,9 +50,30 @@ export default function ProfileScreen() {
         onSubmitProfile: updateProfile,
     });
 
+    const {
+        plan,
+        documentNumber,
+        setDocumentNumber,
+        isModalVisible,
+        isLoading,
+        isCreatingCheckout,
+        isRefreshingStatus,
+        errorMessage,
+        openModal,
+        closeModal,
+        generateCheckout,
+        refreshStatus,
+        reloadPlan,
+    } = usePlanCheckout({
+        onPlanActiveChange: setAiPlanActive,
+    });
+
     if (!user) return null;
 
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
+    const accessExpiresAt = formatDate(plan?.accessExpiresAt);
+    const paymentExpiresAt = formatDate(plan?.paymentExpiresAt);
+    const hasPendingPayment = plan?.status === "pending";
 
     const handleSaveProfile = async () => {
         const saved = await handleSubmit();
@@ -41,18 +83,11 @@ export default function ProfileScreen() {
         Alert.alert("Perfil salvo", "As alteracoes ficaram armazenadas apenas neste frontend.");
     };
 
-    const handleTogglePlan = async () => {
-        const nextValue = !user.hasAiPlan;
+    const handleRefreshPlan = useCallback(() => {
+        void reloadPlan();
+    }, [reloadPlan]);
 
-        await setAiPlanActive(nextValue);
-
-        Alert.alert(
-            nextValue ? "Plano IA ativado" : "Plano IA desativado",
-            nextValue
-                ? "O botao de IA ja fica disponivel para este usuario."
-                : "O botao de IA foi escondido para este usuario.",
-        );
-    };
+    useFocusEffect(handleRefreshPlan);
 
     return (
         <LinearGradient colors={t.gradientHero} style={{ flex: 1 }}>
@@ -122,8 +157,8 @@ export default function ProfileScreen() {
                                 lineHeight: 21,
                             }}
                         >
-                            Ajuste seu nome, e-mail e senha localmente e controle o acesso ficticio
-                            ao plano de IA.
+                            Ajuste seu nome, e-mail e senha localmente e acompanhe a assinatura do
+                            plano que libera o modo AI.
                         </Text>
                     </View>
 
@@ -169,7 +204,7 @@ export default function ProfileScreen() {
                                         Fitcha AI
                                     </Text>
                                     <Text style={{ color: t.textMuted, fontSize: 13 }}>
-                                        Assinatura ficticia de frontend
+                                        Plano mensal com pagamento via Pix
                                     </Text>
                                 </View>
                             </View>
@@ -204,8 +239,8 @@ export default function ProfileScreen() {
                                 marginBottom: 14,
                             }}
                         >
-                            Enquanto o backend real nao existe, a assinatura so libera ou esconde o
-                            acesso ao recurso de IA dentro do app.
+                            O acesso ao AI e liberado automaticamente quando o pagamento Pix for
+                            aprovado e permanece ativo por 1 mes.
                         </Text>
 
                         <View style={{ gap: 10, marginBottom: 20 }}>
@@ -240,29 +275,107 @@ export default function ProfileScreen() {
                             ))}
                         </View>
 
-                        <TouchableOpacity activeOpacity={0.8} onPress={handleTogglePlan}>
-                            <LinearGradient
-                                colors={user.hasAiPlan ? [t.surface, t.inputBg] : t.gradientAccent}
+                        {isLoading ? (
+                            <View style={{ paddingVertical: 18, alignItems: "center" }}>
+                                <ActivityIndicator color={t.accent} />
+                            </View>
+                        ) : user.hasAiPlan ? (
+                            <View
                                 style={{
+                                    backgroundColor: t.chipBg,
                                     borderRadius: 16,
-                                    paddingVertical: 15,
-                                    paddingHorizontal: 18,
-                                    borderWidth: user.hasAiPlan ? 1 : 0,
-                                    borderColor: t.border,
+                                    padding: 16,
                                 }}
                             >
                                 <Text
                                     style={{
-                                        color: user.hasAiPlan ? t.textPrimary : btnColor,
+                                        color: t.textPrimary,
                                         fontSize: 16,
                                         fontWeight: "900",
-                                        textAlign: "center",
+                                        marginBottom: 6,
                                     }}
                                 >
-                                    {user.hasAiPlan ? "Cancelar plano IA" : "Assinar plano IA"}
+                                    Plano ativo
                                 </Text>
-                            </LinearGradient>
-                        </TouchableOpacity>
+                                <Text style={{ color: t.textMuted, fontSize: 14, lineHeight: 21 }}>
+                                    {accessExpiresAt
+                                        ? `Valido ate ${accessExpiresAt}. Durante esse periodo nao ha opcao de cancelamento manual.`
+                                        : "Seu acesso ao AI ja foi liberado no app."}
+                                </Text>
+                            </View>
+                        ) : hasPendingPayment ? (
+                            <View style={{ gap: 12 }}>
+                                <View
+                                    style={{
+                                        backgroundColor: t.chipBg,
+                                        borderRadius: 16,
+                                        padding: 16,
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: t.textPrimary,
+                                            fontSize: 16,
+                                            fontWeight: "900",
+                                            marginBottom: 6,
+                                        }}
+                                    >
+                                        Pagamento pendente
+                                    </Text>
+                                    <Text
+                                        style={{ color: t.textMuted, fontSize: 14, lineHeight: 21 }}
+                                    >
+                                        {paymentExpiresAt
+                                            ? `Existe um Pix aguardando pagamento ate ${paymentExpiresAt}.`
+                                            : "Existe um Pix aguardando pagamento para ativar o modo AI."}
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity activeOpacity={0.8} onPress={openModal}>
+                                    <LinearGradient
+                                        colors={t.gradientAccent}
+                                        style={{
+                                            borderRadius: 16,
+                                            paddingVertical: 15,
+                                            paddingHorizontal: 18,
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: btnColor,
+                                                fontSize: 16,
+                                                fontWeight: "900",
+                                                textAlign: "center",
+                                            }}
+                                        >
+                                            Continuar pagamento
+                                        </Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <TouchableOpacity activeOpacity={0.8} onPress={openModal}>
+                                <LinearGradient
+                                    colors={t.gradientAccent}
+                                    style={{
+                                        borderRadius: 16,
+                                        paddingVertical: 15,
+                                        paddingHorizontal: 18,
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: btnColor,
+                                            fontSize: 16,
+                                            fontWeight: "900",
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        Assinar plano IA
+                                    </Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     <View
@@ -292,8 +405,7 @@ export default function ProfileScreen() {
                                 marginBottom: 20,
                             }}
                         >
-                            Essas alteracoes sao ficticias e servem apenas para validar o fluxo no
-                            frontend.
+                            Essas alteracoes continuam locais no frontend por enquanto.
                         </Text>
 
                         <Input
@@ -358,6 +470,19 @@ export default function ProfileScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <PlanCheckoutModal
+                visible={isModalVisible}
+                plan={plan}
+                documentNumber={documentNumber}
+                isCreatingCheckout={isCreatingCheckout}
+                isRefreshingStatus={isRefreshingStatus}
+                errorMessage={errorMessage}
+                onClose={closeModal}
+                onDocumentNumberChange={setDocumentNumber}
+                onGenerateCheckout={() => void generateCheckout()}
+                onRefreshStatus={() => void refreshStatus()}
+            />
         </LinearGradient>
     );
 }

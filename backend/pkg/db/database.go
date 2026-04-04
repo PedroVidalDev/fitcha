@@ -25,7 +25,15 @@ func InitDB() (*gorm.DB, error) {
 		return nil, fmt.Errorf("Error with the database connection")
 	}
 
-	err = db.AutoMigrate(&models.User{})
+	migrator := db.Migrator()
+
+	if migrator.HasTable("users") && !migrator.HasTable("tb_users") {
+		if err := migrator.RenameTable("users", "tb_users"); err != nil {
+			return nil, fmt.Errorf("erro ao renomear tabela de usuarios")
+		}
+	}
+
+	err = db.AutoMigrate(&models.User{}, &models.Plan{})
 
 	if err != nil {
 		return nil, fmt.Errorf("Erro na migracao")
