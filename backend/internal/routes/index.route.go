@@ -28,4 +28,10 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	RegisterAuthRoutes(r, authController)
 	RegisterPlanRoutes(r, planController)
 	RegisterAIWorkoutRoutes(r, aiWorkoutController)
+
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
 }
