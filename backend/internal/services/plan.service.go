@@ -72,7 +72,7 @@ func (s *PlanService) CreateCheckout(userID uint, documentNumber string) (models
 	payload.PaymentMethodID = "pix"
 	payload.ExternalReference = externalReference
 	payload.NotificationURL = strings.TrimSpace(os.Getenv("MERCADO_PAGO_WEBHOOK_URL"))
-	payload.DateOfExpiration = paymentExpiresAt.Format(time.RFC3339)
+	payload.DateOfExpiration = formatMercadoPagoTimestamp(paymentExpiresAt)
 	payload.Payer.Email = user.Email
 	payload.Payer.FirstName, payload.Payer.LastName = splitName(user.Name)
 	payload.Payer.Identification.Type = "CPF"
@@ -284,12 +284,16 @@ func parseTimePointer(raw string, fallback *time.Time) *time.Time {
 		return fallback
 	}
 
-	parsed, err := time.Parse(time.RFC3339, raw)
+	parsed, err := time.Parse(time.RFC3339Nano, raw)
 	if err != nil {
 		return fallback
 	}
 
 	return &parsed
+}
+
+func formatMercadoPagoTimestamp(value time.Time) string {
+	return value.Format("2006-01-02T15:04:05.000-07:00")
 }
 
 func mapMercadoPagoStatus(status string, paymentExpiresAt *time.Time, now time.Time) string {
