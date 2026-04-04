@@ -25,6 +25,7 @@ export default function Register() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { errors, setError, clearError, clearAll } = useFormErrors();
 
@@ -68,11 +69,19 @@ export default function Register() {
     };
 
     const handleRegister = async () => {
-        if (!validate()) return;
+        if (!validate() || isSubmitting) return;
+
+        setIsSubmitting(true);
+
         try {
             await register(name.trim(), email.trim(), password);
-        } catch {
-            setError("email", "Não foi possível criar a conta");
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Não foi possível criar a conta";
+
+            setError("email", message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -196,8 +205,9 @@ export default function Register() {
 
                         <TouchableOpacity
                             activeOpacity={0.8}
+                            disabled={isSubmitting}
                             onPress={handleRegister}
-                            style={{ marginTop: 12 }}
+                            style={{ marginTop: 12, opacity: isSubmitting ? 0.8 : 1 }}
                         >
                             <LinearGradient
                                 colors={t.gradientAccent}
@@ -210,7 +220,7 @@ export default function Register() {
                                 }}
                             >
                                 <Text style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}>
-                                    Criar conta
+                                    {isSubmitting ? "Criando conta..." : "Criar conta"}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>

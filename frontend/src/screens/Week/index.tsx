@@ -4,19 +4,85 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useLayoutEffect, useState } from "react";
-import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddMachineModal } from "../../components/AddMachineModal";
 import { AIWizard } from "../../components/AIWizard";
+import { GPTResponse, WizardData } from "../../components/AIWizard/types";
 import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
+import { ConfirmModal } from "../../components/ConfirmModal";
 import { GradientCard } from "../../components/GradientCard";
-import { DAYS_LABEL } from "../../constants/categories";
+import { DAYS_LABEL, MachineCategoryKey } from "../../constants/categories";
+import { useAuth } from "../../contexts/AuthContext";
+import { Machine } from "../../dtos/Machine";
+import { generateAIWorkout } from "../../services/aiWorkout";
+import { replaceWeekWithMachines, uid } from "../../services/storage";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 
+const CATEGORY_ALIASES: Record<MachineCategoryKey, string[]> = {
+    peito: ["peito", "supino", "crucifixo", "chest", "peitoral"],
+    costas: ["costas", "remada", "puxada", "barra", "pulldown", "rowing", "back"],
+    pernas: ["perna", "pernas", "quadriceps", "posterior", "gluteo", "gluteos", "leg", "panturrilha", "agachamento", "cadeira", "mesa flexora"],
+    ombros: ["ombro", "ombros", "shoulder", "desenvolvimento", "elevacao lateral"],
+    biceps: ["biceps", "bíceps", "rosca", "curl"],
+    triceps: ["triceps", "tríceps", "triceps", "corda", "testa", "pulley"],
+    core: ["core", "abdomen", "abdominal", "prancha", "lombar"],
+    cardio: ["cardio", "esteira", "bike", "bicicleta", "eliptico", "elíptico", "corrida"],
+};
+
+function normalizeText(value: string) {
+    return value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
+
+function inferCategoryKey(categoryName: string, machineName: string): MachineCategoryKey {
+    const haystack = normalizeText(`${categoryName} ${machineName}`);
+
+    for (const [key, aliases] of Object.entries(CATEGORY_ALIASES) as [MachineCategoryKey, string[]][]) {
+        if (aliases.some((alias) => haystack.includes(normalizeText(alias)))) {
+            return key;
+        }
+    }
+
+    return "peito";
+}
+
+function buildGeneratedWeek(response: GPTResponse): Record<number, Machine[]> {
+    const generatedDays: Record<number, Machine[]> = {
+        0: [],
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: [],
+        6: [],
+    };
+
+    response.categories.forEach((category) => {
+        category.days.forEach((dayIndex) => {
+            if (!(dayIndex in generatedDays)) return;
+
+            const machines = category.machines.map((machine) => ({
+                id: uid(),
+                name: machine.name,
+                categoryKey: inferCategoryKey(category.name, machine.name),
+                description: `${category.name} • Series sugeridas (kg): ${machine.sets.join(" / ")}`,
+            }));
+
+            generatedDays[dayIndex] = [...generatedDays[dayIndex], ...machines];
+        });
+    });
+
+    return generatedDays;
+}
+
 export default function WeekScreen() {
     const { t } = useTheme();
+    const { user } = useAuth();
 
     const navigation = useNavigation<Nav>();
 
@@ -24,23 +90,41 @@ export default function WeekScreen() {
 
     const [addTarget, setAddTarget] = useState<number | null>(null);
     const [wizardVisible, setWizardVisible] = useState(false);
+    const [successVisible, setSuccessVisible] = useState(false);
 
     const today = new Date().getDay();
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerLeft: () => (
-                <TouchableOpacity onPress={() => setWizardVisible(true)} style={{ padding: 6 }}>
-                    <Ionicons name="sparkles" size={22} color={t.accent} />
-                </TouchableOpacity>
-            ),
+            headerLeft: user?.hasAiPlan
+                ? () => (
+                      <TouchableOpacity
+                          onPress={() => setWizardVisible(true)}
+                          style={{ padding: 6 }}
+                      >
+                          <Ionicons name="sparkles" size={22} color={t.accent} />
+                      </TouchableOpacity>
+                  )
+                : undefined,
         });
-    }, [navigation, t.accent]);
+    }, [navigation, t.accent, user?.hasAiPlan]);
 
     useFocusEffect(
         useCallback(() => {
             refresh();
         }, [refresh]),
+    );
+
+    const handleGenerateWorkout = useCallback(
+        async (wizardData: WizardData) => {
+            const response = await generateAIWorkout(wizardData);
+            const generatedWeek = buildGeneratedWeek(response);
+
+            await replaceWeekWithMachines(generatedWeek);
+            await refresh();
+            setSuccessVisible(true);
+        },
+        [refresh],
     );
 
     return (
@@ -183,13 +267,18 @@ export default function WeekScreen() {
             <AIWizard
                 visible={wizardVisible}
                 onClose={() => setWizardVisible(false)}
-                onFinish={(prompt) => {
-                    Alert.alert("Prompt gerado", prompt.substring(0, 200) + "...", [
-                        { text: "OK" },
-                    ]);
-                    console.log("=== PROMPT COMPLETO ===");
-                    console.log(prompt);
-                }}
+                onFinish={handleGenerateWorkout}
+            />
+
+            <ConfirmModal
+                visible={successVisible}
+                onClose={() => setSuccessVisible(false)}
+                onConfirm={() => setSuccessVisible(false)}
+                title="Treino gerado"
+                message="Seu treino automatico foi criado com sucesso e substituiu a semana atual."
+                confirmLabel="Fechar"
+                hideCancel
+                confirmVariant="accent"
             />
         </View>
     );
