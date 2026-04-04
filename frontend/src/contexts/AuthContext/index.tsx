@@ -261,6 +261,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const setAiPlanActive = useCallback(
         async (active: boolean) => {
             if (!session) return;
+            if (
+                session.profile.hasAiPlan === active &&
+                Boolean(session.user.planActive) === active
+            ) {
+                return;
+            }
 
             const nextSession = buildSession(
                 session.token,
