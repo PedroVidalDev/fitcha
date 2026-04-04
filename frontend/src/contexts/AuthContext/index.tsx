@@ -1,51 +1,43 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isAxiosError } from "axios";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import {
+    ApiUser,
+    AuthContextValue,
+    AuthResponse,
+    LegacyStoredAuthSession,
+    MockProfile,
+    StoredAuthSession,
+    UpdateProfileInput,
+    User,
+} from "../../@types/auth";
 import { axiosApp, ensureApiUrlConfigured, setAxiosAuthToken } from "../../services/axios";
 
 const AUTH_KEY = "auth_session";
 const LEGACY_AUTH_KEY = "auth_user";
+const ALWAYS_LOGGED_IN_FOR_TESTS = true;
 
-type ApiUser = {
-    ID?: number;
-    CreatedAt?: string;
-    UpdatedAt?: string;
-    name: string;
-    email: string;
+const TEST_USER: User = {
+    id: 0,
+    name: "Usuario Teste",
+    email: "teste@fitcha.app",
 };
 
-type User = {
-    id?: number;
-    createdAt?: string;
-    updatedAt?: string;
-    name: string;
-    email: string;
+const TEST_PROFILE: MockProfile = {
+    name: TEST_USER.name,
+    email: TEST_USER.email,
+    mockPassword: "123456",
+    hasAiPlan: false,
 };
 
-type AuthSession = {
-    token: string;
-    user: User;
-};
-
-type AuthResponse = {
-    token: string;
-    user: ApiUser;
-};
-
-type AuthCtx = {
-    user: User | null;
-    isLoading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    register: (name: string, email: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthCtx>({
+const AuthContext = createContext<AuthContextValue>({
     user: null,
     isLoading: true,
     login: async () => {},
     register: async () => {},
     logout: async () => {},
+    updateProfile: async () => {},
+    setAiPlanActive: async () => {},
 });
 
 function normalizeUser(user: ApiUser): User {
@@ -58,9 +50,44 @@ function normalizeUser(user: ApiUser): User {
     };
 }
 
-function parseStoredSession(raw: string): AuthSession | null {
+function buildProfile(user: User, profile?: Partial<MockProfile> | null): MockProfile {
+    return {
+        name: typeof profile?.name === "string" && profile.name.trim() ? profile.name : user.name,
+        email:
+            typeof profile?.email === "string" && profile.email.trim() ? profile.email : user.email,
+        mockPassword: typeof profile?.mockPassword === "string" ? profile.mockPassword : "",
+        hasAiPlan: typeof profile?.hasAiPlan === "boolean" ? profile.hasAiPlan : false,
+    };
+}
+
+function buildSession(
+    token: string,
+    user: User,
+    profile?: Partial<MockProfile> | null,
+): StoredAuthSession {
+    return {
+        token,
+        user,
+        profile: buildProfile(user, profile),
+    };
+}
+
+function buildTestSession() {
+    return buildSession("test-session-token", TEST_USER, TEST_PROFILE);
+}
+
+function buildViewerUser(session: StoredAuthSession) {
+    return {
+        ...session.user,
+        name: session.profile.name,
+        email: session.profile.email,
+        hasAiPlan: session.profile.hasAiPlan,
+    };
+}
+
+function parseStoredSession(raw: string): StoredAuthSession | null {
     try {
-        const parsed = JSON.parse(raw) as Partial<AuthSession> | null;
+        const parsed = JSON.parse(raw) as Partial<LegacyStoredAuthSession> | null;
 
         if (
             !parsed ||
@@ -74,16 +101,17 @@ function parseStoredSession(raw: string): AuthSession | null {
             return null;
         }
 
-        return {
-            token: parsed.token,
-            user: {
+        return buildSession(
+            parsed.token,
+            {
                 id: parsed.user.id,
                 createdAt: parsed.user.createdAt,
                 updatedAt: parsed.user.updatedAt,
                 name: parsed.user.name,
                 email: parsed.user.email,
             },
-        };
+            parsed.profile,
+        );
     } catch {
         return null;
     }
@@ -118,25 +146,33 @@ function getAuthErrorMessage(error: unknown, fallback: string) {
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<StoredAuthSession | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const persistSession = useCallback(async (session: AuthSession) => {
-        setAxiosAuthToken(session.token);
-        await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(session));
+    const persistSession = useCallback(async (nextSession: StoredAuthSession) => {
+        setAxiosAuthToken(nextSession.token);
+        await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(nextSession));
         await AsyncStorage.removeItem(LEGACY_AUTH_KEY);
-        setUser(session.user);
+        setSession(nextSession);
     }, []);
 
     const clearSession = useCallback(async () => {
         setAxiosAuthToken(null);
         await AsyncStorage.multiRemove([AUTH_KEY, LEGACY_AUTH_KEY]);
-        setUser(null);
+        setSession(null);
     }, []);
 
     useEffect(() => {
         const restoreSession = async () => {
             try {
+                if (ALWAYS_LOGGED_IN_FOR_TESTS) {
+                    const raw = await AsyncStorage.getItem(AUTH_KEY);
+                    const storedSession = raw ? parseStoredSession(raw) : null;
+
+                    await persistSession(storedSession ?? buildTestSession());
+                    return;
+                }
+
                 const raw = await AsyncStorage.getItem(AUTH_KEY);
 
                 if (!raw) {
@@ -152,14 +188,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 setAxiosAuthToken(storedSession.token);
-                setUser(storedSession.user);
+                setSession(storedSession);
             } finally {
                 setIsLoading(false);
             }
         };
 
         restoreSession();
-    }, []);
+    }, [persistSession]);
 
     const login = useCallback(
         async (email: string, password: string) => {
@@ -171,10 +207,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     password,
                 });
 
-                await persistSession({
-                    token: response.data.token,
-                    user: normalizeUser(response.data.user),
-                });
+                await persistSession(
+                    buildSession(response.data.token, normalizeUser(response.data.user)),
+                );
             } catch (error) {
                 throw new Error(getAuthErrorMessage(error, "Nao foi possivel entrar"));
             }
@@ -193,10 +228,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     password,
                 });
 
-                await persistSession({
-                    token: response.data.token,
-                    user: normalizeUser(response.data.user),
-                });
+                await persistSession(
+                    buildSession(response.data.token, normalizeUser(response.data.user)),
+                );
             } catch (error) {
                 throw new Error(getAuthErrorMessage(error, "Nao foi possivel criar a conta"));
             }
@@ -204,12 +238,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [persistSession],
     );
 
+    const updateProfile = useCallback(
+        async ({ name, email, password }: UpdateProfileInput) => {
+            if (!session) return;
+
+            const nextSession = buildSession(session.token, session.user, {
+                ...session.profile,
+                name: name.trim(),
+                email: email.trim(),
+                mockPassword: password?.trim() ? password : session.profile.mockPassword,
+            });
+
+            await persistSession(nextSession);
+        },
+        [persistSession, session],
+    );
+
+    const setAiPlanActive = useCallback(
+        async (active: boolean) => {
+            if (!session) return;
+
+            const nextSession = buildSession(session.token, session.user, {
+                ...session.profile,
+                hasAiPlan: active,
+            });
+
+            await persistSession(nextSession);
+        },
+        [persistSession, session],
+    );
+
     const logout = useCallback(async () => {
+        if (ALWAYS_LOGGED_IN_FOR_TESTS) {
+            await persistSession(session ?? buildTestSession());
+            return;
+        }
+
         await clearSession();
-    }, [clearSession]);
+    }, [clearSession, persistSession, session]);
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+        <AuthContext.Provider
+            value={{
+                user: session ? buildViewerUser(session) : null,
+                isLoading,
+                login,
+                register,
+                logout,
+                updateProfile,
+                setAiPlanActive,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

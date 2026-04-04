@@ -3,11 +3,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
+import { ProfileShortcutButton } from "../components/ProfileShortcutButton";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 
 import DayScreen from "../screens/Day";
 import LoginScreen from "../screens/Login";
+import ProfileScreen from "../screens/Profile";
 import RegisterScreen from "../screens/Register";
 import WeekScreen from "../screens/Week";
 import WorkoutScreen from "../screens/Workout";
@@ -41,6 +43,24 @@ export function AppNavigator() {
         <TouchableOpacity onPress={toggle} style={{ padding: 6 }}>
             <Ionicons name={t.mode === "dark" ? "sunny" : "moon"} size={22} color={t.accent} />
         </TouchableOpacity>
+    );
+
+    const HeaderActions = ({ showLogout = false }: { showLogout?: boolean }) => (
+        <View
+            style={{
+                flexDirection: "row",
+                gap: 10,
+                alignItems: "center",
+            }}
+        >
+            <ThemeToggle />
+            {showLogout && (
+                <TouchableOpacity onPress={logout} style={{ padding: 6 }}>
+                    <Ionicons name="log-out-outline" size={22} color={t.textMuted} />
+                </TouchableOpacity>
+            )}
+            <ProfileShortcutButton />
+        </View>
     );
 
     return (
@@ -80,24 +100,16 @@ export function AppNavigator() {
                             options={{
                                 title: "Fitcha",
                                 headerBackVisible: false,
-                                headerRight: () => (
-                                    <View
-                                        style={{
-                                            flexDirection: "row",
-                                            gap: 8,
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <ThemeToggle />
-                                        <TouchableOpacity onPress={logout} style={{ padding: 6 }}>
-                                            <Ionicons
-                                                name="log-out-outline"
-                                                size={22}
-                                                color={t.textMuted}
-                                            />
-                                        </TouchableOpacity>
-                                    </View>
-                                ),
+                                headerRight: () => <HeaderActions showLogout />,
+                            }}
+                        />
+
+                        <Stack.Screen
+                            name="Profile"
+                            component={ProfileScreen}
+                            options={{
+                                title: "Perfil",
+                                headerRight: () => <ThemeToggle />,
                             }}
                         />
 
@@ -106,7 +118,7 @@ export function AppNavigator() {
                             component={DayScreen}
                             options={({ route }) => ({
                                 title: DAYS_LABEL[route.params.dayIndex],
-                                headerRight: () => <ThemeToggle />,
+                                headerRight: () => <HeaderActions />,
                             })}
                         />
 
@@ -115,7 +127,7 @@ export function AppNavigator() {
                             component={MachineDetailScreen}
                             options={{
                                 title: "Detalhe",
-                                headerRight: () => <ThemeToggle />,
+                                headerRight: () => <HeaderActions />,
                             }}
                         />
 

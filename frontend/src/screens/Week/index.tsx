@@ -11,12 +11,14 @@ import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { GradientCard } from "../../components/GradientCard";
 import { DAYS_LABEL } from "../../constants/categories";
+import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 
 export default function WeekScreen() {
     const { t } = useTheme();
+    const { user } = useAuth();
 
     const navigation = useNavigation<Nav>();
 
@@ -29,13 +31,18 @@ export default function WeekScreen() {
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerLeft: () => (
-                <TouchableOpacity onPress={() => setWizardVisible(true)} style={{ padding: 6 }}>
-                    <Ionicons name="sparkles" size={22} color={t.accent} />
-                </TouchableOpacity>
-            ),
+            headerLeft: user?.hasAiPlan
+                ? () => (
+                      <TouchableOpacity
+                          onPress={() => setWizardVisible(true)}
+                          style={{ padding: 6 }}
+                      >
+                          <Ionicons name="sparkles" size={22} color={t.accent} />
+                      </TouchableOpacity>
+                  )
+                : undefined,
         });
-    }, [navigation, t.accent]);
+    }, [navigation, t.accent, user?.hasAiPlan]);
 
     useFocusEffect(
         useCallback(() => {
