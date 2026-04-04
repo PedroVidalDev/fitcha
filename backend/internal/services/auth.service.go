@@ -68,3 +68,41 @@ func (s *AuthService) Register(name, email, password string) (dtos.AuthResponseT
 		User:  createdUser,
 	}, nil
 }
+
+func (s *AuthService) ChangePassword(userID uint, currentPassword, newPassword string) error {
+	user, err := s.repo.FindByID(userID)
+	if err != nil {
+		return errors.New("usuario nao encontrado")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(currentPassword))
+	if err != nil {
+		return errors.New("senha atual incorreta")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.repo.UpdatePassword(userID, string(hashedPassword))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *AuthService) UpdatePlanActive(userID uint, planActive bool) (models.User, error) {
+	user, err := s.repo.FindByID(userID)
+	if err != nil {
+		return models.User{}, errors.New("usuario nao encontrado")
+	}
+
+	updatedUser, err := s.repo.UpdatePlanActive(user.ID, planActive)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return updatedUser, nil
+}
