@@ -11,7 +11,7 @@ services:
       - fitcha-network
 
   db:
-    image: postgres:latest
+    image: postgres:17
     container_name: fitcha_postgres
     restart: always
     healthcheck:
