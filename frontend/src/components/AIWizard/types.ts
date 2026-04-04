@@ -1,7 +1,7 @@
 export type AIWizardProps = {
     visible: boolean;
     onClose: () => void;
-    onFinish: (prompt: string) => void;
+    onFinish: (data: WizardData) => Promise<void>;
 };
 
 export type WizardData = {
@@ -10,9 +10,10 @@ export type WizardData = {
     daysPerWeek: number | null;
     intensity: "leve" | "moderado" | "intenso" | null;
     goal: "hipertrofia" | "forca" | "resistencia" | "emagrecimento" | null;
+    customInstructions: string;
 };
 
-export type WizardStep = 0 | 1 | 2 | 3 | 4; 
+export type WizardStep = 0 | 1 | 2 | 3 | 4 | 5;
 
 export type GPTResponse = {
     categories: {

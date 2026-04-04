@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppData } from "../dtos/AppData";
+import { Machine } from "../dtos/Machine";
 
 const STORAGE_KEY = "fitcha_data";
 
@@ -26,3 +27,22 @@ export async function saveData(data: AppData) {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+export async function replaceWeekWithMachines(days: Record<number, Machine[]>) {
+    const data = await getData();
+    const nextData: AppData = {
+        machines: {},
+        days: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+        history: {},
+    };
+
+    Object.entries(days).forEach(([dayIndex, machines]) => {
+        const numericDay = Number(dayIndex);
+        nextData.days[numericDay] = machines.map((machine) => {
+            nextData.machines[machine.id] = machine;
+            nextData.history[machine.id] = data.history[machine.id] ?? [];
+            return machine.id;
+        });
+    });
+
+    await saveData(nextData);
+}
