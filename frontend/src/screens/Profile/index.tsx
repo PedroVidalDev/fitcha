@@ -180,7 +180,15 @@ export default function ProfileScreen() {
                                 marginBottom: 16,
                             }}
                         >
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                            <View
+                                style={{
+                                    flex: 1,
+                                    minWidth: 0,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 10,
+                                }}
+                            >
                                 <View
                                     style={{
                                         width: 42,
@@ -215,6 +223,8 @@ export default function ProfileScreen() {
                                     borderRadius: 999,
                                     paddingHorizontal: 12,
                                     paddingVertical: 6,
+                                    marginLeft: 12,
+                                    flexShrink: 0,
                                 }}
                             >
                                 <Text

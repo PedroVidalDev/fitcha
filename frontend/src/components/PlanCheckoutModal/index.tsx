@@ -68,9 +68,19 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                     marginBottom: 12,
                 }}
             >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <View
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                    }}
+                >
                     <Ionicons name="sparkles" size={20} color={t.accent} />
-                    <Text style={{ color: t.textPrimary, fontSize: 20, fontWeight: "900" }}>
+                    <Text
+                        style={{ color: t.textPrimary, fontSize: 20, fontWeight: "900", flexShrink: 1 }}
+                    >
                         Assinar Fitcha AI
                     </Text>
                 </View>
@@ -164,7 +174,14 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     alignItems: "center",
                                 }}
                             >
-                                <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
+                                <Text
+                                    style={{
+                                        color: btnColor,
+                                        fontSize: 16,
+                                        fontWeight: "900",
+                                        textAlign: "center",
+                                    }}
+                                >
                                     {isCreatingCheckout ? "Gerando Pix..." : "Gerar Pix"}
                                 </Text>
                             </View>
@@ -191,7 +208,16 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                 marginBottom: 12,
                             }}
                         >
-                            <Text style={{ color: t.textPrimary, fontSize: 17, fontWeight: "900" }}>
+                            <Text
+                                style={{
+                                    color: t.textPrimary,
+                                    fontSize: 17,
+                                    fontWeight: "900",
+                                    flex: 1,
+                                    minWidth: 0,
+                                    marginRight: 10,
+                                }}
+                            >
                                 {amountLabel ?? "Plano Fitcha AI"}
                             </Text>
                             <View
@@ -204,6 +230,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     borderRadius: 999,
                                     paddingHorizontal: 12,
                                     paddingVertical: 6,
+                                    flexShrink: 0,
                                 }}
                             >
                                 <Text
@@ -319,13 +346,16 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     onPress={onRefreshStatus}
                                     style={{
                                         flex: 1,
+                                        minWidth: 0,
                                         borderRadius: 14,
                                         borderWidth: 0.5,
                                         borderColor: t.border,
                                         backgroundColor: t.card,
                                         paddingVertical: 14,
+                                        paddingHorizontal: 10,
                                         alignItems: "center",
                                         justifyContent: "center",
+                                        overflow: "hidden",
                                     }}
                                 >
                                     {isRefreshingStatus ? (
@@ -336,6 +366,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                                 color: t.textPrimary,
                                                 fontSize: 14,
                                                 fontWeight: "800",
+                                                textAlign: "center",
                                             }}
                                         >
                                             Verificar pagamento
@@ -349,10 +380,14 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                         onPress={() => void Linking.openURL(plan.ticketUrl)}
                                         style={{
                                             flex: 1,
+                                            minWidth: 0,
                                             borderRadius: 14,
                                             backgroundColor: t.accent,
                                             paddingVertical: 14,
+                                            paddingHorizontal: 10,
                                             alignItems: "center",
+                                            justifyContent: "center",
+                                            overflow: "hidden",
                                         }}
                                     >
                                         <Text
@@ -360,6 +395,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                                 color: btnColor,
                                                 fontSize: 14,
                                                 fontWeight: "900",
+                                                textAlign: "center",
                                             }}
                                         >
                                             Abrir cobranca
