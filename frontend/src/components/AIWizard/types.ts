@@ -8,12 +8,15 @@ export type WizardData = {
     height: string;
     weight: string;
     daysPerWeek: number | null;
+    hoursPerDay: string;
+    machinesPerDay: string;
+    workoutSplit: string;
     intensity: "leve" | "moderado" | "intenso" | null;
     goal: "hipertrofia" | "forca" | "resistencia" | "emagrecimento" | null;
     customInstructions: string;
 };
 
-export type WizardStep = 0 | 1 | 2 | 3 | 4 | 5;
+export type WizardStep = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export type GPTResponse = {
     categories: {

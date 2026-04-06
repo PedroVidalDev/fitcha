@@ -10,8 +10,9 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { ConfirmModal } from "../../components/ConfirmModal";
 import { Input } from "../../components/Input";
-import { useAuth } from "../../contexts/AuthContext";
+import { isServiceUnavailableAuthError, useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useFormErrors } from "../../hooks/useFormValidations";
 
@@ -23,6 +24,7 @@ export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isServiceErrorModalVisible, setIsServiceErrorModalVisible] = useState(false);
 
     const { errors, setError, clearError, clearAll } = useFormErrors();
 
@@ -59,6 +61,11 @@ export default function Login() {
         try {
             await login(email.trim(), password);
         } catch (error) {
+            if (isServiceUnavailableAuthError(error)) {
+                setIsServiceErrorModalVisible(true);
+                return;
+            }
+
             const message =
                 error instanceof Error ? error.message : "E-mail ou senha incorretos";
 
@@ -92,6 +99,8 @@ export default function Login() {
             ]),
         ]).start();
     }, []);
+
+    const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false);
 
     return (
         <LinearGradient
@@ -230,6 +239,16 @@ export default function Login() {
                     </TouchableOpacity>
                 </Animated.View>
             </KeyboardAvoidingView>
+            <ConfirmModal
+                visible={isServiceErrorModalVisible}
+                title="Servico indisponivel"
+                message="O servico pode estar indisponivel no momento. Tente novamente em instantes."
+                confirmLabel="Entendi"
+                hideCancel
+                confirmVariant="accent"
+                onClose={closeServiceErrorModal}
+                onConfirm={closeServiceErrorModal}
+            />
         </LinearGradient>
     );
 }

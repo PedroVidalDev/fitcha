@@ -10,6 +10,18 @@ export const StepResult = (props: StepResultProps) => {
         { label: "Altura", value: `${data.height} cm` },
         { label: "Peso", value: `${data.weight} kg` },
         { label: "Dias por semana", value: String(data.daysPerWeek ?? "-") },
+        {
+            label: "Horas por dia",
+            value: data.hoursPerDay.trim() || "Nao informado",
+        },
+        {
+            label: "Maquinas por dia",
+            value: data.machinesPerDay.trim() || "Nao informado",
+        },
+        {
+            label: "Modelo de divisao",
+            value: data.workoutSplit.trim() || "Nenhum modelo especifico",
+        },
         { label: "Intensidade", value: data.intensity ?? "-" },
         { label: "Objetivo", value: data.goal ?? "-" },
         {

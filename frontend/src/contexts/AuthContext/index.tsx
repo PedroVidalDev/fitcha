@@ -16,6 +16,10 @@ import { axiosApp, ensureApiUrlConfigured, setAxiosAuthToken } from "../../servi
 const AUTH_KEY = "auth_session";
 const LEGACY_AUTH_KEY = "auth_user";
 const ALWAYS_LOGGED_IN_FOR_TESTS = false;
+const SERVICE_UNAVAILABLE_MESSAGE =
+    "O servico pode estar indisponivel no momento. Tente novamente em instantes.";
+
+type AuthErrorKind = "service_unavailable" | "validation";
 
 const TEST_USER: User = {
     id: 0,
@@ -40,6 +44,17 @@ const AuthContext = createContext<AuthContextValue>({
     updateProfile: async () => {},
     setAiPlanActive: async () => {},
 });
+
+export class AuthRequestError extends Error {
+    kind: AuthErrorKind;
+
+    constructor(message: string, kind: AuthErrorKind) {
+        super(message);
+        this.name = "AuthRequestError";
+        this.kind = kind;
+        Object.setPrototypeOf(this, AuthRequestError.prototype);
+    }
+}
 
 function normalizeUser(user: ApiUser): User {
     return {
@@ -147,6 +162,36 @@ function getAuthErrorMessage(error: unknown, fallback: string) {
     return fallback;
 }
 
+function isServiceUnavailableError(error: unknown) {
+    if (isAxiosError(error)) {
+        const status = error.response?.status;
+
+        return !status || status === 404 || status >= 500;
+    }
+
+    if (error instanceof Error) {
+        return error.message === "Configure EXPO_PUBLIC_API_URL no arquivo frontend/.env";
+    }
+
+    return false;
+}
+
+function buildAuthRequestError(error: unknown, fallback: string) {
+    if (error instanceof AuthRequestError) {
+        return error;
+    }
+
+    if (isServiceUnavailableError(error)) {
+        return new AuthRequestError(SERVICE_UNAVAILABLE_MESSAGE, "service_unavailable");
+    }
+
+    return new AuthRequestError(getAuthErrorMessage(error, fallback), "validation");
+}
+
+export function isServiceUnavailableAuthError(error: unknown) {
+    return error instanceof AuthRequestError && error.kind === "service_unavailable";
+}
+
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -203,9 +248,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = useCallback(
         async (email: string, password: string) => {
-            ensureApiUrlConfigured();
-
             try {
+                ensureApiUrlConfigured();
+
                 const response = await axiosApp.post<AuthResponse>("/login", {
                     email,
                     password,
@@ -215,7 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw new Error(getAuthErrorMessage(error, "Nao foi possivel entrar"));
+                throw buildAuthRequestError(error, "Nao foi possivel entrar");
             }
         },
         [persistSession],
@@ -223,9 +268,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const register = useCallback(
         async (name: string, email: string, password: string) => {
-            ensureApiUrlConfigured();
-
             try {
+                ensureApiUrlConfigured();
+
                 const response = await axiosApp.post<AuthResponse>("/register", {
                     name,
                     email,
@@ -236,7 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw new Error(getAuthErrorMessage(error, "Nao foi possivel criar a conta"));
+                throw buildAuthRequestError(error, "Nao foi possivel criar a conta");
             }
         },
         [persistSession],

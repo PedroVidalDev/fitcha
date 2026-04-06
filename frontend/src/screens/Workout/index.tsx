@@ -219,6 +219,27 @@ export default function WorkoutScreen() {
 
     if (!machine) return null;
 
+    const seriesFields = [
+        {
+            key: "set1" as const,
+            label: "Serie 1",
+            value: currentDraft.set1,
+            placeholder: String(machine.lastSets?.[0] ?? 0),
+        },
+        {
+            key: "set2" as const,
+            label: "Serie 2",
+            value: currentDraft.set2,
+            placeholder: String(machine.lastSets?.[1] ?? 0),
+        },
+        {
+            key: "set3" as const,
+            label: "Serie 3",
+            value: currentDraft.set3,
+            placeholder: String(machine.lastSets?.[2] ?? 0),
+        },
+    ];
+
     return (
         <View style={{ flex: 1, backgroundColor: t.bg }}>
             <LinearGradient
@@ -409,11 +430,7 @@ export default function WorkoutScreen() {
                     </Text>
 
                     <View style={{ gap: 10 }}>
-                        {[
-                            { key: "set1" as const, label: "Serie 1", value: currentDraft.set1 },
-                            { key: "set2" as const, label: "Serie 2", value: currentDraft.set2 },
-                            { key: "set3" as const, label: "Serie 3", value: currentDraft.set3 },
-                        ].map((item) => (
+                        {seriesFields.map((item) => (
                             <View
                                 key={item.key}
                                 style={{
@@ -447,7 +464,7 @@ export default function WorkoutScreen() {
                                         fontWeight: "800",
                                         textAlign: "center",
                                     }}
-                                    placeholder="0"
+                                    placeholder={item.placeholder}
                                     placeholderTextColor={t.textDim}
                                     keyboardType="numeric"
                                     value={item.value}

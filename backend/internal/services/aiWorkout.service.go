@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	dtos "fitcha/internal/dtos/aiWorkout"
 	"fitcha/internal/repositories"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -145,6 +145,9 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		fmt.Sprintf("- Altura: %scm", input.Height),
 		fmt.Sprintf("- Peso: %skg", input.Weight),
 		fmt.Sprintf("- Dias por semana: %d", input.DaysPerWeek),
+		fmt.Sprintf("- Tempo desejado por dia: %s", buildOptionalTextLine(input.HoursPerDay, "nao informado")),
+		fmt.Sprintf("- Quantidade desejada de maquinas por dia: %s", buildOptionalTextLine(input.MachinesPerDay, "nao informado")),
+		fmt.Sprintf("- Modelo de divisao preferido: %s", buildOptionalTextLine(input.WorkoutSplit, "nenhum modelo especifico")),
 		fmt.Sprintf("- Intensidade: %s", intensityMap[input.Intensity]),
 		fmt.Sprintf("- Objetivo: %s", goalMap[input.Goal]),
 		"",
@@ -153,6 +156,8 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"",
 		"Leve em conta o biotipo do usuario (altura e peso) para calibrar as cargas sugeridas.",
 		fmt.Sprintf("Distribua os grupos musculares de forma equilibrada entre os %d dias.", input.DaysPerWeek),
+		"Se o usuario informar tempo por dia, quantidade de maquinas ou um modelo de divisao, respeite essas preferencias quando forem compativeis com o objetivo e os dias disponiveis.",
+		"Se houver um modelo de divisao preferido, como ABC, ABCAB ou fullbody, siga esse formato ou a adaptacao mais proxima possivel.",
 		"Para cada dia, liste exercicios de musculacao com peso sugerido para 3 series em kg.",
 		"Responda APENAS com JSON valido, sem markdown, sem explicacoes.",
 		"",
@@ -168,9 +173,13 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 }
 
 func buildCustomInstructionsLine(value string) string {
+	return buildOptionalTextLine(value, "nenhuma")
+}
+
+func buildOptionalTextLine(value, fallback string) string {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
-		return "nenhuma"
+		return fallback
 	}
 
 	return trimmed
