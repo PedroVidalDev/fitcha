@@ -26,8 +26,8 @@ services:
       - "cloudflare.proxied=true"
 
       - "traefik.enable=true"
-      - "traefik.http.routers.mcserverbuilder.rule=Host(`vidalfitcha.coisas-mais-estranhas.com.br`)"
-      - "traefik.http.routers.mcserverbuilder.tls=true"
+      - "traefik.http.routers.vidalfitcha.rule=Host(`vidalfitcha.coisas-mais-estranhas.com.br`)"
+      - "traefik.http.routers.vidalfitcha.tls=true"
 
   db:
     environment:
