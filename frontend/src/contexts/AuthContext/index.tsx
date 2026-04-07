@@ -15,7 +15,7 @@ import { axiosApp, ensureApiUrlConfigured, setAxiosAuthToken } from "../../servi
 
 const AUTH_KEY = "auth_session";
 const LEGACY_AUTH_KEY = "auth_user";
-const ALWAYS_LOGGED_IN_FOR_TESTS = false;
+const ALWAYS_LOGGED_IN_FOR_TESTS = true;
 const SERVICE_UNAVAILABLE_MESSAGE =
     "O servico pode estar indisponivel no momento. Tente novamente em instantes.";
 
@@ -25,14 +25,14 @@ const TEST_USER: User = {
     id: 0,
     name: "Usuario Teste",
     email: "teste@fitcha.app",
-    planActive: false,
+    planActive: true,
 };
 
 const TEST_PROFILE: MockProfile = {
     name: TEST_USER.name,
     email: TEST_USER.email,
     mockPassword: "123456",
-    hasAiPlan: false,
+    hasAiPlan: true,
 };
 
 const AuthContext = createContext<AuthContextValue>({
