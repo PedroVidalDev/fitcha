@@ -17,7 +17,7 @@ function createInitialWizardData(): WizardData {
     return {
         height: "",
         weight: "",
-        daysPerWeek: null,
+        selectedDays: [],
         hoursPerDay: "",
         machinesPerDay: "",
         workoutSplit: "",
@@ -38,7 +38,7 @@ export function AIWizard(props: AIWizardProps) {
     const slideAnim = useRef(new Animated.Value(0)).current;
     const stepTitles = [
         "Seus dados fisicos",
-        "Quantos dias por semana?",
+        "Quais dias voce vai treinar?",
         "Preferencias do treino",
         "Qual a intensidade?",
         "Qual seu objetivo?",
@@ -83,7 +83,7 @@ export function AIWizard(props: AIWizardProps) {
 
     const canProceed =
         (step === 0 && data.height.trim() !== "" && data.weight.trim() !== "") ||
-        (step === 1 && data.daysPerWeek !== null) ||
+        (step === 1 && data.selectedDays.length > 0) ||
         step === 2 ||
         (step === 3 && data.intensity !== null) ||
         (step === 4 && data.goal !== null) ||
@@ -174,8 +174,8 @@ export function AIWizard(props: AIWizardProps) {
                     )}
                     {step === 1 && (
                         <StepDays
-                            value={data.daysPerWeek}
-                            onChange={(v) => setData({ ...data, daysPerWeek: v })}
+                            value={data.selectedDays}
+                            onChange={(value) => setData({ ...data, selectedDays: value })}
                         />
                     )}
                     {step === 2 && (
@@ -184,9 +184,7 @@ export function AIWizard(props: AIWizardProps) {
                             machinesPerDay={data.machinesPerDay}
                             workoutSplit={data.workoutSplit}
                             onHoursPerDayChange={(v) => setData({ ...data, hoursPerDay: v })}
-                            onMachinesPerDayChange={(v) =>
-                                setData({ ...data, machinesPerDay: v })
-                            }
+                            onMachinesPerDayChange={(v) => setData({ ...data, machinesPerDay: v })}
                             onWorkoutSplitChange={(v) => setData({ ...data, workoutSplit: v })}
                         />
                     )}

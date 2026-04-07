@@ -7,7 +7,7 @@ export type AIWizardProps = {
 export type WizardData = {
     height: string;
     weight: string;
-    daysPerWeek: number | null;
+    selectedDays: number[];
     hoursPerDay: string;
     machinesPerDay: string;
     workoutSplit: string;

@@ -118,7 +118,7 @@ func (s *AIWorkoutService) requestWorkoutPlan(input dtos.GenerateAIWorkoutReques
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("a OpenAI retornou um JSON invalido")
 	}
 
-	if err := validateGeneratedWorkout(parsed); err != nil {
+	if err := validateGeneratedWorkout(parsed, input.SelectedDays); err != nil {
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
 
@@ -139,12 +139,15 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"emagrecimento": "emagrecimento com preservacao de massa magra",
 	}
 
+	selectedDayNames := buildSelectedDayNames(input.SelectedDays)
+
 	return strings.Join([]string{
 		"Crie um plano de treino de musculacao com as seguintes especificacoes:",
 		"",
 		fmt.Sprintf("- Altura: %scm", input.Height),
 		fmt.Sprintf("- Peso: %skg", input.Weight),
 		fmt.Sprintf("- Dias por semana: %d", input.DaysPerWeek),
+		fmt.Sprintf("- Dias exatos escolhidos: %s", selectedDayNames),
 		fmt.Sprintf("- Tempo desejado por dia: %s", buildOptionalTextLine(input.HoursPerDay, "nao informado")),
 		fmt.Sprintf("- Quantidade desejada de maquinas por dia: %s", buildOptionalTextLine(input.MachinesPerDay, "nao informado")),
 		fmt.Sprintf("- Modelo de divisao preferido: %s", buildOptionalTextLine(input.WorkoutSplit, "nenhum modelo especifico")),
@@ -155,7 +158,8 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		fmt.Sprintf("- Observacoes personalizadas: %s", buildCustomInstructionsLine(input.CustomInstructions)),
 		"",
 		"Leve em conta o biotipo do usuario (altura e peso) para calibrar as cargas sugeridas.",
-		fmt.Sprintf("Distribua os grupos musculares de forma equilibrada entre os %d dias.", input.DaysPerWeek),
+		fmt.Sprintf("Distribua os grupos musculares de forma equilibrada entre os %d dias selecionados.", input.DaysPerWeek),
+		fmt.Sprintf("Use somente estes dias: %s.", selectedDayNames),
 		"Se o usuario informar tempo por dia, quantidade de maquinas ou um modelo de divisao, respeite essas preferencias quando forem compativeis com o objetivo e os dias disponiveis.",
 		"Se houver um modelo de divisao preferido, como ABC, ABCAB ou fullbody, siga esse formato ou a adaptacao mais proxima possivel.",
 		"Para cada dia, liste exercicios de musculacao com peso sugerido para 3 series em kg.",
@@ -185,7 +189,40 @@ func buildOptionalTextLine(value, fallback string) string {
 	return trimmed
 }
 
-func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse) error {
+func buildSelectedDayNames(days []int) string {
+	dayNames := map[int]string{
+		0: "domingo",
+		1: "segunda",
+		2: "terca",
+		3: "quarta",
+		4: "quinta",
+		5: "sexta",
+		6: "sabado",
+	}
+
+	labels := make([]string, 0, len(days))
+	for _, day := range days {
+		label, ok := dayNames[day]
+		if !ok {
+			continue
+		}
+
+		labels = append(labels, label)
+	}
+
+	if len(labels) == 0 {
+		return "nenhum dia valido informado"
+	}
+
+	return strings.Join(labels, ", ")
+}
+
+func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, allowedDays []int) error {
+	allowedDaySet := make(map[int]struct{}, len(allowedDays))
+	for _, day := range allowedDays {
+		allowedDaySet[day] = struct{}{}
+	}
+
 	for _, category := range response.Categories {
 		if strings.TrimSpace(category.Name) == "" {
 			return errors.New("a IA retornou uma categoria sem nome")
@@ -198,6 +235,10 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse) error {
 		for _, day := range category.Days {
 			if day < 0 || day > 6 {
 				return errors.New("a IA retornou um dia de treino fora do intervalo permitido")
+			}
+
+			if _, ok := allowedDaySet[day]; !ok {
+				return errors.New("a IA retornou um dia fora da selecao informada pelo usuario")
 			}
 		}
 

@@ -83,6 +83,7 @@ function buildGeneratedWeek(response: GPTResponse): Record<number, Machine[]> {
 export default function WeekScreen() {
     const { t } = useTheme();
     const { user } = useAuth();
+    console.log({user})
 
     const navigation = useNavigation<Nav>();
 

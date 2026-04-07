@@ -215,10 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const restoreSession = async () => {
             try {
                 if (ALWAYS_LOGGED_IN_FOR_TESTS) {
-                    const raw = await AsyncStorage.getItem(AUTH_KEY);
-                    const storedSession = raw ? parseStoredSession(raw) : null;
-
-                    await persistSession(storedSession ?? buildTestSession());
+                    await persistSession(buildTestSession());
                     return;
                 }
 

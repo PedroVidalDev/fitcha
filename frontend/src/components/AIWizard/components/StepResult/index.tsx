@@ -1,4 +1,5 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
+import { DAYS_LABEL } from "@/src/constants/categories";
 import { Text, View } from "react-native";
 import { StepResultProps } from "./types";
 
@@ -6,10 +7,16 @@ export const StepResult = (props: StepResultProps) => {
     const { data } = props;
     const { t } = useTheme();
 
+    const selectedDaysLabel =
+        data.selectedDays.length > 0
+            ? data.selectedDays.map((dayIndex) => DAYS_LABEL[dayIndex]).join(", ")
+            : "-";
+
     const summaryItems = [
         { label: "Altura", value: `${data.height} cm` },
         { label: "Peso", value: `${data.weight} kg` },
-        { label: "Dias por semana", value: String(data.daysPerWeek ?? "-") },
+        { label: "Dias escolhidos", value: selectedDaysLabel },
+        { label: "Total de dias", value: String(data.selectedDays.length) },
         {
             label: "Horas por dia",
             value: data.hoursPerDay.trim() || "Nao informado",
