@@ -8,6 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 
 import DayScreen from "../screens/Day";
+import HomeScreen from "../screens/Home";
 import LoginScreen from "../screens/Login";
 import ProfileScreen from "../screens/Profile";
 import RegisterScreen from "../screens/Register";
@@ -95,11 +96,20 @@ export function AppNavigator() {
                 {user ? (
                     <>
                         <Stack.Screen
-                            name="Week"
-                            component={WeekScreen}
+                            name="Home"
+                            component={HomeScreen}
                             options={{
                                 title: "Fitcha",
                                 headerBackVisible: false,
+                                headerRight: () => <HeaderActions showLogout />,
+                            }}
+                        />
+
+                        <Stack.Screen
+                            name="Week"
+                            component={WeekScreen}
+                            options={{
+                                title: "Sua semana",
                                 headerRight: () => <HeaderActions showLogout />,
                             }}
                         />
