@@ -30,18 +30,16 @@ export async function generateAIWorkout(data: WizardData): Promise<GenerateAIWor
     ensureApiUrlConfigured();
 
     try {
-        const response = await axiosApp.post<GenerateAIWorkoutResponse>(
-            "/me/ai-workout/generate",
-            {
-                ...data,
-                height: data.height.trim(),
-                weight: data.weight.trim(),
-                hoursPerDay: data.hoursPerDay.trim(),
-                machinesPerDay: data.machinesPerDay.trim(),
-                workoutSplit: data.workoutSplit.trim(),
-                customInstructions: data.customInstructions.trim(),
-            },
-        );
+        const response = await axiosApp.post<GenerateAIWorkoutResponse>("/me/ai-workout/generate", {
+            ...data,
+            daysPerWeek: data.selectedDays.length,
+            height: data.height.trim(),
+            weight: data.weight.trim(),
+            hoursPerDay: data.hoursPerDay.trim(),
+            machinesPerDay: data.machinesPerDay.trim(),
+            workoutSplit: data.workoutSplit.trim(),
+            customInstructions: data.customInstructions.trim(),
+        });
 
         return response.data;
     } catch (error) {

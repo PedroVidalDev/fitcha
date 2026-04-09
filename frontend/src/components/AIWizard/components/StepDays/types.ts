@@ -1,1 +1,4 @@
-export type StepDaysProps = { value: number | null; onChange: (v: number) => void };
+export type StepDaysProps = {
+    value: number[];
+    onChange: (value: number[]) => void;
+};
