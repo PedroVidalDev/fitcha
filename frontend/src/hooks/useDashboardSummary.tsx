@@ -154,14 +154,14 @@ function buildNextPlannedDayLabel(weekPlan: DashboardPlanDay[], todayIndex: numb
         if (day.machineCount === 0) continue;
 
         if (offset === 0) {
-            return `Hoje - ${day.machineCount} maquina${day.machineCount > 1 ? "s" : ""}`;
+            return `Hoje - ${day.machineCount} máquina${day.machineCount > 1 ? "s" : ""}`;
         }
 
         if (offset === 1) {
-            return `Amanha - ${day.machineCount} maquina${day.machineCount > 1 ? "s" : ""}`;
+            return `Amanhã - ${day.machineCount} máquina${day.machineCount > 1 ? "s" : ""}`;
         }
 
-        return `${day.label} - ${day.machineCount} maquina${day.machineCount > 1 ? "s" : ""}`;
+        return `${day.label} - ${day.machineCount} máquina${day.machineCount > 1 ? "s" : ""}`;
     }
 
     return null;

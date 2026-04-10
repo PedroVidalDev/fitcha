@@ -33,7 +33,7 @@ export async function getMyMachines() {
         const response = await axiosApp.get<Machine[]>("/me/machines");
         return response.data;
     } catch (error) {
-        throw new Error(getMachineErrorMessage(error, "Nao foi possivel carregar as maquinas"));
+        throw new Error(getMachineErrorMessage(error, "Não foi possível carregar as máquinas"));
     }
 }
 
@@ -44,6 +44,6 @@ export async function updateMachine(machineId: string, input: UpdateMachineInput
         const response = await axiosApp.patch<Machine>(`/me/machines/${machineId}`, input);
         return response.data;
     } catch (error) {
-        throw new Error(getMachineErrorMessage(error, "Nao foi possivel atualizar a maquina"));
+        throw new Error(getMachineErrorMessage(error, "Não foi possível atualizar a máquina"));
     }
 }

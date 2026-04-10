@@ -241,8 +241,8 @@ export default function Login() {
             </KeyboardAvoidingView>
             <ConfirmModal
                 visible={isServiceErrorModalVisible}
-                title="Servico indisponivel"
-                message="O servico pode estar indisponivel no momento. Tente novamente em instantes."
+                title="Serviço indisponível"
+                message="O serviço pode estar indisponível no momento. Tente novamente em instantes."
                 confirmLabel="Entendi"
                 hideCancel
                 confirmVariant="accent"

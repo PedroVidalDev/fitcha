@@ -99,8 +99,8 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                         marginBottom: 16,
                     }}
                 >
-                    Ao pagar este Pix, os beneficios do plano ficam ativos por 1 mes. Durante esse
-                    periodo o modo AI permanece liberado sem opcao de cancelamento manual.
+                    Ao pagar este Pix, os benefícios do plano ficam ativos por 1 mês. Durante
+                    esse período o modo AI permanece liberado sem opção de cancelamento manual.
                 </Text>
 
                 <View
@@ -121,13 +121,13 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                             marginBottom: 8,
                         }}
                     >
-                        O que voce recebe
+                        O que você recebe
                     </Text>
 
                     {[
-                        "Acesso ao assistente de treino com IA por 1 mes apos a aprovacao do pagamento.",
-                        "Ativacao automatica quando o Mercado Pago confirmar o Pix.",
-                        "Nova assinatura somente apos o periodo atual terminar.",
+                        "Acesso ao assistente de treino com IA por 1 mês após a aprovação do pagamento.",
+                        "Ativação automática quando o Mercado Pago confirmar o Pix.",
+                        "Nova assinatura somente após o período atual terminar.",
                     ].map((item) => (
                         <View
                             key={item}
@@ -264,7 +264,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     lineHeight: 19,
                                 }}
                             >
-                                Pix valido ate {paymentExpiresAt}.
+                                Pix válido até {paymentExpiresAt}.
                             </Text>
                         )}
 
@@ -277,7 +277,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     lineHeight: 19,
                                 }}
                             >
-                                Plano ativo ate {accessExpiresAt}.
+                                Plano ativo até {accessExpiresAt}.
                             </Text>
                         )}
 
@@ -312,7 +312,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                         marginBottom: 8,
                                     }}
                                 >
-                                    Pix copia e cola
+                                    Pix cópia e cola
                                 </Text>
                                 <Text
                                     selectable
@@ -335,8 +335,8 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                 <Text
                                     style={{ color: t.textPrimary, fontSize: 14, lineHeight: 20 }}
                                 >
-                                    Pagamento confirmado. O botao de IA ja deve aparecer nas telas
-                                    em que o recurso estiver disponivel.
+                                    Pagamento confirmado. O botão de IA já deve aparecer nas
+                                    telas em que o recurso estiver disponível.
                                 </Text>
                             </View>
                         ) : (

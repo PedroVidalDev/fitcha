@@ -49,7 +49,7 @@ export function usePlanCheckout(props: UsePlanCheckoutParams) {
                 await syncPlanStatus(response);
             } catch (error) {
                 setErrorMessage(
-                    error instanceof Error ? error.message : "Nao foi possivel carregar o plano",
+                    error instanceof Error ? error.message : "Não foi possível carregar o plano",
                 );
             } finally {
                 if (!silent) {
@@ -90,7 +90,7 @@ export function usePlanCheckout(props: UsePlanCheckoutParams) {
         const cleanDocument = documentNumber.replace(/\D/g, "");
 
         if (cleanDocument.length !== 11) {
-            setErrorMessage("Informe um CPF valido com 11 digitos");
+            setErrorMessage("Informe um CPF válido com 11 dígitos");
             return;
         }
 
@@ -103,7 +103,7 @@ export function usePlanCheckout(props: UsePlanCheckoutParams) {
             setDocumentNumber(response.plan.payerDocument || cleanDocument);
         } catch (error) {
             setErrorMessage(
-                error instanceof Error ? error.message : "Nao foi possivel gerar o Pix",
+                error instanceof Error ? error.message : "Não foi possível gerar o Pix",
             );
         } finally {
             setIsCreatingCheckout(false);

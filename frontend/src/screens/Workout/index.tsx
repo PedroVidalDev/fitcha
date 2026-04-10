@@ -91,7 +91,7 @@ export default function WorkoutScreen() {
     const showSavedWorkoutModal = (finalResults: WorkoutResult[]) => {
         openModal({
             title: "Treino finalizado!",
-            message: `${finalResults.length} maquina${finalResults.length > 1 ? "s" : ""} registrada${finalResults.length > 1 ? "s" : ""} em ${formatTime(elapsed)}`,
+            message: `${finalResults.length} máquina${finalResults.length > 1 ? "s" : ""} registrada${finalResults.length > 1 ? "s" : ""} em ${formatTime(elapsed)}`,
             confirmLabel: "Fechar",
             hideCancel: true,
             confirmVariant: "accent",
@@ -113,7 +113,7 @@ export default function WorkoutScreen() {
     const showSaveErrorModal = () => {
         openModal({
             title: "Erro ao salvar",
-            message: "Nao foi possivel salvar o treino agora. Tente novamente em instantes.",
+            message: "Não foi possível salvar o treino agora. Tente novamente em instantes.",
             confirmLabel: "Fechar",
             hideCancel: true,
             confirmVariant: "accent",
@@ -140,9 +140,9 @@ export default function WorkoutScreen() {
 
         if (finalResults.length === 0 && hasAnyDrafts) {
             openModal({
-                title: "Nenhuma maquina completa",
+                title: "Nenhuma máquina completa",
                 message:
-                    "Ainda nao ha exercicio com as 3 series completas. Se sair agora, os rascunhos serao descartados.",
+                    "Ainda não há exercício com as 3 séries completas. Se sair agora, os rascunhos serão descartados.",
                 confirmLabel: "Sair sem salvar",
                 confirmVariant: "danger",
                 onConfirm: () => navigation.goBack(),
@@ -152,8 +152,8 @@ export default function WorkoutScreen() {
 
         if (pendingCount > 0 && finalResults.length > 0) {
             openModal({
-                title: "Finalizar com pendencias?",
-                message: `${pendingCount} maquina${pendingCount > 1 ? "s ficaram" : " ficou"} sem as 3 series completas. Voce pode salvar agora ou continuar revisando.`,
+                title: "Finalizar com pendências?",
+                message: `${pendingCount} máquina${pendingCount > 1 ? "s ficaram" : " ficou"} sem as 3 séries completas. Você pode salvar agora ou continuar revisando.`,
                 confirmLabel: "Finalizar",
                 confirmVariant: "accent",
                 onConfirm: () => {
@@ -178,7 +178,7 @@ export default function WorkoutScreen() {
     const handleQuit = () => {
         openModal({
             title: "Encerrar treino?",
-            message: "Se voce sair agora, o treino sera encerrado e nada sera salvo.",
+            message: "Se você sair agora, o treino será encerrado e nada será salvo.",
             confirmLabel: "Encerrar",
             confirmVariant: "danger",
             onConfirm: () => navigation.goBack(),
@@ -222,19 +222,19 @@ export default function WorkoutScreen() {
     const seriesFields = [
         {
             key: "set1" as const,
-            label: "Serie 1",
+            label: "Série 1",
             value: currentDraft.set1,
             placeholder: String(machine.lastSets?.[0] ?? 0),
         },
         {
             key: "set2" as const,
-            label: "Serie 2",
+            label: "Série 2",
             value: currentDraft.set2,
             placeholder: String(machine.lastSets?.[1] ?? 0),
         },
         {
             key: "set3" as const,
-            label: "Serie 3",
+            label: "Série 3",
             value: currentDraft.set3,
             placeholder: String(machine.lastSets?.[2] ?? 0),
         },
@@ -401,17 +401,17 @@ export default function WorkoutScreen() {
                             }}
                         >
                             {currentIsComplete
-                                ? "Exercicio registrado"
+                                ? "Exercício registrado"
                                 : currentHasDraft
                                   ? "Rascunho salvo"
                                   : "Pode pular sem perder o fluxo"}
                         </Text>
                         <Text style={{ color: t.textDim, fontSize: 13, lineHeight: 18 }}>
                             {currentIsComplete
-                                ? "Voce pode seguir adiante ou voltar depois para ajustar os pesos."
+                                ? "Você pode seguir adiante ou voltar depois para ajustar os pesos."
                                 : currentHasDraft
-                                  ? "Os valores ficam guardados ao trocar de maquina. Complete quando ela estiver livre."
-                                  : "Se a maquina estiver ocupada, avance agora e volte quando quiser pela barra acima."}
+                                  ? "Os valores ficam guardados ao trocar de máquina. Complete quando ela estiver livre."
+                                  : "Se a máquina estiver ocupada, avance agora e volte quando quiser pela barra acima."}
                         </Text>
                     </View>
 
@@ -426,7 +426,7 @@ export default function WorkoutScreen() {
                             marginLeft: 4,
                         }}
                     >
-                        preencha as 3 series
+                        preencha as 3 séries
                     </Text>
 
                     <View style={{ gap: 10 }}>
@@ -532,7 +532,7 @@ export default function WorkoutScreen() {
                                     <Text
                                         style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}
                                     >
-                                        {isLast ? "Finalizar treino" : "Proxima maquina"}
+                                        {isLast ? "Finalizar treino" : "Próxima máquina"}
                                     </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -547,7 +547,7 @@ export default function WorkoutScreen() {
                                 lineHeight: 18,
                             }}
                         >
-                            Toque nas barras acima para ir direto a qualquer exercicio.
+                            Toque nas barras acima para ir direto a qualquer exercício.
                         </Text>
                     </View>
                 </RNAnimated.View>

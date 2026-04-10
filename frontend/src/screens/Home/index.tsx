@@ -44,21 +44,21 @@ function formatDelta(value: number | null) {
 function getFeaturedPlanCopy(featuredPlanDay: DashboardPlanDay | null) {
     if (!featuredPlanDay) {
         return {
-            title: "evolucao por maquina",
-            subtitle: "Monte a semana para destravar essa comparacao por exercicio.",
+            title: "evolução por máquina",
+            subtitle: "Monte a semana para destravar essa comparação por exercício.",
         };
     }
 
     if (featuredPlanDay.isToday) {
         return {
-            title: "maquinas de hoje",
-            subtitle: "Arraste para o lado e veja a evolucao de carga em cada maquina.",
+            title: "máquinas de hoje",
+            subtitle: "Arraste para o lado e veja a evolução de carga em cada máquina.",
         };
     }
 
     return {
-        title: `proximo treino - ${featuredPlanDay.label.toLowerCase()}`,
-        subtitle: "Hoje nao ha maquinas planejadas, entao a comparacao usa o proximo dia ativo.",
+        title: `próximo treino - ${featuredPlanDay.label.toLowerCase()}`,
+        subtitle: "Hoje não há máquinas planejadas, então a comparação usa o próximo dia ativo.",
     };
 }
 
@@ -174,17 +174,17 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
     const comparisonText =
         item.deltaFromStart === null
             ? item.latestWeight === null
-                ? "Ainda nao existe treino salvo nessa maquina."
-                : "Salve mais um treino para comparar a evolucao."
-            : "Comparacao da carga atual contra o primeiro registro salvo.";
+                ? "Ainda não existe treino salvo nessa máquina."
+                : "Salve mais um treino para comparar a evolução."
+            : "Comparação da carga atual contra o primeiro registro salvo.";
     const previousDeltaText =
         item.deltaFromPrevious === null
             ? item.sessionCount === 0
-                ? "sem historico"
+                ? "sem histórico"
                 : item.sessionCount === 1
                   ? "1 registro salvo"
-                  : "sem comparacao"
-            : `${item.deltaFromPrevious > 0 ? "+" : ""}${item.deltaFromPrevious} kg vs ultimo treino`;
+                  : "sem comparação"
+            : `${item.deltaFromPrevious > 0 ? "+" : ""}${item.deltaFromPrevious} kg vs. último treino`;
 
     return (
         <View
@@ -216,7 +216,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                     }}
                 >
                     <Text style={{ color: t.textMuted, fontSize: 11, fontWeight: "700" }}>
-                        {item.lastTrainedLabel ? `ultimo ${item.lastTrainedLabel}` : "sem treino"}
+                        {item.lastTrainedLabel ? `último ${item.lastTrainedLabel}` : "sem treino"}
                     </Text>
                 </View>
             </View>
@@ -359,7 +359,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                     }}
                 >
                     <Text style={{ color: t.textMuted, fontSize: 13, lineHeight: 18 }}>
-                        Essa maquina ja esta no dia planejado, mas ainda nao tem historico salvo.
+                        Essa máquina já está no dia planejado, mas ainda não tem histórico salvo.
                     </Text>
                 </View>
             ) : (
@@ -374,7 +374,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                             marginBottom: 10,
                         }}
                     >
-                        ultimos registros
+                        últimos registros
                     </Text>
 
                     <View
@@ -538,7 +538,7 @@ export default function HomeScreen() {
                                 marginTop: 8,
                             }}
                         >
-                            Ola, {firstName}
+                            Olá, {firstName}
                         </Text>
                         <Text
                             style={{
@@ -549,8 +549,8 @@ export default function HomeScreen() {
                             }}
                         >
                             {summary.hasHistory
-                                ? `Sequencia atual de ${summary.streak} dia${summary.streak !== 1 ? "s" : ""} e ${summary.recentWorkoutDays} dia${summary.recentWorkoutDays !== 1 ? "s" : ""} ativo${summary.recentWorkoutDays !== 1 ? "s" : ""} nos ultimos 7 dias.`
-                                : "Sua semana ja pode ser organizada aqui, mas a analise fica muito melhor depois do primeiro treino salvo."}
+                                ? `Sequência atual de ${summary.streak} dia${summary.streak !== 1 ? "s" : ""} e ${summary.recentWorkoutDays} dia${summary.recentWorkoutDays !== 1 ? "s" : ""} ativo${summary.recentWorkoutDays !== 1 ? "s" : ""} nos últimos 7 dias.`
+                                : "Sua semana já pode ser organizada aqui, mas a análise fica muito melhor depois do primeiro treino salvo."}
                         </Text>
 
                         <View
@@ -579,7 +579,7 @@ export default function HomeScreen() {
                                         letterSpacing: 1.2,
                                     }}
                                 >
-                                    ultimo treino
+                                    último treino
                                 </Text>
                                 <Text
                                     style={{
@@ -612,7 +612,7 @@ export default function HomeScreen() {
                                         letterSpacing: 1.2,
                                     }}
                                 >
-                                    proximo alvo
+                                    próximo alvo
                                 </Text>
                                 <Text
                                     style={{
@@ -656,13 +656,13 @@ export default function HomeScreen() {
             <AnimatedCard index={1}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
                     <StatCard
-                        title="Sequencia"
+                        title="Sequência"
                         value={`${summary.streak}`}
                         hint={`dias seguidos${summary.streak === 0 ? " por enquanto" : ""}`}
                         icon="flame-outline"
                     />
                     <StatCard
-                        title="Ultimos 7 dias"
+                        title="Últimos 7 dias"
                         value={`${summary.recentWorkoutDays}/7`}
                         hint="dias com treino salvo"
                         icon="pulse-outline"
@@ -673,7 +673,7 @@ export default function HomeScreen() {
             <AnimatedCard index={2}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
                     <StatCard
-                        title="No mes"
+                        title="No mês"
                         value={`${summary.monthlyWorkoutDays}`}
                         hint="dias indo para a academia"
                         icon="barbell-outline"
@@ -681,7 +681,7 @@ export default function HomeScreen() {
                     <StatCard
                         title="Semana"
                         value={`${summary.scheduledDayCount}`}
-                        hint={`${summary.totalMachinesScheduled} maquinas planejadas`}
+                        hint={`${summary.totalMachinesScheduled} máquinas planejadas`}
                         icon="calendar-clear-outline"
                     />
                 </View>
@@ -709,7 +709,7 @@ export default function HomeScreen() {
                         }}
                     >
                         {summary.featuredPlanDay
-                            ? `${summary.machineProgress.length} maquina${summary.machineProgress.length !== 1 ? "s" : ""} em foco`
+                            ? `${summary.machineProgress.length} máquina${summary.machineProgress.length !== 1 ? "s" : ""} em foco`
                             : "Nenhum dia planejado ainda"}
                     </Text>
                     <Text
@@ -751,8 +751,8 @@ export default function HomeScreen() {
                             }}
                         >
                             <Text style={{ color: t.textMuted, fontSize: 14, lineHeight: 20 }}>
-                                Abra a Week, distribua as maquinas nos dias da semana e essa area
-                                passa a mostrar a evolucao de cada uma.
+                                Abra a Week, distribua as máquinas nos dias da semana e essa área
+                                passa a mostrar a evolução de cada uma.
                             </Text>
                         </View>
                     )}
@@ -781,8 +781,8 @@ export default function HomeScreen() {
                         }}
                     >
                         {summary.scheduledDayCount > 0
-                            ? `${summary.scheduledDayCount} dia${summary.scheduledDayCount > 1 ? "s" : ""} ja montado${summary.scheduledDayCount > 1 ? "s" : ""}`
-                            : "Sua semana ainda esta vazia"}
+                            ? `${summary.scheduledDayCount} dia${summary.scheduledDayCount > 1 ? "s" : ""} já montado${summary.scheduledDayCount > 1 ? "s" : ""}`
+                            : "Sua semana ainda está vazia"}
                     </Text>
                     <Text
                         style={{
@@ -793,8 +793,8 @@ export default function HomeScreen() {
                         }}
                     >
                         {summary.nextPlannedDayLabel
-                            ? `Proximo compromisso: ${summary.nextPlannedDayLabel}.`
-                            : "Abra a Week para montar os dias, maquinas e categorias que quer seguir."}
+                            ? `Próximo compromisso: ${summary.nextPlannedDayLabel}.`
+                            : "Abra a Week para montar os dias, máquinas e categorias que quer seguir."}
                     </Text>
 
                     <View
@@ -842,7 +842,7 @@ export default function HomeScreen() {
                                     <Text
                                         style={{ color: t.textMuted, fontSize: 11, marginTop: 2 }}
                                     >
-                                        maquina{day.machineCount !== 1 ? "s" : ""}
+                                        máquina{day.machineCount !== 1 ? "s" : ""}
                                     </Text>
                                 </View>
                             );

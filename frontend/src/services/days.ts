@@ -58,7 +58,7 @@ export async function getMyDays() {
         const response = await axiosApp.get<DayResponse[]>("/me/days");
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Nao foi possivel carregar os dias"));
+        throw new Error(getDayErrorMessage(error, "Não foi possível carregar os dias"));
     }
 }
 
@@ -72,7 +72,7 @@ export async function addMachineToDay(dayIndex: number, input: DayMachineInput) 
         );
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Nao foi possivel adicionar a maquina"));
+        throw new Error(getDayErrorMessage(error, "Não foi possível adicionar a máquina"));
     }
 }
 
@@ -85,7 +85,7 @@ export async function removeMachineFromDay(dayIndex: number, machineId: string) 
         );
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Nao foi possivel remover a maquina"));
+        throw new Error(getDayErrorMessage(error, "Não foi possível remover a máquina"));
     }
 }
 
@@ -98,6 +98,6 @@ export async function replaceWeek(days: ReplaceWeekDayInput[]) {
         });
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Nao foi possivel substituir a semana"));
+        throw new Error(getDayErrorMessage(error, "Não foi possível substituir a semana"));
     }
 }

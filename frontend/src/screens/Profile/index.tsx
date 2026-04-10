@@ -20,9 +20,9 @@ import { useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 
 const PLAN_BENEFITS = [
-    "Libera o botao do assistente de treino com IA na tela inicial.",
-    "Ativacao automatica assim que o Pix for confirmado pelo Mercado Pago.",
-    "Acesso garantido por 1 mes sem cancelamento manual durante a vigencia.",
+    "Libera o botão do assistente de treino com IA na tela inicial.",
+    "Ativação automática assim que o Pix for confirmado pelo Mercado Pago.",
+    "Acesso garantido por 1 mês sem cancelamento manual durante a vigência.",
 ];
 
 function formatDate(value?: string | null) {
@@ -80,7 +80,7 @@ export default function ProfileScreen() {
 
         if (!saved) return;
 
-        Alert.alert("Perfil salvo", "As alteracoes ficaram armazenadas apenas neste frontend.");
+        Alert.alert("Perfil salvo", "As alterações ficaram armazenadas apenas neste frontend.");
     };
 
     const handleRefreshPlan = useCallback(() => {
@@ -249,8 +249,8 @@ export default function ProfileScreen() {
                                 marginBottom: 14,
                             }}
                         >
-                            O acesso ao AI e liberado automaticamente quando o pagamento Pix for
-                            aprovado e permanece ativo por 1 mes.
+                            O acesso ao AI é liberado automaticamente quando o pagamento Pix for
+                            aprovado e permanece ativo por 1 mês.
                         </Text>
 
                         <View style={{ gap: 10, marginBottom: 20 }}>
@@ -309,8 +309,8 @@ export default function ProfileScreen() {
                                 </Text>
                                 <Text style={{ color: t.textMuted, fontSize: 14, lineHeight: 21 }}>
                                     {accessExpiresAt
-                                        ? `Valido ate ${accessExpiresAt}. Durante esse periodo nao ha opcao de cancelamento manual.`
-                                        : "Seu acesso ao AI ja foi liberado no app."}
+                                        ? `Válido até ${accessExpiresAt}. Durante esse período não há opção de cancelamento manual.`
+                                        : "Seu acesso ao AI já foi liberado no app."}
                                 </Text>
                             </View>
                         ) : hasPendingPayment ? (
@@ -336,7 +336,7 @@ export default function ProfileScreen() {
                                         style={{ color: t.textMuted, fontSize: 14, lineHeight: 21 }}
                                     >
                                         {paymentExpiresAt
-                                            ? `Existe um Pix aguardando pagamento ate ${paymentExpiresAt}.`
+                                            ? `Existe um Pix aguardando pagamento até ${paymentExpiresAt}.`
                                             : "Existe um Pix aguardando pagamento para ativar o modo AI."}
                                     </Text>
                                 </View>
@@ -415,7 +415,7 @@ export default function ProfileScreen() {
                                 marginBottom: 20,
                             }}
                         >
-                            Essas alteracoes continuam locais no frontend por enquanto.
+                            Essas alterações continuam locais no frontend por enquanto.
                         </Text>
 
                         <Input
@@ -473,7 +473,7 @@ export default function ProfileScreen() {
                                 }}
                             >
                                 <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
-                                    {isSubmitting ? "Salvando..." : "Salvar alteracoes"}
+                                    {isSubmitting ? "Salvando..." : "Salvar alterações"}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>

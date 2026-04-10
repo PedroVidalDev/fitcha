@@ -54,12 +54,12 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
             setError("email", "Informe seu e-mail");
             valid = false;
         } else if (!/\S+@\S+\.\S+/.test(values.email.trim())) {
-            setError("email", "E-mail invalido");
+            setError("email", "E-mail inválido");
             valid = false;
         }
 
         if (values.password.trim() && values.password.trim().length < 6) {
-            setError("password", "Minimo de 6 caracteres");
+            setError("password", "Mínimo de 6 caracteres");
             valid = false;
         }
 
@@ -70,7 +70,7 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
             values.password.trim() &&
             values.password.trim() !== values.confirmPassword.trim()
         ) {
-            setError("confirmPassword", "As senhas nao coincidem");
+            setError("confirmPassword", "As senhas não coincidem");
             valid = false;
         }
 
@@ -98,7 +98,7 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
             return true;
         } catch (error) {
             const message =
-                error instanceof Error ? error.message : "Nao foi possivel salvar o perfil";
+                error instanceof Error ? error.message : "Não foi possível salvar o perfil";
 
             setError("email", message);
             return false;

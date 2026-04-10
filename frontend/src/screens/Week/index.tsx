@@ -84,7 +84,7 @@ function buildGeneratedWeek(response: GPTResponse): Record<number, Omit<Machine,
             const machines = category.machines.map((machine) => ({
                 name: machine.name,
                 categoryKey: inferCategoryKey(category.name, machine.name),
-                description: `${category.name} • Series sugeridas (kg): ${machine.sets.join(" / ")}`,
+                description: `${category.name} • Séries sugeridas (kg): ${machine.sets.join(" / ")}`,
             }));
 
             generatedDays[dayIndex] = [...generatedDays[dayIndex], ...machines];
@@ -289,7 +289,7 @@ export default function WeekScreen() {
                 onClose={() => setSuccessVisible(false)}
                 onConfirm={() => setSuccessVisible(false)}
                 title="Treino gerado"
-                message="Seu treino automatico foi criado com sucesso e substituiu a semana atual."
+                message="Seu treino automático foi criado com sucesso e substituiu a semana atual."
                 confirmLabel="Fechar"
                 hideCancel
                 confirmVariant="accent"

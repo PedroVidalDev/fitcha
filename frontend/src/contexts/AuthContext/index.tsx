@@ -18,13 +18,13 @@ const AUTH_KEY = "auth_session";
 const LEGACY_AUTH_KEY = "auth_user";
 const ALWAYS_LOGGED_IN_FOR_TESTS = false;
 const SERVICE_UNAVAILABLE_MESSAGE =
-    "O servico pode estar indisponivel no momento. Tente novamente em instantes.";
+    "O serviço pode estar indisponível no momento. Tente novamente em instantes.";
 
 type AuthErrorKind = "service_unavailable" | "validation";
 
 const TEST_USER: User = {
     id: 0,
-    name: "Usuario Teste",
+    name: "Usuário Teste",
     email: "teste@fitcha.app",
     planActive: true,
 };
@@ -260,7 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw buildAuthRequestError(error, "Nao foi possivel entrar");
+                throw buildAuthRequestError(error, "Não foi possível entrar");
             }
         },
         [persistSession],
@@ -281,7 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw buildAuthRequestError(error, "Nao foi possivel criar a conta");
+                throw buildAuthRequestError(error, "Não foi possível criar a conta");
             }
         },
         [persistSession],
