@@ -9,6 +9,7 @@ services:
         condition: service_healthy
     networks:
       - fitcha-network
+      - local
 
   db:
     image: postgres:17
