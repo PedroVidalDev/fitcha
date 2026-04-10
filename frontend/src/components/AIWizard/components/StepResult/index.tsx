@@ -19,21 +19,21 @@ export const StepResult = (props: StepResultProps) => {
         { label: "Total de dias", value: String(data.selectedDays.length) },
         {
             label: "Horas por dia",
-            value: data.hoursPerDay.trim() || "Nao informado",
+            value: data.hoursPerDay.trim() || "Não informado",
         },
         {
-            label: "Maquinas por dia",
-            value: data.machinesPerDay.trim() || "Nao informado",
+            label: "Máquinas por dia",
+            value: data.machinesPerDay.trim() || "Não informado",
         },
         {
-            label: "Modelo de divisao",
-            value: data.workoutSplit.trim() || "Nenhum modelo especifico",
+            label: "Modelo de divisão",
+            value: data.workoutSplit.trim() || "Nenhum modelo específico",
         },
         { label: "Intensidade", value: data.intensity ?? "-" },
         { label: "Objetivo", value: data.goal ?? "-" },
         {
-            label: "Instrucoes personalizadas",
-            value: data.customInstructions.trim() || "Nenhuma observacao adicional.",
+            label: "Instruções personalizadas",
+            value: data.customInstructions.trim() || "Nenhuma observação adicional.",
         },
     ];
 
@@ -49,7 +49,7 @@ export const StepResult = (props: StepResultProps) => {
                     marginBottom: 8,
                 }}
             >
-                resumo da geracao
+                resumo da geração
             </Text>
             <View
                 style={{
@@ -80,7 +80,7 @@ export const StepResult = (props: StepResultProps) => {
                     </View>
                 ))}
                 <Text style={{ color: t.textMuted, fontSize: 12, lineHeight: 18 }}>
-                    O prompt final agora eh montado somente no backend antes de chamar a IA.
+                    O prompt final agora é montado somente no backend antes de chamar a IA.
                 </Text>
             </View>
         </View>

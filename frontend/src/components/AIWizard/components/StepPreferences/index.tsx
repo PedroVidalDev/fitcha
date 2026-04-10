@@ -24,8 +24,8 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                     lineHeight: 20,
                 }}
             >
-                Esses campos sao opcionais. Preencha se quiser que a IA respeite um limite de
-                tempo, volume diario ou um modelo de divisao especifico.
+                Esses campos são opcionais. Preencha se quiser que a IA respeite um limite de
+                tempo, volume diário ou um modelo de divisão específico.
             </Text>
 
             <View>
@@ -68,7 +68,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                 <Text
                     style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
                 >
-                    Maquinas por dia
+                    Máquinas por dia
                 </Text>
                 <View
                     style={{
@@ -104,7 +104,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                 <Text
                     style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
                 >
-                    Modelo de divisao
+                    Modelo de divisão
                 </Text>
                 <View
                     style={{

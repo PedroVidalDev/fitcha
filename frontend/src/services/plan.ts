@@ -31,7 +31,7 @@ export async function getMyPlanStatus() {
         const response = await axiosApp.get<PlanStatusResponse>("/me/plan");
         return response.data;
     } catch (error) {
-        throw new Error(getPlanErrorMessage(error, "Nao foi possivel carregar o plano"));
+        throw new Error(getPlanErrorMessage(error, "Não foi possível carregar o plano"));
     }
 }
 
@@ -45,6 +45,6 @@ export async function createPlanCheckout(documentNumber: string) {
 
         return response.data;
     } catch (error) {
-        throw new Error(getPlanErrorMessage(error, "Nao foi possivel gerar o Pix"));
+        throw new Error(getPlanErrorMessage(error, "Não foi possível gerar o Pix"));
     }
 }

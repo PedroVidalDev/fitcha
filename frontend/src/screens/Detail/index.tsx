@@ -65,8 +65,8 @@ export default function MachineDetailScreen() {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
             openInfoModal(
-                "Permissao necessaria",
-                "Permita acesso a galeria para selecionar uma foto da maquina.",
+                "Permissão necessária",
+                "Permita acesso à galeria para selecionar uma foto da máquina.",
             );
             return;
         }
@@ -87,8 +87,8 @@ export default function MachineDetailScreen() {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
             openInfoModal(
-                "Permissao necessaria",
-                "Permita acesso a camera para registrar uma foto da maquina.",
+                "Permissão necessária",
+                "Permita acesso à câmera para registrar uma foto da máquina.",
             );
             return;
         }
@@ -110,7 +110,7 @@ export default function MachineDetailScreen() {
             message: "Escolha de onde a imagem deve vir.",
             actions: [
                 {
-                    label: "Usar camera",
+                    label: "Usar câmera",
                     icon: "camera-outline",
                     variant: "accent",
                     onPress: () => {
@@ -133,7 +133,7 @@ export default function MachineDetailScreen() {
     const openRemovePhotoModal = () => {
         setPhotoModal({
             title: "Remover foto?",
-            message: "A imagem atual sera removida desta maquina.",
+            message: "A imagem atual será removida desta máquina.",
             actions: [
                 {
                     label: "Remover foto",
@@ -155,7 +155,7 @@ export default function MachineDetailScreen() {
         }
 
         setPhotoModal({
-            title: "Foto da maquina",
+            title: "Foto da máquina",
             message: "Escolha o que deseja fazer com a imagem.",
             actions: [
                 {
@@ -241,7 +241,7 @@ export default function MachineDetailScreen() {
                     </Text>
                 )}
 
-                <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>historico</Text>
+                <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>histórico</Text>
 
                 {history.length === 0 ? (
                     <Text

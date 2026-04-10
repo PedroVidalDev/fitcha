@@ -1,5 +1,7 @@
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useCallback } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -13,26 +15,19 @@ import {
 import { Input } from "../../components/Input";
 import { PlanCheckoutModal } from "../../components/PlanCheckoutModal";
 import { useAuth } from "../../contexts/AuthContext";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { localeLabels, supportedLocales } from "../../translates";
 import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useProfileForm } from "./hooks/useProfileForm";
-import { useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 
-const PLAN_BENEFITS = [
-    "Libera o botao do assistente de treino com IA na tela inicial.",
-    "Ativacao automatica assim que o Pix for confirmado pelo Mercado Pago.",
-    "Acesso garantido por 1 mes sem cancelamento manual durante a vigencia.",
-];
-
-function formatDate(value?: string | null) {
+function formatDate(value: string | null | undefined, locale: string) {
     if (!value) return null;
 
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) return null;
 
-    return new Intl.DateTimeFormat("pt-BR", {
+    return new Intl.DateTimeFormat(locale, {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -42,8 +37,9 @@ function formatDate(value?: string | null) {
 }
 
 export default function ProfileScreen() {
-    const { t } = useTheme();
+    const { t: theme } = useTheme();
     const { user, updateProfile, setAiPlanActive } = useAuth();
+    const { locale, setLocale, t } = useI18n();
 
     const { values, errors, isSubmitting, setField, handleSubmit } = useProfileForm({
         user,
@@ -68,29 +64,33 @@ export default function ProfileScreen() {
         onPlanActiveChange: setAiPlanActive,
     });
 
+    useFocusEffect(
+        useCallback(() => {
+            void reloadPlan();
+        }, [reloadPlan]),
+    );
+
     if (!user) return null;
 
-    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
-    const accessExpiresAt = formatDate(plan?.accessExpiresAt);
-    const paymentExpiresAt = formatDate(plan?.paymentExpiresAt);
+    const btnColor = theme.mode === "dark" ? "#0d0500" : "#FFF";
+    const accessExpiresAt = formatDate(plan?.accessExpiresAt, locale);
+    const paymentExpiresAt = formatDate(plan?.paymentExpiresAt, locale);
     const hasPendingPayment = plan?.status === "pending";
+    const aiBenefits = [
+        t("profile.ai.benefit.assistantButton"),
+        t("profile.ai.benefit.autoActivation"),
+        t("profile.ai.benefit.accessWindow"),
+    ];
 
     const handleSaveProfile = async () => {
         const saved = await handleSubmit();
-
         if (!saved) return;
 
-        Alert.alert("Perfil salvo", "As alteracoes ficaram armazenadas apenas neste frontend.");
+        Alert.alert(t("profile.alert.savedTitle"), t("profile.alert.savedMessage"));
     };
 
-    const handleRefreshPlan = useCallback(() => {
-        void reloadPlan();
-    }, [reloadPlan]);
-
-    useFocusEffect(handleRefreshPlan);
-
     return (
-        <LinearGradient colors={t.gradientHero} style={{ flex: 1 }}>
+        <LinearGradient colors={theme.gradientHero} style={{ flex: 1 }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ flex: 1 }}
@@ -102,11 +102,11 @@ export default function ProfileScreen() {
                 >
                     <View
                         style={{
-                            backgroundColor: t.inputBg,
+                            backgroundColor: theme.inputBg,
                             borderRadius: 24,
                             padding: 20,
                             borderWidth: 0.5,
-                            borderColor: t.border,
+                            borderColor: theme.border,
                             marginBottom: 18,
                         }}
                     >
@@ -115,7 +115,7 @@ export default function ProfileScreen() {
                                 width: 56,
                                 height: 56,
                                 borderRadius: 999,
-                                backgroundColor: t.accent,
+                                backgroundColor: theme.accent,
                                 justifyContent: "center",
                                 alignItems: "center",
                                 marginBottom: 16,
@@ -128,7 +128,7 @@ export default function ProfileScreen() {
 
                         <Text
                             style={{
-                                color: t.textDim,
+                                color: theme.textDim,
                                 fontSize: 11,
                                 fontWeight: "700",
                                 textTransform: "uppercase",
@@ -136,12 +136,12 @@ export default function ProfileScreen() {
                                 marginBottom: 8,
                             }}
                         >
-                            perfil
+                            {t("profile.kicker")}
                         </Text>
 
                         <Text
                             style={{
-                                color: t.textPrimary,
+                                color: theme.textPrimary,
                                 fontSize: 28,
                                 fontWeight: "900",
                                 marginBottom: 8,
@@ -150,25 +150,105 @@ export default function ProfileScreen() {
                             {user.name}
                         </Text>
 
-                        <Text
-                            style={{
-                                color: t.textMuted,
-                                fontSize: 14,
-                                lineHeight: 21,
-                            }}
-                        >
-                            Ajuste seu nome, e-mail e senha localmente e acompanhe a assinatura do
-                            plano que libera o modo AI.
+                        <Text style={{ color: theme.textMuted, fontSize: 14, lineHeight: 21 }}>
+                            {t("profile.header.description")}
                         </Text>
                     </View>
 
                     <View
                         style={{
-                            backgroundColor: t.inputBg,
+                            backgroundColor: theme.inputBg,
                             borderRadius: 24,
                             padding: 20,
                             borderWidth: 0.5,
-                            borderColor: t.border,
+                            borderColor: theme.border,
+                            marginBottom: 18,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: theme.textPrimary,
+                                fontSize: 20,
+                                fontWeight: "900",
+                                marginBottom: 6,
+                            }}
+                        >
+                            {t("profile.language.title")}
+                        </Text>
+                        <Text
+                            style={{
+                                color: theme.textMuted,
+                                fontSize: 13,
+                                lineHeight: 20,
+                                marginBottom: 18,
+                            }}
+                        >
+                            {t("profile.language.description")}
+                        </Text>
+
+                        <View style={{ gap: 10 }}>
+                            {supportedLocales.map((option) => {
+                                const isActive = option === locale;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={option}
+                                        activeOpacity={0.8}
+                                        onPress={() => setLocale(option)}
+                                    >
+                                        <View
+                                            style={{
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                backgroundColor: isActive ? theme.chipBg : theme.card,
+                                                borderRadius: 16,
+                                                paddingHorizontal: 16,
+                                                paddingVertical: 14,
+                                                borderWidth: 0.5,
+                                                borderColor: isActive ? theme.accent : theme.border,
+                                            }}
+                                        >
+                                            <View>
+                                                <Text
+                                                    style={{
+                                                        color: isActive ? theme.textPrimary : theme.textMuted,
+                                                        fontSize: 15,
+                                                        fontWeight: "800",
+                                                    }}
+                                                >
+                                                    {localeLabels[option]}
+                                                </Text>
+                                                <Text
+                                                    style={{
+                                                        color: theme.textDim,
+                                                        fontSize: 11,
+                                                        marginTop: 2,
+                                                    }}
+                                                >
+                                                    {option}
+                                                </Text>
+                                            </View>
+
+                                            <Ionicons
+                                                name={isActive ? "checkmark-circle" : "ellipse-outline"}
+                                                size={20}
+                                                color={isActive ? theme.accent : theme.textDim}
+                                            />
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    <View
+                        style={{
+                            backgroundColor: theme.inputBg,
+                            borderRadius: 24,
+                            padding: 20,
+                            borderWidth: 0.5,
+                            borderColor: theme.border,
                             marginBottom: 18,
                         }}
                     >
@@ -194,32 +274,32 @@ export default function ProfileScreen() {
                                         width: 42,
                                         height: 42,
                                         borderRadius: 14,
-                                        backgroundColor: t.chipBg,
+                                        backgroundColor: theme.chipBg,
                                         justifyContent: "center",
                                         alignItems: "center",
                                     }}
                                 >
-                                    <Ionicons name="sparkles" size={20} color={t.accent} />
+                                    <Ionicons name="sparkles" size={20} color={theme.accent} />
                                 </View>
                                 <View style={{ flexShrink: 1 }}>
                                     <Text
                                         style={{
-                                            color: t.textPrimary,
+                                            color: theme.textPrimary,
                                             fontSize: 18,
                                             fontWeight: "800",
                                         }}
                                     >
                                         Fitcha AI
                                     </Text>
-                                    <Text style={{ color: t.textMuted, fontSize: 13 }}>
-                                        Plano mensal com pagamento via Pix
+                                    <Text style={{ color: theme.textMuted, fontSize: 13 }}>
+                                        {t("profile.ai.subtitle")}
                                     </Text>
                                 </View>
                             </View>
 
                             <View
                                 style={{
-                                    backgroundColor: user.hasAiPlan ? t.accent : t.surface,
+                                    backgroundColor: user.hasAiPlan ? theme.accent : theme.surface,
                                     borderRadius: 999,
                                     paddingHorizontal: 12,
                                     paddingVertical: 6,
@@ -229,32 +309,33 @@ export default function ProfileScreen() {
                             >
                                 <Text
                                     style={{
-                                        color: user.hasAiPlan ? btnColor : t.textMuted,
+                                        color: user.hasAiPlan ? btnColor : theme.textMuted,
                                         fontSize: 11,
                                         fontWeight: "800",
                                         textTransform: "uppercase",
                                         letterSpacing: 1,
                                     }}
                                 >
-                                    {user.hasAiPlan ? "Ativo" : "Inativo"}
+                                    {user.hasAiPlan
+                                        ? t("profile.ai.status.active")
+                                        : t("profile.ai.status.inactive")}
                                 </Text>
                             </View>
                         </View>
 
                         <Text
                             style={{
-                                color: t.textMuted,
+                                color: theme.textMuted,
                                 fontSize: 14,
                                 lineHeight: 21,
                                 marginBottom: 14,
                             }}
                         >
-                            O acesso ao AI e liberado automaticamente quando o pagamento Pix for
-                            aprovado e permanece ativo por 1 mes.
+                            {t("profile.ai.description")}
                         </Text>
 
                         <View style={{ gap: 10, marginBottom: 20 }}>
-                            {PLAN_BENEFITS.map((benefit) => (
+                            {aiBenefits.map((benefit) => (
                                 <View
                                     key={benefit}
                                     style={{
@@ -264,17 +345,15 @@ export default function ProfileScreen() {
                                     }}
                                 >
                                     <Ionicons
-                                        name={
-                                            user.hasAiPlan ? "checkmark-circle" : "ellipse-outline"
-                                        }
+                                        name={user.hasAiPlan ? "checkmark-circle" : "ellipse-outline"}
                                         size={18}
-                                        color={user.hasAiPlan ? t.accent : t.textDim}
+                                        color={user.hasAiPlan ? theme.accent : theme.textDim}
                                         style={{ marginTop: 1 }}
                                     />
                                     <Text
                                         style={{
                                             flex: 1,
-                                            color: t.textPrimary,
+                                            color: theme.textPrimary,
                                             fontSize: 13,
                                             lineHeight: 19,
                                         }}
@@ -287,63 +366,71 @@ export default function ProfileScreen() {
 
                         {isLoading ? (
                             <View style={{ paddingVertical: 18, alignItems: "center" }}>
-                                <ActivityIndicator color={t.accent} />
+                                <ActivityIndicator color={theme.accent} />
                             </View>
                         ) : user.hasAiPlan ? (
                             <View
                                 style={{
-                                    backgroundColor: t.chipBg,
+                                    backgroundColor: theme.chipBg,
                                     borderRadius: 16,
                                     padding: 16,
                                 }}
                             >
                                 <Text
                                     style={{
-                                        color: t.textPrimary,
+                                        color: theme.textPrimary,
                                         fontSize: 16,
                                         fontWeight: "900",
                                         marginBottom: 6,
                                     }}
                                 >
-                                    Plano ativo
+                                    {t("profile.ai.activeTitle")}
                                 </Text>
-                                <Text style={{ color: t.textMuted, fontSize: 14, lineHeight: 21 }}>
+                                <Text style={{ color: theme.textMuted, fontSize: 14, lineHeight: 21 }}>
                                     {accessExpiresAt
-                                        ? `Valido ate ${accessExpiresAt}. Durante esse periodo nao ha opcao de cancelamento manual.`
-                                        : "Seu acesso ao AI ja foi liberado no app."}
+                                        ? t("profile.ai.activeDescriptionWithDate", {
+                                              date: accessExpiresAt,
+                                          })
+                                        : t("profile.ai.activeDescription")}
                                 </Text>
                             </View>
                         ) : hasPendingPayment ? (
                             <View style={{ gap: 12 }}>
                                 <View
                                     style={{
-                                        backgroundColor: t.chipBg,
+                                        backgroundColor: theme.chipBg,
                                         borderRadius: 16,
                                         padding: 16,
                                     }}
                                 >
                                     <Text
                                         style={{
-                                            color: t.textPrimary,
+                                            color: theme.textPrimary,
                                             fontSize: 16,
                                             fontWeight: "900",
                                             marginBottom: 6,
                                         }}
                                     >
-                                        Pagamento pendente
+                                        {t("profile.ai.pendingTitle")}
                                     </Text>
                                     <Text
-                                        style={{ color: t.textMuted, fontSize: 14, lineHeight: 21 }}
+                                        style={{
+                                            color: theme.textMuted,
+                                            fontSize: 14,
+                                            lineHeight: 21,
+                                        }}
                                     >
                                         {paymentExpiresAt
-                                            ? `Existe um Pix aguardando pagamento ate ${paymentExpiresAt}.`
-                                            : "Existe um Pix aguardando pagamento para ativar o modo AI."}
+                                            ? t("profile.ai.pendingDescriptionWithDate", {
+                                                  date: paymentExpiresAt,
+                                              })
+                                            : t("profile.ai.pendingDescription")}
                                     </Text>
                                 </View>
 
                                 <TouchableOpacity activeOpacity={0.8} onPress={openModal}>
                                     <LinearGradient
-                                        colors={t.gradientAccent}
+                                        colors={theme.gradientAccent}
                                         style={{
                                             borderRadius: 16,
                                             paddingVertical: 15,
@@ -358,7 +445,7 @@ export default function ProfileScreen() {
                                                 textAlign: "center",
                                             }}
                                         >
-                                            Continuar pagamento
+                                            {t("profile.ai.continuePayment")}
                                         </Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
@@ -366,7 +453,7 @@ export default function ProfileScreen() {
                         ) : (
                             <TouchableOpacity activeOpacity={0.8} onPress={openModal}>
                                 <LinearGradient
-                                    colors={t.gradientAccent}
+                                    colors={theme.gradientAccent}
                                     style={{
                                         borderRadius: 16,
                                         paddingVertical: 15,
@@ -381,7 +468,7 @@ export default function ProfileScreen() {
                                             textAlign: "center",
                                         }}
                                     >
-                                        Assinar plano IA
+                                        {t("profile.ai.subscribe")}
                                     </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -390,70 +477,70 @@ export default function ProfileScreen() {
 
                     <View
                         style={{
-                            backgroundColor: t.inputBg,
+                            backgroundColor: theme.inputBg,
                             borderRadius: 24,
                             padding: 20,
                             borderWidth: 0.5,
-                            borderColor: t.border,
+                            borderColor: theme.border,
                         }}
                     >
                         <Text
                             style={{
-                                color: t.textPrimary,
+                                color: theme.textPrimary,
                                 fontSize: 20,
                                 fontWeight: "900",
                                 marginBottom: 6,
                             }}
                         >
-                            Seus dados
+                            {t("profile.form.title")}
                         </Text>
                         <Text
                             style={{
-                                color: t.textMuted,
+                                color: theme.textMuted,
                                 fontSize: 13,
                                 lineHeight: 20,
                                 marginBottom: 20,
                             }}
                         >
-                            Essas alteracoes continuam locais no frontend por enquanto.
+                            {t("profile.form.description")}
                         </Text>
 
                         <Input
-                            label="Nome"
+                            label={t("auth.register.nameLabel")}
                             icon="person-outline"
                             value={values.name}
                             onChangeText={(value) => setField("name", value)}
-                            placeholder="Seu nome"
+                            placeholder={t("auth.register.namePlaceholder")}
                             autoCapitalize="words"
                             error={errors.name}
                         />
 
                         <Input
-                            label="E-mail"
+                            label={t("auth.register.emailLabel")}
                             icon="mail-outline"
                             value={values.email}
                             onChangeText={(value) => setField("email", value)}
-                            placeholder="seu@email.com"
+                            placeholder={t("auth.register.emailPlaceholder")}
                             keyboardType="email-address"
                             error={errors.email}
                         />
 
                         <Input
-                            label="Nova senha"
+                            label={t("profile.form.newPasswordLabel")}
                             icon="lock-closed-outline"
                             value={values.password}
                             onChangeText={(value) => setField("password", value)}
-                            placeholder="Mude apenas se quiser"
+                            placeholder={t("profile.form.newPasswordPlaceholder")}
                             secure
                             error={errors.password}
                         />
 
                         <Input
-                            label="Confirmar nova senha"
+                            label={t("profile.form.confirmNewPasswordLabel")}
                             icon="shield-checkmark-outline"
                             value={values.confirmPassword}
                             onChangeText={(value) => setField("confirmPassword", value)}
-                            placeholder="Repita a nova senha"
+                            placeholder={t("profile.form.confirmNewPasswordPlaceholder")}
                             secure
                             error={errors.confirmPassword}
                         />
@@ -465,7 +552,7 @@ export default function ProfileScreen() {
                             style={{ marginTop: 8, opacity: isSubmitting ? 0.8 : 1 }}
                         >
                             <LinearGradient
-                                colors={t.gradientAccent}
+                                colors={theme.gradientAccent}
                                 style={{
                                     borderRadius: 16,
                                     paddingVertical: 16,
@@ -473,7 +560,7 @@ export default function ProfileScreen() {
                                 }}
                             >
                                 <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
-                                    {isSubmitting ? "Salvando..." : "Salvar alteracoes"}
+                                    {isSubmitting ? t("profile.form.saving") : t("profile.form.save")}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>
