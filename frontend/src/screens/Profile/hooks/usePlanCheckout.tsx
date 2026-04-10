@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { PlanStatusResponse, UserPlan } from "../../../@types/plan";
+import { useI18n } from "../../../contexts/I18nContext";
 import { createPlanCheckout, getMyPlanStatus } from "../../../services/plan";
 
 type UsePlanCheckoutParams = {
@@ -12,6 +13,7 @@ type LoadOptions = {
 
 export function usePlanCheckout(props: UsePlanCheckoutParams) {
     const { onPlanActiveChange } = props;
+    const { t } = useI18n();
 
     const [plan, setPlan] = useState<UserPlan | null>(null);
     const [documentNumber, setDocumentNumber] = useState("");
@@ -49,7 +51,7 @@ export function usePlanCheckout(props: UsePlanCheckoutParams) {
                 await syncPlanStatus(response);
             } catch (error) {
                 setErrorMessage(
-                    error instanceof Error ? error.message : "Não foi possível carregar o plano",
+                    error instanceof Error ? error.message : t("planCheckout.error.loadPlan"),
                 );
             } finally {
                 if (!silent) {
@@ -59,7 +61,7 @@ export function usePlanCheckout(props: UsePlanCheckoutParams) {
                 }
             }
         },
-        [syncPlanStatus],
+        [syncPlanStatus, t],
     );
 
     useEffect(() => {
@@ -90,7 +92,7 @@ export function usePlanCheckout(props: UsePlanCheckoutParams) {
         const cleanDocument = documentNumber.replace(/\D/g, "");
 
         if (cleanDocument.length !== 11) {
-            setErrorMessage("Informe um CPF válido com 11 dígitos");
+            setErrorMessage(t("planCheckout.error.invalidCpf"));
             return;
         }
 
@@ -103,7 +105,7 @@ export function usePlanCheckout(props: UsePlanCheckoutParams) {
             setDocumentNumber(response.plan.payerDocument || cleanDocument);
         } catch (error) {
             setErrorMessage(
-                error instanceof Error ? error.message : "Não foi possível gerar o Pix",
+                error instanceof Error ? error.message : t("planCheckout.error.generatePix"),
             );
         } finally {
             setIsCreatingCheckout(false);

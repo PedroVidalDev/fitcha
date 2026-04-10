@@ -8,6 +8,7 @@ import (
 	"fitcha/pkg/auth"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type AuthService struct {
@@ -22,12 +23,18 @@ func (s *AuthService) Login(email, password string) (dtos.AuthResponseType, erro
 	user, err := s.repo.FindByEmail(email)
 
 	if err != nil {
-		return dtos.AuthResponseType{}, errors.New("email ou senha incorretos")
+		return dtos.AuthResponseType{}, newAuthError(
+			AuthErrorInvalidCredentials,
+			"email ou senha incorretos",
+		)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return dtos.AuthResponseType{}, errors.New("email ou senha incorretos")
+		return dtos.AuthResponseType{}, newAuthError(
+			AuthErrorInvalidCredentials,
+			"email ou senha incorretos",
+		)
 	}
 
 	token, err := auth.GenerateToken(user.ID)
@@ -55,6 +62,13 @@ func (s *AuthService) Register(name, email, password string) (dtos.AuthResponseT
 
 	createdUser, err := s.repo.CreateUser(user)
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return dtos.AuthResponseType{}, newAuthError(
+				AuthErrorEmailAlreadyExists,
+				"este e-mail já está em uso",
+			)
+		}
+
 		return dtos.AuthResponseType{}, err
 	}
 
@@ -72,12 +86,15 @@ func (s *AuthService) Register(name, email, password string) (dtos.AuthResponseT
 func (s *AuthService) ChangePassword(userID uint, currentPassword, newPassword string) error {
 	user, err := s.repo.FindByID(userID)
 	if err != nil {
-		return errors.New("usuario nao encontrado")
+		return newAuthError(AuthErrorUserNotFound, "usuário não encontrado")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(currentPassword))
 	if err != nil {
-		return errors.New("senha atual incorreta")
+		return newAuthError(
+			AuthErrorCurrentPasswordInvalid,
+			"senha atual incorreta",
+		)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)

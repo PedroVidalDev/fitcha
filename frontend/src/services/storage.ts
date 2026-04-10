@@ -35,7 +35,7 @@ async function resolveStorageKey() {
     return STORAGE_KEY;
 }
 
-async function loadState() {
+async function loadState(): Promise<{ data: AppData; hasPersistedValue: boolean }> {
     const nextKey = await resolveStorageKey();
 
     if (cacheKey !== nextKey) {
@@ -50,7 +50,7 @@ async function loadState() {
 
     const raw = await AsyncStorage.getItem(nextKey);
     if (raw) {
-        cache = JSON.parse(raw);
+        cache = JSON.parse(raw) as AppData;
         hasPersistedValue = true;
         return { data: cache, hasPersistedValue };
     }
@@ -58,7 +58,7 @@ async function loadState() {
     if (nextKey !== STORAGE_KEY) {
         const legacyRaw = await AsyncStorage.getItem(STORAGE_KEY);
         if (legacyRaw) {
-            cache = JSON.parse(legacyRaw);
+            cache = JSON.parse(legacyRaw) as AppData;
             hasPersistedValue = true;
             await AsyncStorage.setItem(nextKey, legacyRaw);
             await AsyncStorage.removeItem(STORAGE_KEY);

@@ -12,12 +12,19 @@ import {
 } from "react-native";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { Input } from "../../components/Input";
-import { isServiceUnavailableAuthError, useAuth } from "../../contexts/AuthContext";
+import {
+    getAuthRequestErrorCode,
+    isServiceUnavailableAuthError,
+    useAuth,
+} from "../../contexts/AuthContext";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useFormErrors } from "../../hooks/useFormValidations";
+import { getAuthErrorPresentation } from "../../utils/authErrors";
 
 export default function Login() {
-    const { t } = useTheme();
+    const { t: theme } = useTheme();
+    const { t } = useI18n();
     const { login } = useAuth();
     const navigation = useNavigation();
 
@@ -38,15 +45,15 @@ export default function Login() {
         let valid = true;
 
         if (!email.trim()) {
-            setError("email", "Informe seu e-mail");
+            setError("email", t("auth.validation.emailRequired"));
             valid = false;
         } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-            setError("email", "E-mail inválido");
+            setError("email", t("auth.validation.emailInvalid"));
             valid = false;
         }
 
         if (!password.trim()) {
-            setError("password", "Informe sua senha");
+            setError("password", t("auth.validation.passwordRequired"));
             valid = false;
         }
 
@@ -66,8 +73,14 @@ export default function Login() {
                 return;
             }
 
+            const presentation = getAuthErrorPresentation(getAuthRequestErrorCode(error), "login");
+            if (presentation) {
+                setError(presentation.field, t(presentation.translationKey));
+                return;
+            }
+
             const message =
-                error instanceof Error ? error.message : "E-mail ou senha incorretos";
+                error instanceof Error ? error.message : t("auth.errors.genericLogin");
 
             setError("password", message);
         } finally {
@@ -75,7 +88,7 @@ export default function Login() {
         }
     };
 
-    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
+    const btnColor = theme.mode === "dark" ? "#0d0500" : "#FFF";
 
     useEffect(() => {
         Animated.sequence([
@@ -98,14 +111,14 @@ export default function Login() {
                 }),
             ]),
         ]).start();
-    }, []);
+    }, [formFade, formSlide, logoFade, logoSlide]);
 
     const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false);
 
     return (
         <LinearGradient
             colors={
-                t.mode === "dark"
+                theme.mode === "dark"
                     ? ["#1a0a00", "#0d0500", "#060200"]
                     : ["#FAF6F2", "#F5F0EB", "#EDE4DB"]
             }
@@ -128,7 +141,7 @@ export default function Login() {
                             width: 80,
                             height: 80,
                             borderRadius: 24,
-                            backgroundColor: t.accent,
+                            backgroundColor: theme.accent,
                             justifyContent: "center",
                             alignItems: "center",
                             marginBottom: 16,
@@ -140,7 +153,7 @@ export default function Login() {
                         style={{
                             fontSize: 32,
                             fontWeight: "900",
-                            color: t.textPrimary,
+                            color: theme.textPrimary,
                             letterSpacing: -1,
                         }}
                     >
@@ -149,40 +162,38 @@ export default function Login() {
                     <Text
                         style={{
                             fontSize: 14,
-                            color: t.textMuted,
+                            color: theme.textMuted,
                             marginTop: 4,
                             fontWeight: "500",
                         }}
                     >
-                        Sua ficha de treino digital
+                        {t("app.tagline")}
                     </Text>
                 </Animated.View>
 
-                <Animated.View
-                    style={{ opacity: formFade, transform: [{ translateY: formSlide }] }}
-                >
+                <Animated.View style={{ opacity: formFade, transform: [{ translateY: formSlide }] }}>
                     <Input
-                        label="E-mail"
+                        label={t("auth.login.emailLabel")}
                         icon="mail-outline"
                         value={email}
-                        onChangeText={(v) => {
-                            setEmail(v);
+                        onChangeText={(value) => {
+                            setEmail(value);
                             clearError("email");
                         }}
-                        placeholder="seu@email.com"
+                        placeholder={t("auth.login.emailPlaceholder")}
                         keyboardType="email-address"
                         error={errors.email}
                     />
 
                     <Input
-                        label="Senha"
+                        label={t("auth.login.passwordLabel")}
                         icon="lock-closed-outline"
                         value={password}
-                        onChangeText={(v) => {
-                            setPassword(v);
+                        onChangeText={(value) => {
+                            setPassword(value);
                             clearError("password");
                         }}
-                        placeholder="••••••••"
+                        placeholder={t("auth.login.passwordPlaceholder")}
                         secure
                         error={errors.password}
                     />
@@ -194,13 +205,13 @@ export default function Login() {
                         style={{ marginTop: 12, opacity: isSubmitting ? 0.8 : 1 }}
                     >
                         <LinearGradient
-                            colors={t.gradientAccent}
+                            colors={theme.gradientAccent}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={{ paddingVertical: 16, borderRadius: 14, alignItems: "center" }}
                         >
                             <Text style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}>
-                                {isSubmitting ? "Entrando..." : "Entrar"}
+                                {isSubmitting ? t("auth.login.submitting") : t("auth.login.submit")}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -208,18 +219,18 @@ export default function Login() {
                     <View
                         style={{ flexDirection: "row", alignItems: "center", marginVertical: 28 }}
                     >
-                        <View style={{ flex: 1, height: 0.5, backgroundColor: t.border }} />
+                        <View style={{ flex: 1, height: 0.5, backgroundColor: theme.border }} />
                         <Text
                             style={{
-                                color: t.textDim,
+                                color: theme.textDim,
                                 fontSize: 12,
                                 marginHorizontal: 14,
                                 fontWeight: "600",
                             }}
                         >
-                            ou
+                            {t("common.or")}
                         </Text>
-                        <View style={{ flex: 1, height: 0.5, backgroundColor: t.border }} />
+                        <View style={{ flex: 1, height: 0.5, backgroundColor: theme.border }} />
                     </View>
 
                     <TouchableOpacity
@@ -230,20 +241,21 @@ export default function Login() {
                             borderRadius: 14,
                             alignItems: "center",
                             borderWidth: 1,
-                            borderColor: t.accent,
+                            borderColor: theme.accent,
                         }}
                     >
-                        <Text style={{ color: t.accent, fontSize: 16, fontWeight: "800" }}>
-                            Criar conta
+                        <Text style={{ color: theme.accent, fontSize: 16, fontWeight: "800" }}>
+                            {t("auth.login.createAccountCta")}
                         </Text>
                     </TouchableOpacity>
                 </Animated.View>
             </KeyboardAvoidingView>
+
             <ConfirmModal
                 visible={isServiceErrorModalVisible}
-                title="Serviço indisponível"
-                message="O serviço pode estar indisponível no momento. Tente novamente em instantes."
-                confirmLabel="Entendi"
+                title={t("auth.errors.serviceUnavailableTitle")}
+                message={t("auth.errors.serviceUnavailableMessage")}
+                confirmLabel={t("common.actions.understand")}
                 hideCancel
                 confirmVariant="accent"
                 onClose={closeServiceErrorModal}

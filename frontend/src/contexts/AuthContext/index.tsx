@@ -19,8 +19,13 @@ const LEGACY_AUTH_KEY = "auth_user";
 const ALWAYS_LOGGED_IN_FOR_TESTS = false;
 const SERVICE_UNAVAILABLE_MESSAGE =
     "O serviço pode estar indisponível no momento. Tente novamente em instantes.";
+const SERVICE_UNAVAILABLE_CODE = "AUTH_SERVICE_UNAVAILABLE";
 
 type AuthErrorKind = "service_unavailable" | "validation";
+type ApiErrorResponse = {
+    error?: string;
+    code?: string;
+};
 
 const TEST_USER: User = {
     id: 0,
@@ -48,11 +53,13 @@ const AuthContext = createContext<AuthContextValue>({
 
 export class AuthRequestError extends Error {
     kind: AuthErrorKind;
+    code: string | null;
 
-    constructor(message: string, kind: AuthErrorKind) {
+    constructor(message: string, kind: AuthErrorKind, code?: string | null) {
         super(message);
         this.name = "AuthRequestError";
         this.kind = kind;
+        this.code = code ?? null;
         Object.setPrototypeOf(this, AuthRequestError.prototype);
     }
 }
@@ -137,6 +144,24 @@ function parseStoredSession(raw: string): StoredAuthSession | null {
     }
 }
 
+function getApiErrorResponse(error: unknown): ApiErrorResponse | null {
+    if (!isAxiosError(error)) return null;
+
+    const responseData = error.response?.data;
+    if (!responseData || typeof responseData !== "object") return null;
+
+    return responseData as ApiErrorResponse;
+}
+
+function getAuthErrorCode(error: unknown) {
+    const responseData = getApiErrorResponse(error);
+    if (typeof responseData?.code === "string" && responseData.code.trim()) {
+        return responseData.code;
+    }
+
+    return null;
+}
+
 function getAuthErrorMessage(error: unknown, fallback: string) {
     if (isAxiosError(error)) {
         const responseData = error.response?.data;
@@ -183,14 +208,26 @@ function buildAuthRequestError(error: unknown, fallback: string) {
     }
 
     if (isServiceUnavailableError(error)) {
-        return new AuthRequestError(SERVICE_UNAVAILABLE_MESSAGE, "service_unavailable");
+        return new AuthRequestError(
+            SERVICE_UNAVAILABLE_MESSAGE,
+            "service_unavailable",
+            SERVICE_UNAVAILABLE_CODE,
+        );
     }
 
-    return new AuthRequestError(getAuthErrorMessage(error, fallback), "validation");
+    return new AuthRequestError(
+        getAuthErrorMessage(error, fallback),
+        "validation",
+        getAuthErrorCode(error),
+    );
 }
 
 export function isServiceUnavailableAuthError(error: unknown) {
     return error instanceof AuthRequestError && error.kind === "service_unavailable";
+}
+
+export function getAuthRequestErrorCode(error: unknown) {
+    return error instanceof AuthRequestError ? error.code : null;
 }
 
 export const useAuth = () => useContext(AuthContext);
@@ -243,7 +280,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         };
 
-        restoreSession();
+        void restoreSession();
     }, [persistSession]);
 
     const login = useCallback(

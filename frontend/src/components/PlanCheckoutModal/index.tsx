@@ -1,33 +1,33 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
+    ActivityIndicator,
+    Image,
     Linking,
     ScrollView,
     Text,
     TouchableOpacity,
     View,
-    Image,
-    ActivityIndicator,
 } from "react-native";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { AppModal } from "../AppModal";
 import { Input } from "../Input";
 import { PlanCheckoutModalProps } from "./types";
 
-function formatCurrency(amountCents: number) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatCurrency(amountCents: number, locale: string) {
+    return new Intl.NumberFormat(locale, {
         style: "currency",
         currency: "BRL",
     }).format(amountCents / 100);
 }
 
-function formatDate(value?: string | null) {
+function formatDate(value: string | null | undefined, locale: string) {
     if (!value) return null;
 
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) return null;
 
-    return new Intl.DateTimeFormat("pt-BR", {
+    return new Intl.DateTimeFormat(locale, {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -51,12 +51,15 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
     } = props;
 
     const { t } = useTheme();
+    const { t: translate, locale } = useI18n();
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
     const isPending = plan?.status === "pending";
     const isApproved = plan?.status === "approved";
-    const amountLabel = plan ? formatCurrency(plan.transactionAmountCents) : null;
-    const paymentExpiresAt = formatDate(plan?.paymentExpiresAt);
-    const accessExpiresAt = formatDate(plan?.accessExpiresAt);
+    const amountLabel = plan
+        ? formatCurrency(plan.transactionAmountCents, locale)
+        : translate("planCheckout.planFallback");
+    const paymentExpiresAt = formatDate(plan?.paymentExpiresAt, locale);
+    const accessExpiresAt = formatDate(plan?.accessExpiresAt, locale);
 
     return (
         <AppModal visible={visible} onClose={onClose} contentStyle={{ maxHeight: "88%" }}>
@@ -81,7 +84,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                     <Text
                         style={{ color: t.textPrimary, fontSize: 20, fontWeight: "900", flexShrink: 1 }}
                     >
-                        Assinar Fitcha AI
+                        {translate("planCheckout.title")}
                     </Text>
                 </View>
 
@@ -99,8 +102,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                         marginBottom: 16,
                     }}
                 >
-                    Ao pagar este Pix, os benefícios do plano ficam ativos por 1 mês. Durante
-                    esse período o modo AI permanece liberado sem opção de cancelamento manual.
+                    {translate("planCheckout.description")}
                 </Text>
 
                 <View
@@ -121,18 +123,15 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                             marginBottom: 8,
                         }}
                     >
-                        O que você recebe
+                        {translate("planCheckout.whatYouGet")}
                     </Text>
 
                     {[
-                        "Acesso ao assistente de treino com IA por 1 mês após a aprovação do pagamento.",
-                        "Ativação automática quando o Mercado Pago confirmar o Pix.",
-                        "Nova assinatura somente após o período atual terminar.",
+                        translate("planCheckout.benefit.aiAccess"),
+                        translate("planCheckout.benefit.autoActivation"),
+                        translate("planCheckout.benefit.renewal"),
                     ].map((item) => (
-                        <View
-                            key={item}
-                            style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}
-                        >
+                        <View key={item} style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
                             <Ionicons name="checkmark-circle" size={18} color={t.accent} />
                             <Text
                                 style={{
@@ -151,11 +150,11 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                 {!isPending && !isApproved && (
                     <>
                         <Input
-                            label="CPF do pagador"
+                            label={translate("planCheckout.documentLabel")}
                             icon="card-outline"
                             value={documentNumber}
                             onChangeText={onDocumentNumberChange}
-                            placeholder="00000000000"
+                            placeholder={translate("planCheckout.documentPlaceholder")}
                             keyboardType="numeric"
                             error={undefined}
                         />
@@ -182,7 +181,9 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                         textAlign: "center",
                                     }}
                                 >
-                                    {isCreatingCheckout ? "Gerando Pix..." : "Gerar Pix"}
+                                    {isCreatingCheckout
+                                        ? translate("planCheckout.generatingPix")
+                                        : translate("planCheckout.generatePix")}
                                 </Text>
                             </View>
                         </TouchableOpacity>
@@ -218,7 +219,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     marginRight: 10,
                                 }}
                             >
-                                {amountLabel ?? "Plano Fitcha AI"}
+                                {amountLabel}
                             </Text>
                             <View
                                 style={{
@@ -247,10 +248,10 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     }}
                                 >
                                     {isApproved
-                                        ? "Pago"
+                                        ? translate("planCheckout.status.paid")
                                         : isPending
-                                          ? "Aguardando Pix"
-                                          : "Pendente"}
+                                          ? translate("planCheckout.status.awaitingPix")
+                                          : translate("planCheckout.status.pending")}
                                 </Text>
                             </View>
                         </View>
@@ -264,7 +265,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     lineHeight: 19,
                                 }}
                             >
-                                Pix válido até {paymentExpiresAt}.
+                                {translate("planCheckout.pixValidUntil", { date: paymentExpiresAt })}
                             </Text>
                         )}
 
@@ -277,7 +278,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     lineHeight: 19,
                                 }}
                             >
-                                Plano ativo até {accessExpiresAt}.
+                                {translate("planCheckout.planActiveUntil", { date: accessExpiresAt })}
                             </Text>
                         )}
 
@@ -312,7 +313,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                         marginBottom: 8,
                                     }}
                                 >
-                                    Pix cópia e cola
+                                    {translate("planCheckout.copyPastePix")}
                                 </Text>
                                 <Text
                                     selectable
@@ -332,11 +333,8 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                     padding: 14,
                                 }}
                             >
-                                <Text
-                                    style={{ color: t.textPrimary, fontSize: 14, lineHeight: 20 }}
-                                >
-                                    Pagamento confirmado. O botão de IA já deve aparecer nas
-                                    telas em que o recurso estiver disponível.
+                                <Text style={{ color: t.textPrimary, fontSize: 14, lineHeight: 20 }}>
+                                    {translate("planCheckout.approvedMessage")}
                                 </Text>
                             </View>
                         ) : (
@@ -369,7 +367,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                                 textAlign: "center",
                                             }}
                                         >
-                                            Verificar pagamento
+                                            {translate("planCheckout.checkPayment")}
                                         </Text>
                                     )}
                                 </TouchableOpacity>
@@ -398,7 +396,7 @@ export function PlanCheckoutModal(props: PlanCheckoutModalProps) {
                                                 textAlign: "center",
                                             }}
                                         >
-                                            Abrir cobranca
+                                            {translate("planCheckout.openCharge")}
                                         </Text>
                                     </TouchableOpacity>
                                 )}

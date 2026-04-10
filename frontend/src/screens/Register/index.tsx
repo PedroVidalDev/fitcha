@@ -12,13 +12,19 @@ import {
 } from "react-native";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { Input } from "../../components/Input";
-import { isServiceUnavailableAuthError, useAuth } from "../../contexts/AuthContext";
+import {
+    getAuthRequestErrorCode,
+    isServiceUnavailableAuthError,
+    useAuth,
+} from "../../contexts/AuthContext";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useFormErrors } from "../../hooks/useFormValidations";
+import { getAuthErrorPresentation } from "../../utils/authErrors";
 
 export default function Register() {
-    const { t } = useTheme();
-
+    const { t: theme } = useTheme();
+    const { t } = useI18n();
     const { register } = useAuth();
     const navigation = useNavigation();
 
@@ -39,31 +45,31 @@ export default function Register() {
         let valid = true;
 
         if (!name.trim()) {
-            setError("name", "Informe seu nome");
+            setError("name", t("auth.validation.nameRequired"));
             valid = false;
         }
 
         if (!email.trim()) {
-            setError("email", "Informe seu e-mail");
+            setError("email", t("auth.validation.emailRequired"));
             valid = false;
         } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-            setError("email", "E-mail inválido");
+            setError("email", t("auth.validation.emailInvalid"));
             valid = false;
         }
 
         if (!password.trim()) {
-            setError("password", "Informe uma senha");
+            setError("password", t("auth.validation.passwordCreateRequired"));
             valid = false;
         } else if (password.length < 6) {
-            setError("password", "Mínimo de 6 caracteres");
+            setError("password", t("auth.validation.passwordMin"));
             valid = false;
         }
 
         if (!confirmPassword.trim()) {
-            setError("confirmPassword", "Confirme sua senha");
+            setError("confirmPassword", t("auth.validation.confirmPasswordRequired"));
             valid = false;
         } else if (password !== confirmPassword) {
-            setError("confirmPassword", "As senhas não coincidem");
+            setError("confirmPassword", t("auth.validation.passwordMismatch"));
             valid = false;
         }
 
@@ -83,8 +89,14 @@ export default function Register() {
                 return;
             }
 
+            const presentation = getAuthErrorPresentation(getAuthRequestErrorCode(error), "register");
+            if (presentation) {
+                setError(presentation.field, t(presentation.translationKey));
+                return;
+            }
+
             const message =
-                error instanceof Error ? error.message : "Não foi possível criar a conta";
+                error instanceof Error ? error.message : t("auth.errors.genericRegister");
 
             setError("email", message);
         } finally {
@@ -92,21 +104,26 @@ export default function Register() {
         }
     };
 
-    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
+    const btnColor = theme.mode === "dark" ? "#0d0500" : "#FFF";
 
     useEffect(() => {
         Animated.parallel([
             Animated.timing(fade, { toValue: 1, duration: 500, useNativeDriver: true }),
-            Animated.spring(slide, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
+            Animated.spring(slide, {
+                toValue: 0,
+                tension: 50,
+                friction: 8,
+                useNativeDriver: true,
+            }),
         ]).start();
-    }, []);
+    }, [fade, slide]);
 
     const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false);
 
     return (
         <LinearGradient
             colors={
-                t.mode === "dark"
+                theme.mode === "dark"
                     ? ["#1a0a00", "#0d0500", "#060200"]
                     : ["#FAF6F2", "#F5F0EB", "#EDE4DB"]
             }
@@ -136,9 +153,9 @@ export default function Register() {
                                 marginBottom: 32,
                             }}
                         >
-                            <Ionicons name="arrow-back" size={22} color={t.accent} />
-                            <Text style={{ color: t.accent, fontSize: 15, fontWeight: "700" }}>
-                                Voltar
+                            <Ionicons name="arrow-back" size={22} color={theme.accent} />
+                            <Text style={{ color: theme.accent, fontSize: 15, fontWeight: "700" }}>
+                                {t("common.actions.back")}
                             </Text>
                         </TouchableOpacity>
 
@@ -146,68 +163,71 @@ export default function Register() {
                             style={{
                                 fontSize: 28,
                                 fontWeight: "900",
-                                color: t.textPrimary,
+                                color: theme.textPrimary,
                                 marginBottom: 6,
                             }}
                         >
-                            Criar conta
+                            {t("auth.register.title")}
                         </Text>
                         <Text
                             style={{
                                 fontSize: 14,
-                                color: t.textMuted,
+                                color: theme.textMuted,
                                 marginBottom: 32,
                                 fontWeight: "500",
                             }}
                         >
-                            Preencha seus dados para começar
+                            {t("auth.register.subtitle")}
                         </Text>
 
                         <Input
-                            label="Nome"
+                            label={t("auth.register.nameLabel")}
                             icon="person-outline"
                             value={name}
-                            onChangeText={(v) => {
-                                setName(v);
+                            onChangeText={(value) => {
+                                setName(value);
                                 clearError("name");
                             }}
-                            placeholder="Seu nome"
+                            placeholder={t("auth.register.namePlaceholder")}
                             autoCapitalize="words"
                             error={errors.name}
                         />
+
                         <Input
-                            label="E-mail"
+                            label={t("auth.register.emailLabel")}
                             icon="mail-outline"
                             value={email}
-                            onChangeText={(v) => {
-                                setEmail(v);
+                            onChangeText={(value) => {
+                                setEmail(value);
                                 clearError("email");
                             }}
-                            placeholder="seu@email.com"
+                            placeholder={t("auth.register.emailPlaceholder")}
                             keyboardType="email-address"
                             error={errors.email}
                         />
+
                         <Input
-                            label="Senha"
+                            label={t("auth.register.passwordLabel")}
                             icon="lock-closed-outline"
                             value={password}
-                            onChangeText={(v) => {
-                                setPassword(v);
+                            onChangeText={(value) => {
+                                setPassword(value);
                                 clearError("password");
                             }}
-                            placeholder="Mínimo 6 caracteres"
+                            placeholder={t("auth.register.passwordPlaceholder")}
                             secure
                             error={errors.password}
                         />
+
                         <Input
-                            label="Confirmar senha"
+                            label={t("auth.register.confirmPasswordLabel")}
                             icon="shield-checkmark-outline"
                             value={confirmPassword}
-                            onChangeText={(v) => {
-                                setConfirmPassword(v);
+                            onChangeText={(value) => {
+                                setConfirmPassword(value);
                                 clearError("confirmPassword");
                             }}
-                            placeholder="Repita a senha"
+                            placeholder={t("auth.register.confirmPasswordPlaceholder")}
                             secure
                             error={errors.confirmPassword}
                         />
@@ -219,7 +239,7 @@ export default function Register() {
                             style={{ marginTop: 12, opacity: isSubmitting ? 0.8 : 1 }}
                         >
                             <LinearGradient
-                                colors={t.gradientAccent}
+                                colors={theme.gradientAccent}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{
@@ -229,7 +249,9 @@ export default function Register() {
                                 }}
                             >
                                 <Text style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}>
-                                    {isSubmitting ? "Criando conta..." : "Criar conta"}
+                                    {isSubmitting
+                                        ? t("auth.register.submitting")
+                                        : t("auth.register.submit")}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -238,19 +260,22 @@ export default function Register() {
                             onPress={() => navigation.goBack()}
                             style={{ marginTop: 20, alignItems: "center", padding: 8 }}
                         >
-                            <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "500" }}>
-                                Já tem conta?{" "}
-                                <Text style={{ color: t.accent, fontWeight: "800" }}>Entrar</Text>
+                            <Text style={{ color: theme.textMuted, fontSize: 14, fontWeight: "500" }}>
+                                {t("auth.register.hasAccountPrefix")}{" "}
+                                <Text style={{ color: theme.accent, fontWeight: "800" }}>
+                                    {t("common.actions.enter")}
+                                </Text>
                             </Text>
                         </TouchableOpacity>
                     </Animated.View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
             <ConfirmModal
                 visible={isServiceErrorModalVisible}
-                title="Serviço indisponível"
-                message="O serviço pode estar indisponível no momento. Tente novamente em instantes."
-                confirmLabel="Entendi"
+                title={t("auth.errors.serviceUnavailableTitle")}
+                message={t("auth.errors.serviceUnavailableMessage")}
+                confirmLabel={t("common.actions.understand")}
                 hideCancel
                 confirmVariant="accent"
                 onClose={closeServiceErrorModal}
