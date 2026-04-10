@@ -16,7 +16,7 @@ import { DAYS_LABEL, MachineCategoryKey } from "../../constants/categories";
 import { useAuth } from "../../contexts/AuthContext";
 import { Machine } from "../../dtos/Machine";
 import { generateAIWorkout } from "../../services/aiWorkout";
-import { replaceWeekWithMachines, uid } from "../../services/storage";
+import { replaceWeekWithMachines } from "../../services/workoutData";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
@@ -24,7 +24,19 @@ type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 const CATEGORY_ALIASES: Record<MachineCategoryKey, string[]> = {
     peito: ["peito", "supino", "crucifixo", "chest", "peitoral"],
     costas: ["costas", "remada", "puxada", "barra", "pulldown", "rowing", "back"],
-    pernas: ["perna", "pernas", "quadriceps", "posterior", "gluteo", "gluteos", "leg", "panturrilha", "agachamento", "cadeira", "mesa flexora"],
+    pernas: [
+        "perna",
+        "pernas",
+        "quadriceps",
+        "posterior",
+        "gluteo",
+        "gluteos",
+        "leg",
+        "panturrilha",
+        "agachamento",
+        "cadeira",
+        "mesa flexora",
+    ],
     ombros: ["ombro", "ombros", "shoulder", "desenvolvimento", "elevacao lateral"],
     biceps: ["biceps", "bíceps", "rosca", "curl"],
     triceps: ["triceps", "tríceps", "triceps", "corda", "testa", "pulley"],
@@ -42,7 +54,10 @@ function normalizeText(value: string) {
 function inferCategoryKey(categoryName: string, machineName: string): MachineCategoryKey {
     const haystack = normalizeText(`${categoryName} ${machineName}`);
 
-    for (const [key, aliases] of Object.entries(CATEGORY_ALIASES) as [MachineCategoryKey, string[]][]) {
+    for (const [key, aliases] of Object.entries(CATEGORY_ALIASES) as [
+        MachineCategoryKey,
+        string[],
+    ][]) {
         if (aliases.some((alias) => haystack.includes(normalizeText(alias)))) {
             return key;
         }
@@ -51,8 +66,8 @@ function inferCategoryKey(categoryName: string, machineName: string): MachineCat
     return "peito";
 }
 
-function buildGeneratedWeek(response: GPTResponse): Record<number, Machine[]> {
-    const generatedDays: Record<number, Machine[]> = {
+function buildGeneratedWeek(response: GPTResponse): Record<number, Omit<Machine, "id">[]> {
+    const generatedDays: Record<number, Omit<Machine, "id">[]> = {
         0: [],
         1: [],
         2: [],
@@ -67,7 +82,6 @@ function buildGeneratedWeek(response: GPTResponse): Record<number, Machine[]> {
             if (!(dayIndex in generatedDays)) return;
 
             const machines = category.machines.map((machine) => ({
-                id: uid(),
                 name: machine.name,
                 categoryKey: inferCategoryKey(category.name, machine.name),
                 description: `${category.name} • Series sugeridas (kg): ${machine.sets.join(" / ")}`,
@@ -83,7 +97,6 @@ function buildGeneratedWeek(response: GPTResponse): Record<number, Machine[]> {
 export default function WeekScreen() {
     const { t } = useTheme();
     const { user } = useAuth();
-    console.log({user})
 
     const navigation = useNavigation<Nav>();
 

@@ -12,6 +12,7 @@ import {
     User,
 } from "../../@types/auth";
 import { axiosApp, ensureApiUrlConfigured, setAxiosAuthToken } from "../../services/axios";
+import { resetWorkoutSyncState } from "../../services/workoutData";
 
 const AUTH_KEY = "auth_session";
 const LEGACY_AUTH_KEY = "auth_user";
@@ -199,6 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     const persistSession = useCallback(async (nextSession: StoredAuthSession) => {
+        resetWorkoutSyncState();
         setAxiosAuthToken(nextSession.token);
         await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(nextSession));
         await AsyncStorage.removeItem(LEGACY_AUTH_KEY);
@@ -206,6 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const clearSession = useCallback(async () => {
+        resetWorkoutSyncState();
         setAxiosAuthToken(null);
         await AsyncStorage.multiRemove([AUTH_KEY, LEGACY_AUTH_KEY]);
         setSession(null);

@@ -33,7 +33,14 @@ func InitDB() (*gorm.DB, error) {
 		}
 	}
 
-	err = db.AutoMigrate(&models.User{}, &models.Plan{})
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.Plan{},
+		&models.Machine{},
+		&models.Day{},
+		&models.DayMachine{},
+		&models.HistoryEntry{},
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("Erro na migracao")

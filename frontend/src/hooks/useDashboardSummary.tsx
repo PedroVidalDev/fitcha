@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { DAYS_LABEL, DAYS_SHORT, MachineCategoryKey } from "../constants/categories";
 import { AppData } from "../dtos/AppData";
 import { HistoryEntry } from "../dtos/HistoryEntry";
-import { getData } from "../services/storage";
+import { getCachedWorkoutData, loadWorkoutData } from "../services/workoutData";
 
 type WorkoutDayAggregate = {
     key: string;
@@ -299,7 +299,10 @@ export function useDashboardSummary() {
     const [isLoading, setIsLoading] = useState(true);
 
     const refresh = useCallback(async () => {
-        const data = await getData();
+        const cachedData = await getCachedWorkoutData();
+        setSummary(buildSummary(cachedData));
+
+        const data = await loadWorkoutData();
         setSummary(buildSummary(data));
         setIsLoading(false);
     }, []);
