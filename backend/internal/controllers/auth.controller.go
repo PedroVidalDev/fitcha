@@ -12,6 +12,28 @@ type AuthController struct {
 	service *services.AuthService
 }
 
+func authErrorResponse(err error) (int, gin.H) {
+	if authErr, ok := services.AsAuthError(err); ok {
+		status := http.StatusBadRequest
+
+		switch authErr.Code {
+		case services.AuthErrorInvalidCredentials:
+			status = http.StatusUnauthorized
+		case services.AuthErrorEmailAlreadyExists:
+			status = http.StatusConflict
+		case services.AuthErrorUserNotFound:
+			status = http.StatusNotFound
+		}
+
+		return status, gin.H{
+			"error": authErr.Message,
+			"code":  authErr.Code,
+		}
+	}
+
+	return http.StatusBadRequest, gin.H{"error": err.Error()}
+}
+
 func NewAuthController(s *services.AuthService) *AuthController {
 	return &AuthController{service: s}
 }
@@ -27,7 +49,8 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	authResponse, err := c.service.Register(input.Name, input.Email, input.Password)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		status, payload := authErrorResponse(err)
+		ctx.JSON(status, payload)
 		return
 	}
 
@@ -45,7 +68,8 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	authResponse, err := c.service.Login(input.Email, input.Password)
 
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		status, payload := authErrorResponse(err)
+		ctx.JSON(status, payload)
 		return
 	}
 
@@ -68,7 +92,8 @@ func (c *AuthController) ChangePassword(ctx *gin.Context) {
 
 	err = c.service.ChangePassword(userID, input.CurrentPassword, input.NewPassword)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		status, payload := authErrorResponse(err)
+		ctx.JSON(status, payload)
 		return
 	}
 

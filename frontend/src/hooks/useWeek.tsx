@@ -1,30 +1,37 @@
 import { useCallback, useEffect, useState } from "react";
-import { getCategoryByKey, MachineCategoryKey } from "../constants/categories";
+import { MachineCategoryKey } from "../constants/categories";
 import { Machine } from "../dtos/Machine";
-import { syncNotifications } from "../services/notifications";
-import { getData, saveData, uid } from "../services/storage";
+import {
+    addMachineToDay as addMachineToDayRequest,
+    getCachedWorkoutData,
+    loadWorkoutData,
+    removeMachineFromDay as removeMachineFromDayRequest,
+} from "../services/workoutData";
 
 export function useWeek() {
     const [days, setDays] = useState<Record<number, Machine[]>>({});
 
-    const refresh = useCallback(async () => {
-        const data = await getData();
-        const result: Record<number, Machine[]> = {};
-        for (let i = 0; i < 7; i++) {
-            const ids = data.days[i] ?? [];
-            result[i] = ids.map((id) => data.machines[id]).filter(Boolean);
-        }
-        setDays(result);
-    }, []);
+    const setDaysFromData = useCallback(
+        (data: { days: Record<number, string[]>; machines: Record<string, Machine> }) => {
+            const result: Record<number, Machine[]> = {};
 
-    const syncNotifs = async () => {
-        const data = await getData();
-        const daysMachines: Record<number, { categoryKey: string }[]> = {};
-        for (let i = 0; i < 7; i++) {
-            daysMachines[i] = (data.days[i] ?? []).map((id) => data.machines[id]).filter(Boolean);
-        }
-        syncNotifications(daysMachines, (key) => getCategoryByKey(key).label);
-    };
+            for (let i = 0; i < 7; i++) {
+                const ids = data.days[i] ?? [];
+                result[i] = ids.map((id) => data.machines[id]).filter(Boolean);
+            }
+
+            setDays(result);
+        },
+        [],
+    );
+
+    const refresh = useCallback(async () => {
+        const cachedData = await getCachedWorkoutData();
+        setDaysFromData(cachedData);
+
+        const data = await loadWorkoutData();
+        setDaysFromData(data);
+    }, [setDaysFromData]);
 
     const addMachineToDay = useCallback(
         async (
@@ -33,31 +40,20 @@ export function useWeek() {
             categoryKey: MachineCategoryKey,
             description?: string,
         ) => {
-            const data = await getData();
-            const id = uid();
-            data.machines[id] = { id, name, categoryKey, description };
-            if (!data.days[dayIndex]) data.days[dayIndex] = [];
-            data.days[dayIndex].push(id);
-            data.history[id] = [];
-            await saveData(data);
-            await syncNotifs();
-            refresh();
+            await addMachineToDayRequest(dayIndex, {
+                name,
+                categoryKey,
+                description,
+            });
+            await refresh();
         },
         [refresh],
     );
 
     const removeMachineFromDay = useCallback(
         async (dayIndex: number, machineId: string) => {
-            const data = await getData();
-            data.days[dayIndex] = (data.days[dayIndex] ?? []).filter((id) => id !== machineId);
-            const usedElsewhere = Object.values(data.days).some((ids) => ids.includes(machineId));
-            if (!usedElsewhere) {
-                delete data.machines[machineId];
-                delete data.history[machineId];
-            }
-            await saveData(data);
-            await syncNotifs();
-            refresh();
+            await removeMachineFromDayRequest(dayIndex, machineId);
+            await refresh();
         },
         [refresh],
     );

@@ -44,7 +44,7 @@ export async function generateAIWorkout(data: WizardData): Promise<GenerateAIWor
         return response.data;
     } catch (error) {
         throw new Error(
-            getAIWorkoutErrorMessage(error, "Nao foi possivel gerar o treino automaticamente"),
+            getAIWorkoutErrorMessage(error, "Não foi possível gerar o treino automaticamente"),
         );
     }
 }

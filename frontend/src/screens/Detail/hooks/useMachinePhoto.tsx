@@ -1,32 +1,36 @@
 import { useCallback, useEffect, useState } from "react";
-import { getData, saveData } from "../../../services/storage";
+import {
+    getCachedWorkoutData,
+    loadWorkoutData,
+    updateMachinePhoto,
+} from "../../../services/workoutData";
 
 export function useMachinePhoto(machineId: string) {
     const [photo, setPhoto] = useState<string | undefined>();
 
     const updatePhoto = useCallback(
         async (uri: string) => {
-            const data = await getData();
-            if (data.machines[machineId]) {
-                data.machines[machineId].photo = uri;
-                await saveData(data);
-                setPhoto(uri);
-            }
+            const nextPhoto = await updateMachinePhoto(machineId, uri);
+            setPhoto(nextPhoto);
         },
         [machineId],
     );
 
     const removePhoto = useCallback(async () => {
-        const data = await getData();
-        if (data.machines[machineId]) {
-            delete data.machines[machineId].photo;
-            await saveData(data);
-            setPhoto(undefined);
-        }
+        const nextPhoto = await updateMachinePhoto(machineId);
+        setPhoto(nextPhoto);
     }, [machineId]);
 
     useEffect(() => {
-        getData().then((data) => setPhoto(data.machines[machineId]?.photo));
+        const load = async () => {
+            const cachedData = await getCachedWorkoutData();
+            setPhoto(cachedData.machines[machineId]?.photo);
+
+            const data = await loadWorkoutData();
+            setPhoto(data.machines[machineId]?.photo);
+        };
+
+        void load();
     }, [machineId]);
 
     return { photo, updatePhoto, removePhoto };

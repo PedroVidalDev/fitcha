@@ -5,6 +5,7 @@ import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
 import { ProfileShortcutButton } from "../components/ProfileShortcutButton";
 import { useAuth } from "../contexts/AuthContext";
+import { useI18n } from "../contexts/I18nContext";
 import { useTheme } from "../contexts/ThemeContext";
 
 import DayScreen from "../screens/Day";
@@ -24,6 +25,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export function AppNavigator() {
     const { user, isLoading, logout } = useAuth();
     const { t, toggle } = useTheme();
+    const { t: translate } = useI18n();
 
     if (isLoading) {
         return (
@@ -118,7 +120,7 @@ export function AppNavigator() {
                             name="Profile"
                             component={ProfileScreen}
                             options={{
-                                title: "Perfil",
+                                title: translate("navigation.profile"),
                                 headerRight: () => <ThemeToggle />,
                             }}
                         />

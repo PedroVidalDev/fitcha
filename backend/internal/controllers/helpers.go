@@ -33,3 +33,12 @@ func getAuthenticatedUserID(ctx *gin.Context) (uint, error) {
 		return 0, errors.New("usuario nao autenticado")
 	}
 }
+
+func getIntParam(ctx *gin.Context, key string) (int, error) {
+	value := ctx.Param(key)
+	if value == "" {
+		return 0, errors.New("parametro nao informado")
+	}
+
+	return strconv.Atoi(value)
+}

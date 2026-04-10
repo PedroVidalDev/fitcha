@@ -16,8 +16,8 @@ export const StepInstructions = (props: StepInstructionsProps) => {
                     marginBottom: 12,
                 }}
             >
-                Adicione observacoes para a IA, como lesoes, exercicios que voce prefere evitar,
-                foco em algum grupo muscular ou equipamentos que a academia tem.
+                Adicione observações para a IA, como lesões, exercícios que você prefere
+                evitar, foco em algum grupo muscular ou equipamentos que a academia tem.
             </Text>
 
             <View
@@ -38,7 +38,7 @@ export const StepInstructions = (props: StepInstructionsProps) => {
                         lineHeight: 22,
                         textAlignVertical: "top",
                     }}
-                    placeholder="Ex: evitar agachamento livre por dor no joelho e priorizar maquinas."
+                    placeholder="Ex: evitar agachamento livre por dor no joelho e priorizar máquinas."
                     placeholderTextColor={t.textDim}
                     multiline
                     value={value}

@@ -1,9 +1,9 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { AppModal } from "../AppModal";
 import { MACHINE_CATEGORIES, MachineCategoryKey } from "../../constants/categories";
 import { useTheme } from "../../contexts/ThemeContext";
+import { AppModal } from "../AppModal";
 import { AddMachineModalProps } from "./types";
 
 export function AddMachineModal(props: AddMachineModalProps) {
@@ -47,7 +47,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         marginBottom: 18,
                     }}
                 >
-                    Nova MÃ¡quina
+                    Nova Máquina
                 </Text>
 
                 <Text
@@ -73,7 +73,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         borderColor: t.border,
                         marginBottom: 14,
                     }}
-                    placeholder="Ex: Supino Reto"
+                    placeholder="Ex: Supino reto"
                     placeholderTextColor={t.textDim}
                     value={name}
                     onChangeText={setName}
@@ -90,7 +90,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         marginBottom: 6,
                     }}
                 >
-                    descriÃ§Ã£o (opcional)
+                    descrição (opcional)
                 </Text>
                 <TextInput
                     style={{
@@ -105,7 +105,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         minHeight: 60,
                         textAlignVertical: "top",
                     }}
-                    placeholder="Detalhes sobre o exercÃ­cio..."
+                    placeholder="Detalhes sobre o exercício..."
                     placeholderTextColor={t.textDim}
                     value={desc}
                     onChangeText={setDesc}

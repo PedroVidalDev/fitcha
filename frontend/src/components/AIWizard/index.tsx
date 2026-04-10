@@ -37,13 +37,13 @@ export function AIWizard(props: AIWizardProps) {
 
     const slideAnim = useRef(new Animated.Value(0)).current;
     const stepTitles = [
-        "Seus dados fisicos",
-        "Quais dias voce vai treinar?",
-        "Preferencias do treino",
+        "Seus dados físicos",
+        "Quais dias você vai treinar?",
+        "Preferências do treino",
         "Qual a intensidade?",
         "Qual seu objetivo?",
-        "Instrucoes personalizadas",
-        "Confirmar geracao",
+        "Instruções personalizadas",
+        "Confirmar geração",
     ];
     const lastStep = (stepTitles.length - 1) as WizardStep;
 
@@ -255,7 +255,7 @@ export function AIWizard(props: AIWizardProps) {
                                     fontWeight: "800",
                                 }}
                             >
-                                Proximo
+                                Próximo
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -272,7 +272,7 @@ export function AIWizard(props: AIWizardProps) {
                                     "Erro ao gerar treino",
                                     error instanceof Error
                                         ? error.message
-                                        : "Nao foi possivel gerar o treino agora.",
+                                        : "Não foi possível gerar o treino agora.",
                                 );
                             } finally {
                                 setIsSubmitting(false);

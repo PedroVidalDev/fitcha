@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../../../contexts/I18nContext";
 import { useFormErrors } from "../../../hooks/useFormValidations";
 import { ProfileFormValues, UseProfileFormParams, UseProfileFormResult } from "../types";
 
@@ -11,6 +12,7 @@ const EMPTY_VALUES: ProfileFormValues = {
 
 export function useProfileForm(props: UseProfileFormParams): UseProfileFormResult {
     const { user, onSubmitProfile } = props;
+    const { t } = useI18n();
 
     const [values, setValues] = useState<ProfileFormValues>(EMPTY_VALUES);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,31 +48,31 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
         let valid = true;
 
         if (!values.name.trim()) {
-            setError("name", "Informe seu nome");
+            setError("name", t("auth.validation.nameRequired"));
             valid = false;
         }
 
         if (!values.email.trim()) {
-            setError("email", "Informe seu e-mail");
+            setError("email", t("auth.validation.emailRequired"));
             valid = false;
         } else if (!/\S+@\S+\.\S+/.test(values.email.trim())) {
-            setError("email", "E-mail invalido");
+            setError("email", t("auth.validation.emailInvalid"));
             valid = false;
         }
 
         if (values.password.trim() && values.password.trim().length < 6) {
-            setError("password", "Minimo de 6 caracteres");
+            setError("password", t("auth.validation.passwordMin"));
             valid = false;
         }
 
         if (values.password.trim() && !values.confirmPassword.trim()) {
-            setError("confirmPassword", "Confirme sua nova senha");
+            setError("confirmPassword", t("auth.validation.confirmPasswordRequired"));
             valid = false;
         } else if (
             values.password.trim() &&
             values.password.trim() !== values.confirmPassword.trim()
         ) {
-            setError("confirmPassword", "As senhas nao coincidem");
+            setError("confirmPassword", t("auth.validation.passwordMismatch"));
             valid = false;
         }
 
@@ -98,7 +100,7 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
             return true;
         } catch (error) {
             const message =
-                error instanceof Error ? error.message : "Nao foi possivel salvar o perfil";
+                error instanceof Error ? error.message : t("profile.form.saveError");
 
             setError("email", message);
             return false;

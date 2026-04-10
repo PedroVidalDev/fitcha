@@ -12,18 +12,3 @@ type GenerateAIWorkoutRequest struct {
 	Goal               string `json:"goal" binding:"required,oneof=hipertrofia forca resistencia emagrecimento"`
 	CustomInstructions string `json:"customInstructions"`
 }
-
-type GeneratedMachine struct {
-	Name string    `json:"name"`
-	Sets []float64 `json:"sets"`
-}
-
-type GeneratedCategory struct {
-	Name     string             `json:"name"`
-	Days     []int              `json:"days"`
-	Machines []GeneratedMachine `json:"machines"`
-}
-
-type GenerateAIWorkoutResponse struct {
-	Categories []GeneratedCategory `json:"categories"`
-}

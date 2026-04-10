@@ -29,8 +29,8 @@ export const StepDays = (props: StepDaysProps) => {
                     marginBottom: 16,
                 }}
             >
-                Marque exatamente os dias em que voce quer ir para a academia. A IA vai usar isso
-                para montar a divisao com mais precisao.
+                Marque exatamente os dias em que você quer ir para a academia. A IA vai usar
+                isso para montar a divisão com mais precisão.
             </Text>
 
             <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
