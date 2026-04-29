@@ -29,5 +29,3 @@ volumes:
 
 networks:
   fitcha-network:
-  local:
-    external: true

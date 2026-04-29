@@ -19,16 +19,6 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
     ports:
       - "${PORT:-8080}"
-    labels:
-      - "cloudflare.domain=coisas-mais-estranhas.com.br"
-      - "cloudflare.subdomain=vidalfitcha"
-      - "cloudflare.type=CNAME"
-      - "cloudflare.proxied=true"
-
-      - "traefik.enable=true"
-      - "traefik.http.routers.vidalfitcha.rule=Host(`vidalfitcha.coisas-mais-estranhas.com.br`)"
-      - "traefik.http.routers.vidalfitcha.tls=true"
-
   db:
     environment:
       POSTGRES_USER: ${DB_USER}
