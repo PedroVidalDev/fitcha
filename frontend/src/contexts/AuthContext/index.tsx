@@ -18,7 +18,7 @@ const AUTH_KEY = "auth_session";
 const LEGACY_AUTH_KEY = "auth_user";
 const ALWAYS_LOGGED_IN_FOR_TESTS = false;
 const SERVICE_UNAVAILABLE_MESSAGE =
-    "O serviço pode estar indisponível no momento. Tente novamente em instantes.";
+    "O servico pode estar indisponivel no momento. Tente novamente em instantes.";
 const SERVICE_UNAVAILABLE_CODE = "AUTH_SERVICE_UNAVAILABLE";
 
 type AuthErrorKind = "service_unavailable" | "validation";
@@ -29,16 +29,15 @@ type ApiErrorResponse = {
 
 const TEST_USER: User = {
     id: 0,
-    name: "Usuário Teste",
+    name: "Usuario Teste",
     email: "teste@fitcha.app",
-    planActive: true,
+    credits: 3,
 };
 
 const TEST_PROFILE: MockProfile = {
     name: TEST_USER.name,
     email: TEST_USER.email,
     mockPassword: "123456",
-    hasAiPlan: true,
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -48,7 +47,7 @@ const AuthContext = createContext<AuthContextValue>({
     register: async () => {},
     logout: async () => {},
     updateProfile: async () => {},
-    setAiPlanActive: async () => {},
+    setCredits: async () => {},
 });
 
 export class AuthRequestError extends Error {
@@ -69,7 +68,7 @@ function normalizeUser(user: ApiUser): User {
         id: user.ID,
         createdAt: user.CreatedAt,
         updatedAt: user.UpdatedAt,
-        planActive: user.planActive,
+        credits: typeof user.credits === "number" ? user.credits : 0,
         name: user.name,
         email: user.email,
     };
@@ -81,8 +80,6 @@ function buildProfile(user: User, profile?: Partial<MockProfile> | null): MockPr
         email:
             typeof profile?.email === "string" && profile.email.trim() ? profile.email : user.email,
         mockPassword: typeof profile?.mockPassword === "string" ? profile.mockPassword : "",
-        hasAiPlan:
-            typeof profile?.hasAiPlan === "boolean" ? profile.hasAiPlan : Boolean(user.planActive),
     };
 }
 
@@ -107,7 +104,6 @@ function buildViewerUser(session: StoredAuthSession) {
         ...session.user,
         name: session.profile.name,
         email: session.profile.email,
-        hasAiPlan: session.profile.hasAiPlan,
     };
 }
 
@@ -133,9 +129,12 @@ function parseStoredSession(raw: string): StoredAuthSession | null {
                 id: parsed.user.id,
                 createdAt: parsed.user.createdAt,
                 updatedAt: parsed.user.updatedAt,
+                credits:
+                    typeof (parsed.user as User).credits === "number"
+                        ? (parsed.user as User).credits
+                        : 0,
                 name: parsed.user.name,
                 email: parsed.user.email,
-                planActive: parsed.user.planActive,
             },
             parsed.profile,
         );
@@ -297,7 +296,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw buildAuthRequestError(error, "Não foi possível entrar");
+                throw buildAuthRequestError(error, "Nao foi possivel entrar");
             }
         },
         [persistSession],
@@ -318,7 +317,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw buildAuthRequestError(error, "Não foi possível criar a conta");
+                throw buildAuthRequestError(error, "Nao foi possivel criar a conta");
             }
         },
         [persistSession],
@@ -340,26 +339,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [persistSession, session],
     );
 
-    const setAiPlanActive = useCallback(
-        async (active: boolean) => {
-            if (!session) return;
-            if (
-                session.profile.hasAiPlan === active &&
-                Boolean(session.user.planActive) === active
-            ) {
-                return;
-            }
+    const setCredits = useCallback(
+        async (credits: number) => {
+            if (!session || session.user.credits === credits) return;
 
             const nextSession = buildSession(
                 session.token,
                 {
                     ...session.user,
-                    planActive: active,
+                    credits,
                 },
-                {
-                    ...session.profile,
-                    hasAiPlan: active,
-                },
+                session.profile,
             );
 
             await persistSession(nextSession);
@@ -385,7 +375,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 register,
                 logout,
                 updateProfile,
-                setAiPlanActive,
+                setCredits,
             }}
         >
             {children}

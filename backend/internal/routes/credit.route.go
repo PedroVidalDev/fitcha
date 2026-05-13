@@ -7,10 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterPlanRoutes(r *gin.Engine, controller *controllers.PlanController) {
-	authenticated := r.Group("/me/plan")
+func RegisterCreditRoutes(r *gin.Engine, controller *controllers.CreditController) {
+	authenticated := r.Group("/me/credits")
 	authenticated.Use(middlewares.AuthMiddleware())
-	authenticated.GET("", controller.GetMyPlan)
+	authenticated.GET("", controller.GetMySummary)
 	authenticated.POST("/checkout", controller.CreateCheckout)
 
 	r.POST("/webhooks/mercado-pago", controller.MercadoPagoWebhook)

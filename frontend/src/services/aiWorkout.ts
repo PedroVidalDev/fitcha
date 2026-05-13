@@ -1,7 +1,9 @@
 import { GPTResponse, WizardData } from "../components/AIWizard/types";
 import { ensureApiUrlConfigured, axiosApp } from "./axios";
 
-type GenerateAIWorkoutResponse = GPTResponse;
+type GenerateAIWorkoutResponse = GPTResponse & {
+    remainingCredits: number;
+};
 
 function getAIWorkoutErrorMessage(error: unknown, fallback: string) {
     if (

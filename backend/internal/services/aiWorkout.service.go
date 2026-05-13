@@ -23,20 +23,20 @@ const (
 )
 
 type AIWorkoutService struct {
-	plans      repositories.IPlanRepository
+	users      repositories.IUserRepository
 	httpClient *http.Client
 	apiKey     string
 	model      string
 }
 
-func NewAIWorkoutService(planRepo repositories.IPlanRepository) *AIWorkoutService {
+func NewAIWorkoutService(userRepo repositories.IUserRepository) *AIWorkoutService {
 	model := strings.TrimSpace(os.Getenv("OPENAI_MODEL"))
 	if model == "" {
 		model = defaultAIWorkoutModel
 	}
 
 	return &AIWorkoutService{
-		plans:      planRepo,
+		users:      userRepo,
 		httpClient: &http.Client{Timeout: 45 * time.Second},
 		apiKey:     strings.TrimSpace(os.Getenv("OPENAI_API_KEY")),
 		model:      model,
@@ -56,8 +56,13 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 	input.SelectedDays = selectedDays
 	input.DaysPerWeek = len(selectedDays)
 
-	if _, err := s.plans.FindActiveByUserID(userID, time.Now()); err != nil {
-		return dtos.GenerateAIWorkoutResponse{}, errors.New("seu plano com IA nao esta ativo no momento")
+	user, err := s.users.FindByID(userID)
+	if err != nil {
+		return dtos.GenerateAIWorkoutResponse{}, errors.New("usuario nao encontrado")
+	}
+
+	if user.Credits <= 0 {
+		return dtos.GenerateAIWorkoutResponse{}, errors.New("voce nao possui creditos suficientes para gerar um treino com IA")
 	}
 
 	response, err := s.requestWorkoutPlan(input)
@@ -68,6 +73,17 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 	if len(response.Categories) == 0 {
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("a IA nao retornou categorias de treino validas")
 	}
+
+	updatedUser, err := s.users.ConsumeCredit(userID)
+	if err != nil {
+		if errors.Is(err, repositories.ErrInsufficientCredits) {
+			return dtos.GenerateAIWorkoutResponse{}, errors.New("voce nao possui creditos suficientes para concluir esta geracao")
+		}
+
+		return dtos.GenerateAIWorkoutResponse{}, err
+	}
+
+	response.RemainingCredits = updatedUser.Credits
 
 	return response, nil
 }
