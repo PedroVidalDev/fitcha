@@ -5,10 +5,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fitcha/internal/jobs"
 	"fitcha/internal/models"
 	"fitcha/internal/repositories"
 	"fitcha/pkg/mercadopago"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -23,15 +25,17 @@ type CreditService struct {
 	users       repositories.IUserRepository
 	mp          *mercadopago.Client
 	configError error
+	emails      jobs.EmailJobEnqueuer
 }
 
-func NewCreditService(db *gorm.DB, paymentRepo repositories.IPaymentRepository, userRepo repositories.IUserRepository, mpClient *mercadopago.Client, configError error) *CreditService {
+func NewCreditService(db *gorm.DB, paymentRepo repositories.IPaymentRepository, userRepo repositories.IUserRepository, mpClient *mercadopago.Client, configError error, emailJobs jobs.EmailJobEnqueuer) *CreditService {
 	return &CreditService{
 		db:          db,
 		payments:    paymentRepo,
 		users:       userRepo,
 		mp:          mpClient,
 		configError: configError,
+		emails:      emailJobs,
 	}
 }
 
@@ -216,6 +220,7 @@ func (s *CreditService) persistPaymentState(payment models.Payment) (models.Paym
 	var updatedPayment models.Payment
 	var updatedUser models.User
 	now := time.Now()
+	creditsApplied := false
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		updates := map[string]any{
@@ -252,6 +257,7 @@ func (s *CreditService) persistPaymentState(payment models.Payment) (models.Paym
 			}
 
 			if result.RowsAffected > 0 {
+				creditsApplied = true
 				if err := tx.Model(&models.User{}).Where("id = ?", payment.UserID).Update("credits", gorm.Expr("credits + ?", payment.CreditQuantity)).Error; err != nil {
 					return err
 				}
@@ -270,6 +276,18 @@ func (s *CreditService) persistPaymentState(payment models.Payment) (models.Paym
 	})
 	if err != nil {
 		return models.Payment{}, models.User{}, err
+	}
+
+	if creditsApplied && s.emails != nil {
+		if err := s.emails.EnqueueCreditsPurchasedEmail(
+			updatedUser.Name,
+			updatedUser.Email,
+			updatedPayment.CreditQuantity,
+			updatedPayment.TransactionAmountCents,
+			updatedUser.Credits,
+		); err != nil {
+			log.Printf("falha ao enfileirar email de compra de creditos: %v", err)
+		}
 	}
 
 	return updatedPayment, updatedUser, nil

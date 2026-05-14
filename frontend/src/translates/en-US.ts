@@ -5,6 +5,7 @@ export const enUS: TranslationDictionary = {
     "common.or": "or",
     "common.actions.back": "Back",
     "common.actions.close": "Close",
+    "common.actions.continue": "Continue",
     "common.actions.enter": "Sign in",
     "common.actions.createAccount": "Create account",
     "common.actions.understand": "Got it",
@@ -46,32 +47,23 @@ export const enUS: TranslationDictionary = {
     "navigation.profile": "Profile",
     "profile.kicker": "profile",
     "profile.header.description":
-        "Adjust your name, email, and password locally and track the subscription that unlocks AI mode.",
+        "Adjust your name, email, and password locally and track your credit balance for AI workout generation.",
     "profile.language.title": "App language",
     "profile.language.description":
         "Choose the default language saved on this device. Already migrated screens update immediately.",
-    "profile.ai.subtitle": "Monthly plan paid via Pix",
-    "profile.ai.status.active": "Active",
-    "profile.ai.status.inactive": "Inactive",
-    "profile.ai.description":
-        "AI access is enabled automatically when the Pix payment is approved and remains active for 1 month.",
-    "profile.ai.benefit.assistantButton":
-        "Unlocks the AI workout assistant button on the home screen.",
-    "profile.ai.benefit.autoActivation":
-        "Automatic activation as soon as Mercado Pago confirms the Pix.",
-    "profile.ai.benefit.accessWindow":
-        "Guaranteed access for 1 month with no manual cancellation during the active period.",
-    "profile.ai.activeTitle": "Plan active",
-    "profile.ai.activeDescriptionWithDate":
-        "Valid until {date}. During this period there is no manual cancellation option.",
-    "profile.ai.activeDescription": "Your AI access has already been enabled in the app.",
-    "profile.ai.pendingTitle": "Payment pending",
-    "profile.ai.pendingDescriptionWithDate":
-        "There is a Pix waiting for payment until {date}.",
-    "profile.ai.pendingDescription":
-        "There is a Pix waiting for payment to activate AI mode.",
-    "profile.ai.continuePayment": "Continue payment",
-    "profile.ai.subscribe": "Subscribe to AI plan",
+    "profile.credits.title": "Fitcha AI credits",
+    "profile.credits.subtitle": "1 credit = 1 custom workout",
+    "profile.credits.description":
+        "Buy single credits via Pix. Your balance is released automatically as soon as the payment is approved.",
+    "profile.credits.balanceLabel": "Available credits",
+    "profile.credits.balanceHint": "Each completed generation consumes 1 credit.",
+    "profile.credits.pendingTitle": "Payment pending",
+    "profile.credits.pendingDescriptionWithDate":
+        "There is a Pix for {quantity} credit(s) waiting for payment until {date}.",
+    "profile.credits.pendingDescription":
+        "There is a Pix waiting for payment to release more credits.",
+    "profile.credits.continuePayment": "Continue payment",
+    "profile.credits.buy": "Buy credits",
     "profile.form.title": "Your details",
     "profile.form.description": "These changes are still stored locally in the frontend for now.",
     "profile.form.newPasswordLabel": "New password",
@@ -83,31 +75,42 @@ export const enUS: TranslationDictionary = {
     "profile.form.saveError": "Unable to save the profile",
     "profile.alert.savedTitle": "Profile saved",
     "profile.alert.savedMessage": "The changes were stored only in this frontend.",
-    "planCheckout.title": "Subscribe to Fitcha AI",
-    "planCheckout.description":
-        "When you pay this Pix, the plan benefits stay active for 1 month. During this period AI mode remains enabled with no manual cancellation option.",
-    "planCheckout.whatYouGet": "What you get",
-    "planCheckout.benefit.aiAccess":
-        "Access to the AI workout assistant for 1 month after payment approval.",
-    "planCheckout.benefit.autoActivation":
-        "Automatic activation when Mercado Pago confirms the Pix.",
-    "planCheckout.benefit.renewal": "A new subscription only after the current period ends.",
-    "planCheckout.documentLabel": "Payer CPF",
-    "planCheckout.documentPlaceholder": "00000000000",
-    "planCheckout.generatePix": "Generate Pix",
-    "planCheckout.generatingPix": "Generating Pix...",
-    "planCheckout.planFallback": "Fitcha AI plan",
-    "planCheckout.status.paid": "Paid",
-    "planCheckout.status.awaitingPix": "Waiting for Pix",
-    "planCheckout.status.pending": "Pending",
-    "planCheckout.pixValidUntil": "Pix valid until {date}.",
-    "planCheckout.planActiveUntil": "Plan active until {date}.",
-    "planCheckout.copyPastePix": "Pix copy and paste",
-    "planCheckout.approvedMessage":
-        "Payment confirmed. The AI button should now appear on screens where the feature is available.",
-    "planCheckout.checkPayment": "Check payment",
-    "planCheckout.openCharge": "Open charge",
-    "planCheckout.error.loadPlan": "Unable to load the plan",
-    "planCheckout.error.invalidCpf": "Enter a valid CPF with 11 digits",
-    "planCheckout.error.generatePix": "Unable to generate the Pix",
+    "creditCheckout.title": "Buy credits",
+    "creditCheckout.description":
+        "Pay with Pix and receive credits to generate custom AI workouts in Fitcha.",
+    "creditCheckout.step.quantity": "Quantity",
+    "creditCheckout.step.document": "CPF",
+    "creditCheckout.step.payment": "Pix",
+    "creditCheckout.quantityTitle": "How many credits do you want to buy?",
+    "creditCheckout.quantityDescription":
+        "Each credit unlocks 1 new AI workout generation.",
+    "creditCheckout.quantityLabel": "Credit quantity",
+    "creditCheckout.quantityPlaceholder": "1",
+    "creditCheckout.quantityHint": "Each credit costs {price}. Estimated total: {total}.",
+    "creditCheckout.documentTitle": "Enter the payer CPF",
+    "creditCheckout.documentDescription":
+        "We use the CPF only to generate the Pix charge in Mercado Pago.",
+    "creditCheckout.documentLabel": "Payer CPF",
+    "creditCheckout.documentPlaceholder": "00000000000",
+    "creditCheckout.generatePix": "Generate Pix",
+    "creditCheckout.generatingPix": "Generating Pix...",
+    "creditCheckout.paymentFallback": "Fitcha AI credit purchase",
+    "creditCheckout.summaryCredits": "{count} credit(s)",
+    "creditCheckout.status.paid": "Paid",
+    "creditCheckout.status.awaitingPix": "Waiting for Pix",
+    "creditCheckout.status.pending": "Pending",
+    "creditCheckout.pixValidUntil": "Pix valid until {date}.",
+    "creditCheckout.copyPastePix": "Pix copy and paste",
+    "creditCheckout.approvedMessage":
+        "Payment confirmed. Your credits are already available in the app.",
+    "creditCheckout.checkPayment": "Check payment",
+    "creditCheckout.openCharge": "Open charge",
+    "creditCheckout.error.loadSummary": "Unable to load your credits",
+    "creditCheckout.error.invalidQuantity": "Enter a valid credit quantity",
+    "creditCheckout.error.invalidCpf": "Enter a valid CPF with 11 digits",
+    "creditCheckout.error.generatePix": "Unable to generate the Pix",
+    "aiWizard.noCredits.title": "You are out of credits",
+    "aiWizard.noCredits.description":
+        "Each AI-generated workout consumes 1 credit. Buy credits to continue.",
+    "aiWizard.noCredits.buy": "Buy credits",
 };

@@ -5,8 +5,15 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 5432
+      REDIS_ADDR: redis:6379
     ports:
       - "${PORT:-8080}"
+
+  worker:
+    env_file:
+      - .env
+    environment:
+      REDIS_ADDR: redis:6379
 
   db:
     environment:
@@ -15,3 +22,7 @@ services:
       POSTGRES_DB: ${DB_NAME:-postgres}
     ports:
       - "${DB_PORT:-5432}"
+
+  redis:
+    ports:
+      - "6379:6379"

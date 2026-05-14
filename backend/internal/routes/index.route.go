@@ -2,17 +2,22 @@ package routes
 
 import (
 	"fitcha/internal/controllers"
+	"fitcha/internal/jobs"
 	"fitcha/internal/repositories"
 	"fitcha/internal/services"
 	"fitcha/pkg/mercadopago"
+	"fitcha/pkg/queue"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func SetupRoutes(r *gin.Engine, db *gorm.DB) {
+	queueClient := queue.NewClientFromEnv()
+	emailJobs := jobs.NewEmailJobs(queueClient)
+
 	authRepo := repositories.NewUserRepository(db)
-	authService := services.NewAuthService(authRepo)
+	authService := services.NewAuthService(authRepo, emailJobs)
 	authController := controllers.NewAuthController(authService)
 
 	paymentRepo := repositories.NewPaymentRepository(db)
@@ -25,7 +30,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	mpClient, mpErr := mercadopago.NewClientFromEnv()
 
-	creditService := services.NewCreditService(db, paymentRepo, authRepo, mpClient, mpErr)
+	creditService := services.NewCreditService(db, paymentRepo, authRepo, mpClient, mpErr, emailJobs)
 	creditController := controllers.NewCreditController(creditService)
 	machineService := services.NewMachineService(machineRepo)
 	machineController := controllers.NewMachineController(machineService)
