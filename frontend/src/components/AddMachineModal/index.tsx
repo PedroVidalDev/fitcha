@@ -2,6 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { MACHINE_CATEGORIES, MachineCategoryKey } from "../../constants/categories";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { AppModal } from "../AppModal";
 import { AddMachineModalProps } from "./types";
@@ -10,6 +11,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
     const { visible, onClose, onAdd } = props;
 
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const [name, setName] = useState("");
     const [desc, setDesc] = useState("");
@@ -51,7 +53,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         marginBottom: 18,
                     }}
                 >
-                    Nova Máquina
+                    {translate("addMachine.title")}
                 </Text>
 
                 <Text
@@ -64,7 +66,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         marginBottom: 6,
                     }}
                 >
-                    nome
+                    {translate("addMachine.nameLabel")}
                 </Text>
                 <TextInput
                     style={{
@@ -77,7 +79,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         borderColor: t.border,
                         marginBottom: 14,
                     }}
-                    placeholder="Ex: Supino reto"
+                    placeholder={translate("addMachine.namePlaceholder")}
                     placeholderTextColor={t.textDim}
                     value={name}
                     onChangeText={setName}
@@ -94,7 +96,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         marginBottom: 6,
                     }}
                 >
-                    descrição (opcional)
+                    {translate("addMachine.descriptionLabel")}
                 </Text>
                 <TextInput
                     style={{
@@ -109,7 +111,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         minHeight: 60,
                         textAlignVertical: "top",
                     }}
-                    placeholder="Detalhes sobre o exercício..."
+                    placeholder={translate("addMachine.descriptionPlaceholder")}
                     placeholderTextColor={t.textDim}
                     value={desc}
                     onChangeText={setDesc}
@@ -126,7 +128,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         marginBottom: 8,
                     }}
                 >
-                    categoria
+                    {translate("addMachine.categoryLabel")}
                 </Text>
                 <View
                     style={{
@@ -141,7 +143,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         return (
                             <TouchableOpacity
                                 key={cat.key}
-                                onPress={() => setCatKey(cat.key)}
+                        onPress={() => setCatKey(cat.key)}
                                 activeOpacity={0.7}
                                 style={{
                                     paddingHorizontal: 14,
@@ -159,7 +161,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                                         color: active ? "#FFF" : t.textMuted,
                                     }}
                                 >
-                                    {cat.label}
+                                    {translate(cat.labelKey)}
                                 </Text>
                             </TouchableOpacity>
                         );
@@ -177,7 +179,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
             >
                 <TouchableOpacity onPress={handleClose} style={{ padding: 12 }}>
                     <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "600" }}>
-                        Cancelar
+                        {translate("common.actions.cancel")}
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleAdd} activeOpacity={0.75}>
@@ -190,7 +192,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         }}
                     >
                         <Text style={{ color: btnColor, fontSize: 15, fontWeight: "800" }}>
-                            Adicionar
+                            {translate("common.actions.add")}
                         </Text>
                     </LinearGradient>
                 </TouchableOpacity>

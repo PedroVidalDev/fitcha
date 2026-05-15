@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import { CreditCheckoutResponse, CreditSummaryResponse } from "../@types/credit";
+import { translateRuntime } from "../translates/runtime";
 import { axiosApp, ensureApiUrlConfigured } from "./axios";
 
 function getCreditErrorMessage(error: unknown, fallback: string) {
@@ -32,7 +33,7 @@ export async function getCreditSummary() {
         return response.data;
     } catch (error) {
         throw new Error(
-            getCreditErrorMessage(error, "Nao foi possivel carregar seus creditos"),
+            getCreditErrorMessage(error, translateRuntime("services.credit.loadError")),
         );
     }
 }
@@ -48,6 +49,6 @@ export async function createCreditCheckout(creditQuantity: number, documentNumbe
 
         return response.data;
     } catch (error) {
-        throw new Error(getCreditErrorMessage(error, "Nao foi possivel gerar o Pix"));
+        throw new Error(getCreditErrorMessage(error, translateRuntime("services.credit.checkoutError")));
     }
 }

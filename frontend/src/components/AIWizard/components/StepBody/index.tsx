@@ -1,12 +1,14 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TextInput, View } from "react-native";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { StepBodyProps } from "./types";
 
 export const StepBody = (props: StepBodyProps) => {
     const { height, weight, onHeightChange, onWeightChange } = props;
 
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     return (
         <View style={{ gap: 16 }}>
@@ -14,7 +16,7 @@ export const StepBody = (props: StepBodyProps) => {
                 <Text
                     style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
                 >
-                    Altura (cm)
+                    {translate("aiWizard.body.heightLabel")}
                 </Text>
                 <View
                     style={{
@@ -43,7 +45,9 @@ export const StepBody = (props: StepBodyProps) => {
                         value={height}
                         onChangeText={onHeightChange}
                     />
-                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>cm</Text>
+                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>
+                        {translate("common.units.cm")}
+                    </Text>
                 </View>
             </View>
 
@@ -51,7 +55,7 @@ export const StepBody = (props: StepBodyProps) => {
                 <Text
                     style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
                 >
-                    Peso (kg)
+                    {translate("aiWizard.body.weightLabel")}
                 </Text>
                 <View
                     style={{
@@ -80,12 +84,14 @@ export const StepBody = (props: StepBodyProps) => {
                         value={weight}
                         onChangeText={onWeightChange}
                     />
-                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>kg</Text>
+                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>
+                        {translate("common.units.kg")}
+                    </Text>
                 </View>
             </View>
 
             <Text style={{ color: t.textDim, fontSize: 12, textAlign: "center", marginTop: 4 }}>
-                Esses dados ajudam a calibrar os pesos sugeridos
+                {translate("aiWizard.body.hint")}
             </Text>
         </View>
     );

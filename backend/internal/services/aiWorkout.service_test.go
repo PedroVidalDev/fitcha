@@ -128,3 +128,38 @@ func TestValidateGeneratedWorkoutRejectsMissingSelectedDays(t *testing.T) {
 		t.Fatalf("expected error to mention the missing day, got: %v", err)
 	}
 }
+
+func TestBuildGeneratedWeekInputsMapsCategoriesToDays(t *testing.T) {
+	got := buildGeneratedWeekInputs(dtos.GenerateAIWorkoutResponse{
+		Categories: []dtos.GeneratedCategory{
+			{
+				Name: "Peito",
+				Days: []int{1, 3},
+				Machines: []dtos.GeneratedMachine{
+					{Name: "Supino reto", Sets: []float64{40, 35, 30}},
+				},
+			},
+		},
+	})
+
+	if len(got[1]) != 1 || len(got[3]) != 1 {
+		t.Fatalf("expected generated machines on both selected days, got: %#v", got)
+	}
+
+	if got[1][0].CategoryKey != "peito" {
+		t.Fatalf("expected peito category key, got: %s", got[1][0].CategoryKey)
+	}
+
+	wantDescription := "Peito - Series sugeridas (kg): 40 / 35 / 30"
+	if got[1][0].Description != wantDescription {
+		t.Fatalf("description mismatch: got %q want %q", got[1][0].Description, wantDescription)
+	}
+}
+
+func TestInferGeneratedMachineCategoryKeyIgnoresAccents(t *testing.T) {
+	got := inferGeneratedMachineCategoryKey("Glúteos e pernas", "Agachamento livre")
+
+	if got != "pernas" {
+		t.Fatalf("expected pernas category key, got: %s", got)
+	}
+}

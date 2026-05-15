@@ -1,4 +1,5 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import { StepIntensityProps } from "./types";
@@ -7,10 +8,37 @@ export const StepIntensity = (props: StepIntensityProps) => {
     const { value, onChange } = props;
 
     const { t } = useTheme();
-    const options: { key: "leve" | "moderado" | "intenso"; icon: string; desc: string }[] = [
-        { key: "leve", icon: "leaf-outline", desc: "Iniciante ou retorno" },
-        { key: "moderado", icon: "flame-outline", desc: "Treino consistente" },
-        { key: "intenso", icon: "flash-outline", desc: "Alto volume e carga" },
+    const { t: translate } = useI18n();
+    const options: {
+        key: "leve" | "moderado" | "intenso";
+        icon: string;
+        titleKey:
+            | "aiWizard.intensity.light.title"
+            | "aiWizard.intensity.moderate.title"
+            | "aiWizard.intensity.intense.title";
+        descKey:
+            | "aiWizard.intensity.light.description"
+            | "aiWizard.intensity.moderate.description"
+            | "aiWizard.intensity.intense.description";
+    }[] = [
+        {
+            key: "leve",
+            icon: "leaf-outline",
+            titleKey: "aiWizard.intensity.light.title",
+            descKey: "aiWizard.intensity.light.description",
+        },
+        {
+            key: "moderado",
+            icon: "flame-outline",
+            titleKey: "aiWizard.intensity.moderate.title",
+            descKey: "aiWizard.intensity.moderate.description",
+        },
+        {
+            key: "intenso",
+            icon: "flash-outline",
+            titleKey: "aiWizard.intensity.intense.title",
+            descKey: "aiWizard.intensity.intense.description",
+        },
     ];
 
     return (
@@ -51,7 +79,7 @@ export const StepIntensity = (props: StepIntensityProps) => {
                                         : t.textPrimary,
                                 }}
                             >
-                                {opt.key}
+                                {translate(opt.titleKey)}
                             </Text>
                             <Text
                                 style={{
@@ -64,7 +92,7 @@ export const StepIntensity = (props: StepIntensityProps) => {
                                         : t.textMuted,
                                 }}
                             >
-                                {opt.desc}
+                                {translate(opt.descKey)}
                             </Text>
                         </View>
                     </TouchableOpacity>

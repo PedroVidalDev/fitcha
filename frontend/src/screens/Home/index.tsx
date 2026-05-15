@@ -21,44 +21,63 @@ import {
 import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { useAuth } from "../../contexts/AuthContext";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, "Home">;
 
-function getFirstName(name?: string) {
+function getFirstName(name?: string, fallback = "athlete") {
     const [firstName] = name?.trim().split(/\s+/) ?? [];
-    return firstName || "atleta";
+    return firstName || fallback;
 }
 
 function formatWeight(value: number | null) {
     return value === null ? "--" : `${value}kg`;
 }
 
-function formatDelta(value: number | null) {
-    if (value === null) return "Sem base";
+function formatDelta(
+    value: number | null,
+    t: (
+        key: "home.delta.noBase" | "home.delta.zero",
+        params?: Record<string, number | string>,
+    ) => string,
+) {
+    if (value === null) return t("home.delta.noBase");
     if (value > 0) return `+${value} kg`;
     if (value < 0) return `${value} kg`;
-    return "0 kg";
+    return t("home.delta.zero");
 }
 
-function getFeaturedPlanCopy(featuredPlanDay: DashboardPlanDay | null) {
+function getFeaturedPlanCopy(
+    featuredPlanDay: DashboardPlanDay | null,
+    t: (
+        key:
+            | "home.featured.emptyTitle"
+            | "home.featured.emptySubtitle"
+            | "home.featured.todayTitle"
+            | "home.featured.todaySubtitle"
+            | "home.featured.nextTitle"
+            | "home.featured.nextSubtitle",
+        params?: Record<string, number | string>,
+    ) => string,
+) {
     if (!featuredPlanDay) {
         return {
-            title: "evolução por máquina",
-            subtitle: "Monte a semana para destravar essa comparação por exercício.",
+            title: t("home.featured.emptyTitle"),
+            subtitle: t("home.featured.emptySubtitle"),
         };
     }
 
     if (featuredPlanDay.isToday) {
         return {
-            title: "máquinas de hoje",
-            subtitle: "Arraste para o lado e veja a evolução de carga em cada máquina.",
+            title: t("home.featured.todayTitle"),
+            subtitle: t("home.featured.todaySubtitle"),
         };
     }
 
     return {
-        title: `próximo treino - ${featuredPlanDay.label.toLowerCase()}`,
-        subtitle: "Hoje não há máquinas planejadas, então a comparação usa o próximo dia ativo.",
+        title: t("home.featured.nextTitle", { day: featuredPlanDay.label.toLowerCase() }),
+        subtitle: t("home.featured.nextSubtitle"),
     };
 }
 
@@ -163,6 +182,7 @@ function StatCard(props: {
 function MachineProgressCard(props: { item: DashboardMachineProgress; width: number }) {
     const { item, width } = props;
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const chartMax = Math.max(...item.points.map((point) => point.maxWeight), 1);
     const deltaColor =
@@ -174,17 +194,19 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
     const comparisonText =
         item.deltaFromStart === null
             ? item.latestWeight === null
-                ? "Ainda não existe treino salvo nessa máquina."
-                : "Salve mais um treino para comparar a evolução."
-            : "Comparação da carga atual contra o primeiro registro salvo.";
+                ? translate("home.machine.comparison.noHistory")
+                : translate("home.machine.comparison.needMore")
+            : translate("home.machine.comparison.default");
     const previousDeltaText =
         item.deltaFromPrevious === null
             ? item.sessionCount === 0
-                ? "sem histórico"
+                ? translate("home.machine.previous.noHistory")
                 : item.sessionCount === 1
-                  ? "1 registro salvo"
-                  : "sem comparação"
-            : `${item.deltaFromPrevious > 0 ? "+" : ""}${item.deltaFromPrevious} kg vs. último treino`;
+                  ? translate("home.machine.previous.oneRecord")
+                  : translate("home.machine.previous.noComparison")
+            : translate("home.machine.previous.vsLast", {
+                  value: `${item.deltaFromPrevious > 0 ? "+" : ""}${item.deltaFromPrevious} kg`,
+              });
 
     return (
         <View
@@ -216,7 +238,11 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                     }}
                 >
                     <Text style={{ color: t.textMuted, fontSize: 11, fontWeight: "700" }}>
-                        {item.lastTrainedLabel ? `último ${item.lastTrainedLabel}` : "sem treino"}
+                        {item.lastTrainedLabel
+                            ? translate("home.machine.lastTrained", {
+                                  label: item.lastTrainedLabel,
+                              })
+                            : translate("home.machine.noTraining")}
                     </Text>
                 </View>
             </View>
@@ -240,7 +266,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                     marginTop: 14,
                 }}
             >
-                {formatDelta(item.deltaFromStart)}
+                {formatDelta(item.deltaFromStart, translate)}
             </Text>
 
             <Text
@@ -272,7 +298,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                             letterSpacing: 1.2,
                         }}
                     >
-                        atual
+                        {translate("home.machine.metric.current")}
                     </Text>
                     <Text
                         style={{
@@ -303,7 +329,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                             letterSpacing: 1.2,
                         }}
                     >
-                        inicial
+                        {translate("home.machine.metric.initial")}
                     </Text>
                     <Text
                         style={{
@@ -334,7 +360,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                             letterSpacing: 1.2,
                         }}
                     >
-                        recorde
+                        {translate("home.machine.metric.record")}
                     </Text>
                     <Text
                         style={{
@@ -359,7 +385,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                     }}
                 >
                     <Text style={{ color: t.textMuted, fontSize: 13, lineHeight: 18 }}>
-                        Essa máquina já está no dia planejado, mas ainda não tem histórico salvo.
+                        {translate("home.machine.noHistoryCard")}
                     </Text>
                 </View>
             ) : (
@@ -374,7 +400,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                             marginBottom: 10,
                         }}
                     >
-                        últimos registros
+                        {translate("home.machine.recordsTitle")}
                     </Text>
 
                     <View
@@ -457,6 +483,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
 
 export default function HomeScreen() {
     const { t } = useTheme();
+    const { t: translate } = useI18n();
     const { user } = useAuth();
     const navigation = useNavigation<Navigation>();
     const { width } = useWindowDimensions();
@@ -484,8 +511,8 @@ export default function HomeScreen() {
     }
 
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
-    const firstName = getFirstName(user?.name);
-    const featuredPlanCopy = getFeaturedPlanCopy(summary.featuredPlanDay);
+    const firstName = getFirstName(user?.name, translate("home.greetingFallback"));
+    const featuredPlanCopy = getFeaturedPlanCopy(summary.featuredPlanDay, translate);
     const progressCardWidth = Math.min(Math.max(width - 84, 272), 332);
 
     return (
@@ -528,7 +555,7 @@ export default function HomeScreen() {
                                 letterSpacing: 2,
                             }}
                         >
-                            painel inicial
+                            {translate("home.header.kicker")}
                         </Text>
                         <Text
                             style={{
@@ -538,7 +565,7 @@ export default function HomeScreen() {
                                 marginTop: 8,
                             }}
                         >
-                            Olá, {firstName}
+                            {translate("home.header.greeting", { name: firstName })}
                         </Text>
                         <Text
                             style={{
@@ -549,8 +576,15 @@ export default function HomeScreen() {
                             }}
                         >
                             {summary.hasHistory
-                                ? `Sequência atual de ${summary.streak} dia${summary.streak !== 1 ? "s" : ""} e ${summary.recentWorkoutDays} dia${summary.recentWorkoutDays !== 1 ? "s" : ""} ativo${summary.recentWorkoutDays !== 1 ? "s" : ""} nos últimos 7 dias.`
-                                : "Sua semana já pode ser organizada aqui, mas a análise fica muito melhor depois do primeiro treino salvo."}
+                                ? translate("home.header.summaryWithHistory", {
+                                      streak: summary.streak,
+                                      streakSuffix: summary.streak !== 1 ? "s" : "",
+                                      recent: summary.recentWorkoutDays,
+                                      recentSuffix: summary.recentWorkoutDays !== 1 ? "s" : "",
+                                      activeSuffix:
+                                          summary.recentWorkoutDays !== 1 ? "s" : "",
+                                  })
+                                : translate("home.header.summaryWithoutHistory")}
                         </Text>
 
                         <View
@@ -579,7 +613,7 @@ export default function HomeScreen() {
                                         letterSpacing: 1.2,
                                     }}
                                 >
-                                    último treino
+                                    {translate("home.header.lastWorkout")}
                                 </Text>
                                 <Text
                                     style={{
@@ -589,7 +623,7 @@ export default function HomeScreen() {
                                         marginTop: 6,
                                     }}
                                 >
-                                    {summary.lastWorkoutLabel ?? "sem registro"}
+                                    {summary.lastWorkoutLabel ?? translate("home.header.noRecord")}
                                 </Text>
                             </View>
 
@@ -612,7 +646,7 @@ export default function HomeScreen() {
                                         letterSpacing: 1.2,
                                     }}
                                 >
-                                    próximo alvo
+                                    {translate("home.header.nextTarget")}
                                 </Text>
                                 <Text
                                     style={{
@@ -622,7 +656,7 @@ export default function HomeScreen() {
                                         marginTop: 6,
                                     }}
                                 >
-                                    {summary.nextPlannedDayLabel ?? "monte sua semana"}
+                                    {summary.nextPlannedDayLabel ?? translate("home.header.buildWeek")}
                                 </Text>
                             </View>
                         </View>
@@ -645,7 +679,7 @@ export default function HomeScreen() {
                             >
                                 <Ionicons name="calendar-outline" size={20} color={btnColor} />
                                 <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
-                                    Abrir semana
+                                    {translate("home.header.openWeek")}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -656,15 +690,17 @@ export default function HomeScreen() {
             <AnimatedCard index={1}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
                     <StatCard
-                        title="Sequência"
+                        title={translate("home.stats.streakTitle")}
                         value={`${summary.streak}`}
-                        hint={`dias seguidos${summary.streak === 0 ? " por enquanto" : ""}`}
+                        hint={translate("home.stats.streakHint", {
+                            suffix: summary.streak === 0 ? translate("home.stats.streakHintZero") : "",
+                        })}
                         icon="flame-outline"
                     />
                     <StatCard
-                        title="Últimos 7 dias"
+                        title={translate("home.stats.last7Title")}
                         value={`${summary.recentWorkoutDays}/7`}
-                        hint="dias com treino salvo"
+                        hint={translate("home.stats.last7Hint")}
                         icon="pulse-outline"
                     />
                 </View>
@@ -673,15 +709,18 @@ export default function HomeScreen() {
             <AnimatedCard index={2}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
                     <StatCard
-                        title="No mês"
+                        title={translate("home.stats.monthTitle")}
                         value={`${summary.monthlyWorkoutDays}`}
-                        hint="dias indo para a academia"
+                        hint={translate("home.stats.monthHint")}
                         icon="barbell-outline"
                     />
                     <StatCard
-                        title="Semana"
+                        title={translate("home.stats.weekTitle")}
                         value={`${summary.scheduledDayCount}`}
-                        hint={`${summary.totalMachinesScheduled} máquinas planejadas`}
+                        hint={translate("home.stats.weekHint", {
+                            count: summary.totalMachinesScheduled,
+                            pluralSuffix: summary.totalMachinesScheduled !== 1 ? "s" : "",
+                        })}
                         icon="calendar-clear-outline"
                     />
                 </View>
@@ -709,8 +748,12 @@ export default function HomeScreen() {
                         }}
                     >
                         {summary.featuredPlanDay
-                            ? `${summary.machineProgress.length} máquina${summary.machineProgress.length !== 1 ? "s" : ""} em foco`
-                            : "Nenhum dia planejado ainda"}
+                            ? translate("home.featured.focusCount", {
+                                  count: summary.machineProgress.length,
+                                  pluralSuffix:
+                                      summary.machineProgress.length !== 1 ? "s" : "",
+                              })
+                            : translate("home.featured.noPlannedDays")}
                     </Text>
                     <Text
                         style={{
@@ -751,8 +794,7 @@ export default function HomeScreen() {
                             }}
                         >
                             <Text style={{ color: t.textMuted, fontSize: 14, lineHeight: 20 }}>
-                                Abra a Week, distribua as máquinas nos dias da semana e essa área
-                                passa a mostrar a evolução de cada uma.
+                                {translate("home.featured.emptyPanel")}
                             </Text>
                         </View>
                     )}
@@ -770,7 +812,7 @@ export default function HomeScreen() {
                             letterSpacing: 2,
                         }}
                     >
-                        ritmo da semana
+                        {translate("home.rhythm.kicker")}
                     </Text>
                     <Text
                         style={{
@@ -781,8 +823,12 @@ export default function HomeScreen() {
                         }}
                     >
                         {summary.scheduledDayCount > 0
-                            ? `${summary.scheduledDayCount} dia${summary.scheduledDayCount > 1 ? "s" : ""} já montado${summary.scheduledDayCount > 1 ? "s" : ""}`
-                            : "Sua semana ainda está vazia"}
+                            ? translate("home.rhythm.titleWithCount", {
+                                  count: summary.scheduledDayCount,
+                                  daySuffix: summary.scheduledDayCount > 1 ? "s" : "",
+                                  builtSuffix: summary.scheduledDayCount > 1 ? "s" : "",
+                              })
+                            : translate("home.rhythm.titleEmpty")}
                     </Text>
                     <Text
                         style={{
@@ -793,8 +839,10 @@ export default function HomeScreen() {
                         }}
                     >
                         {summary.nextPlannedDayLabel
-                            ? `Próximo compromisso: ${summary.nextPlannedDayLabel}.`
-                            : "Abra a Week para montar os dias, máquinas e categorias que quer seguir."}
+                            ? translate("home.rhythm.subtitleWithNext", {
+                                  next: summary.nextPlannedDayLabel,
+                              })
+                            : translate("home.rhythm.subtitleEmpty")}
                     </Text>
 
                     <View
@@ -842,7 +890,10 @@ export default function HomeScreen() {
                                     <Text
                                         style={{ color: t.textMuted, fontSize: 11, marginTop: 2 }}
                                     >
-                                        máquina{day.machineCount !== 1 ? "s" : ""}
+                                        {translate("week.machineCount", {
+                                            count: day.machineCount,
+                                            pluralSuffix: day.machineCount !== 1 ? "s" : "",
+                                        })}
                                     </Text>
                                 </View>
                             );

@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { DAYS_LABEL, DAYS_SHORT } from "@/src/constants/categories";
+import { DAY_LABEL_KEYS, DAY_SHORT_LABEL_KEYS } from "@/src/constants/categories";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { StepDaysProps } from "./types";
@@ -7,6 +8,7 @@ import { StepDaysProps } from "./types";
 export const StepDays = (props: StepDaysProps) => {
     const { value, onChange } = props;
     const { t } = useTheme();
+    const { t: translate } = useI18n();
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     const toggleDay = (dayIndex: number) => {
@@ -30,8 +32,7 @@ export const StepDays = (props: StepDaysProps) => {
                     marginBottom: 16,
                 }}
             >
-                Marque exatamente os dias em que você quer ir para a academia. A IA vai usar
-                isso para montar a divisão com mais precisão.
+                {translate("aiWizard.days.description")}
             </Text>
 
             <ScrollView
@@ -40,7 +41,8 @@ export const StepDays = (props: StepDaysProps) => {
                 bounces={false}
                 contentContainerStyle={{ gap: 8, paddingRight: 8 }}
             >
-                {DAYS_LABEL.map((label, dayIndex) => {
+                {DAY_LABEL_KEYS.map((labelKey, dayIndex) => {
+                    const label = translate(labelKey);
                     const active = value.includes(dayIndex);
                     const cardBackgroundColor = active ? t.accent : t.inputBg;
                     const cardBorderColor = active ? t.accent : t.border;
@@ -81,7 +83,7 @@ export const StepDays = (props: StepDaysProps) => {
                                         color: active ? btnColor : t.textDim,
                                     }}
                                 >
-                                    {DAYS_SHORT[dayIndex]}
+                                    {translate(DAY_SHORT_LABEL_KEYS[dayIndex])}
                                 </Text>
 
                                 <Ionicons
@@ -115,8 +117,12 @@ export const StepDays = (props: StepDaysProps) => {
                 }}
             >
                 {value.length === 0
-                    ? "Selecione pelo menos um dia."
-                    : `${value.length} dia${value.length > 1 ? "s" : ""} selecionado${value.length > 1 ? "s" : ""}.`}
+                    ? translate("aiWizard.days.empty")
+                    : translate("aiWizard.days.selectedCount", {
+                          count: value.length,
+                          daySuffix: value.length > 1 ? "s" : "",
+                          selectedSuffix: value.length > 1 ? "s" : "",
+                      })}
             </Text>
         </View>
     );

@@ -5,7 +5,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { AppModalProps } from "./types";
 
 export function AppModal(props: AppModalProps) {
-    const { visible, onClose, children, contentStyle, overlayPadding = 20 } = props;
+    const { visible, onClose, children, contentStyle, overlayPadding = 20, compact = false } = props;
 
     const scale = useRef(new Animated.Value(0.9)).current;
     const fade = useRef(new Animated.Value(0)).current;
@@ -68,8 +68,9 @@ export function AppModal(props: AppModalProps) {
                             style={[
                                 {
                                     width: "100%",
-                                    minHeight: modalMinHeight,
-                                    maxHeight: "80%",
+                                    ...(compact
+                                        ? { maxHeight: viewportHeight - overlayPadding * 2 }
+                                        : { minHeight: modalMinHeight, maxHeight: "80%" }),
                                     borderRadius: 20,
                                     padding: 26,
                                     borderWidth: 0.5,

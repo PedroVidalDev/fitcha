@@ -2,6 +2,7 @@ import { getCategoryByKey } from "../constants/categories";
 import { AppData } from "../dtos/AppData";
 import { HistoryEntry } from "../dtos/HistoryEntry";
 import { Machine } from "../dtos/Machine";
+import { translateRuntime } from "../translates/runtime";
 import {
     addMachineToDay as addMachineToDayRequest,
     DayMachineInput,
@@ -81,7 +82,7 @@ async function syncDayNotifications(data: AppData) {
             .filter((machine): machine is Machine => Boolean(machine));
     }
 
-    await syncNotifications(daysMachines, (key) => getCategoryByKey(key).label);
+    await syncNotifications(daysMachines, (key) => translateRuntime(getCategoryByKey(key).labelKey));
 }
 
 async function markSynced() {

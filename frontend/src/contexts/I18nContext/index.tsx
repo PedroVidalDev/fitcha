@@ -8,6 +8,7 @@ import {
     TranslationParams,
     translate,
 } from "../../translates";
+import { setRuntimeLocale } from "../../translates/runtime";
 
 const LOCALE_STORAGE_KEY = "app_locale";
 
@@ -34,7 +35,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const restoreLocale = async () => {
             const storedLocale = await AsyncStorage.getItem(LOCALE_STORAGE_KEY);
-            setLocaleState(normalizeLocale(storedLocale ?? detectDeviceLocale()));
+            const normalizedLocale = normalizeLocale(storedLocale ?? detectDeviceLocale());
+            setLocaleState(normalizedLocale);
+            setRuntimeLocale(normalizedLocale);
             setReady(true);
         };
 
@@ -43,6 +46,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
     const setLocale = useCallback((nextLocale: SupportedLocale) => {
         setLocaleState(nextLocale);
+        setRuntimeLocale(nextLocale);
         void AsyncStorage.setItem(LOCALE_STORAGE_KEY, nextLocale);
     }, []);
 

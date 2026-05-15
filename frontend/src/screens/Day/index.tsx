@@ -11,6 +11,7 @@ import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { GradientCard } from "../../components/GradientCard";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Day">;
@@ -18,6 +19,7 @@ type Route = RouteProp<RootStackParamList, "Day">;
 
 export default function DayScreen() {
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const navigation = useNavigation<Nav>();
     const route = useRoute<Route>();
@@ -42,7 +44,10 @@ export default function DayScreen() {
                     marginLeft: 2,
                 }}
             >
-                {machines.length} máquina{machines.length !== 1 ? "s" : ""}
+                {translate("day.machineCount", {
+                    count: machines.length,
+                    pluralSuffix: machines.length !== 1 ? "s" : "",
+                })}
             </Text>
 
             <FlatList
@@ -102,7 +107,7 @@ export default function DayScreen() {
                                     <CategoryBadge categoryKey={item.categoryKey} />
                                     {item.lastWeight && (
                                         <Text style={{ color: t.textMuted, fontSize: 12 }}>
-                                            máx {item.lastWeight}kg
+                                            {translate("day.maxWeight", { weight: item.lastWeight })}
                                         </Text>
                                     )}
                                 </View>
@@ -141,7 +146,7 @@ export default function DayScreen() {
                         >
                             <Ionicons name="play-circle" size={24} color={btnColor} />
                             <Text style={{ color: btnColor, fontSize: 18, fontWeight: "900" }}>
-                                Iniciar treino
+                                {translate("common.actions.startWorkout")}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -150,9 +155,9 @@ export default function DayScreen() {
 
             <ConfirmModal
                 visible={!!deleteTarget}
-                title="Remover máquina"
-                message={`Remover "${deleteTarget?.name}" deste dia? O histórico será mantido se estiver em outro dia.`}
-                confirmLabel="Remover"
+                title={translate("day.remove.title")}
+                message={translate("day.remove.message", { name: deleteTarget?.name ?? "" })}
+                confirmLabel={translate("common.actions.remove")}
                 onClose={() => setDeleteTarget(null)}
                 onConfirm={async () => {
                     if (deleteTarget) {

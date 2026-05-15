@@ -11,8 +11,11 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -23,19 +26,21 @@ const (
 )
 
 type AIWorkoutService struct {
+	db         *gorm.DB
 	users      repositories.IUserRepository
 	httpClient *http.Client
 	apiKey     string
 	model      string
 }
 
-func NewAIWorkoutService(userRepo repositories.IUserRepository) *AIWorkoutService {
+func NewAIWorkoutService(db *gorm.DB, userRepo repositories.IUserRepository) *AIWorkoutService {
 	model := strings.TrimSpace(os.Getenv("OPENAI_MODEL"))
 	if model == "" {
 		model = defaultAIWorkoutModel
 	}
 
 	return &AIWorkoutService{
+		db:         db,
 		users:      userRepo,
 		httpClient: &http.Client{Timeout: 45 * time.Second},
 		apiKey:     strings.TrimSpace(os.Getenv("OPENAI_API_KEY")),
@@ -74,7 +79,22 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("a IA nao retornou categorias de treino validas")
 	}
 
-	updatedUser, err := s.users.ConsumeCredit(userID)
+	weekInput := buildGeneratedWeekInputs(response)
+	remainingCredits := user.Credits
+
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if _, _, err := replaceWeekInTx(tx, userID, weekInput); err != nil {
+			return err
+		}
+
+		updatedUser, err := repositories.NewUserRepository(tx).ConsumeCredit(userID)
+		if err != nil {
+			return err
+		}
+
+		remainingCredits = updatedUser.Credits
+		return nil
+	})
 	if err != nil {
 		if errors.Is(err, repositories.ErrInsufficientCredits) {
 			return dtos.GenerateAIWorkoutResponse{}, errors.New("voce nao possui creditos suficientes para concluir esta geracao")
@@ -83,7 +103,7 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
 
-	response.RemainingCredits = updatedUser.Credits
+	response.RemainingCredits = remainingCredits
 
 	return response, nil
 }
@@ -288,6 +308,100 @@ func buildSelectedDayIndexes(days []int) string {
 	}
 
 	return "[" + strings.Join(indexes, ", ") + "]"
+}
+
+func buildGeneratedWeekInputs(response dtos.GenerateAIWorkoutResponse) map[int][]CreateDayMachineInput {
+	generatedDays := make(map[int][]CreateDayMachineInput, 7)
+
+	for dayIndex := 0; dayIndex < 7; dayIndex++ {
+		generatedDays[dayIndex] = []CreateDayMachineInput{}
+	}
+
+	for _, category := range response.Categories {
+		for _, dayIndex := range category.Days {
+			if dayIndex < 0 || dayIndex > 6 {
+				continue
+			}
+
+			for _, machine := range category.Machines {
+				generatedDays[dayIndex] = append(generatedDays[dayIndex], CreateDayMachineInput{
+					Name:        strings.TrimSpace(machine.Name),
+					Description: buildGeneratedMachineDescription(category.Name, machine.Sets),
+					CategoryKey: inferGeneratedMachineCategoryKey(category.Name, machine.Name),
+				})
+			}
+		}
+	}
+
+	return generatedDays
+}
+
+func buildGeneratedMachineDescription(categoryName string, sets []float64) string {
+	formattedSets := make([]string, 0, len(sets))
+	for _, weight := range sets {
+		formattedSets = append(formattedSets, strconv.FormatFloat(weight, 'f', -1, 64))
+	}
+
+	return fmt.Sprintf(
+		"%s - Series sugeridas (kg): %s",
+		strings.TrimSpace(categoryName),
+		strings.Join(formattedSets, " / "),
+	)
+}
+
+func inferGeneratedMachineCategoryKey(categoryName, machineName string) string {
+	categoryAliases := map[string][]string{
+		"peito":   {"peito", "supino", "crucifixo", "chest", "peitoral"},
+		"costas":  {"costas", "remada", "puxada", "barra", "pulldown", "rowing", "back"},
+		"pernas":  {"perna", "pernas", "quadriceps", "posterior", "gluteo", "gluteos", "leg", "panturrilha", "agachamento", "cadeira", "mesa flexora"},
+		"ombros":  {"ombro", "ombros", "shoulder", "desenvolvimento", "elevacao lateral"},
+		"biceps":  {"biceps", "rosca", "curl"},
+		"triceps": {"triceps", "corda", "testa", "pulley"},
+		"core":    {"core", "abdomen", "abdominal", "prancha", "lombar"},
+		"cardio":  {"cardio", "esteira", "bike", "bicicleta", "eliptico", "corrida"},
+	}
+
+	haystack := normalizeGeneratedWorkoutText(categoryName + " " + machineName)
+
+	for categoryKey, aliases := range categoryAliases {
+		for _, alias := range aliases {
+			if strings.Contains(haystack, normalizeGeneratedWorkoutText(alias)) {
+				return categoryKey
+			}
+		}
+	}
+
+	return "peito"
+}
+
+func normalizeGeneratedWorkoutText(value string) string {
+	replacer := strings.NewReplacer(
+		"á", "a",
+		"à", "a",
+		"ã", "a",
+		"â", "a",
+		"ä", "a",
+		"é", "e",
+		"è", "e",
+		"ê", "e",
+		"ë", "e",
+		"í", "i",
+		"ì", "i",
+		"î", "i",
+		"ï", "i",
+		"ó", "o",
+		"ò", "o",
+		"õ", "o",
+		"ô", "o",
+		"ö", "o",
+		"ú", "u",
+		"ù", "u",
+		"û", "u",
+		"ü", "u",
+		"ç", "c",
+	)
+
+	return strings.ToLower(replacer.Replace(strings.TrimSpace(value)))
 }
 
 func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, allowedDays []int) error {

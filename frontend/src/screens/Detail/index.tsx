@@ -10,6 +10,7 @@ import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { AnimatedCard } from "../../components/AnimatedCard";
 import { AppModal } from "../../components/AppModal";
 import { CategoryBadge } from "../../components/CategoryBadge";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type Route = RouteProp<RootStackParamList, "MachineDetail">;
@@ -30,6 +31,7 @@ type PhotoModalState = {
 
 export default function MachineDetailScreen() {
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const route = useRoute<Route>();
     const navigation = useNavigation();
@@ -52,7 +54,7 @@ export default function MachineDetailScreen() {
             hideCloseButton: true,
             actions: [
                 {
-                    label: "Fechar",
+                    label: translate("common.actions.close"),
                     icon: "checkmark-circle-outline",
                     variant: "accent",
                     onPress: closePhotoModal,
@@ -65,8 +67,8 @@ export default function MachineDetailScreen() {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
             openInfoModal(
-                "Permissão necessária",
-                "Permita acesso à galeria para selecionar uma foto da máquina.",
+                translate("detail.permission.title"),
+                translate("detail.permission.galleryMessage"),
             );
             return;
         }
@@ -87,8 +89,8 @@ export default function MachineDetailScreen() {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
             openInfoModal(
-                "Permissão necessária",
-                "Permita acesso à câmera para registrar uma foto da máquina.",
+                translate("detail.permission.title"),
+                translate("detail.permission.cameraMessage"),
             );
             return;
         }
@@ -106,11 +108,11 @@ export default function MachineDetailScreen() {
 
     const openSourceModal = () => {
         setPhotoModal({
-            title: photo ? "Trocar foto" : "Adicionar foto",
-            message: "Escolha de onde a imagem deve vir.",
+            title: photo ? translate("detail.photo.change") : translate("detail.photo.add"),
+            message: translate("detail.photo.sourceMessage"),
             actions: [
                 {
-                    label: "Usar câmera",
+                    label: translate("detail.photo.useCamera"),
                     icon: "camera-outline",
                     variant: "accent",
                     onPress: () => {
@@ -119,7 +121,7 @@ export default function MachineDetailScreen() {
                     },
                 },
                 {
-                    label: "Escolher da galeria",
+                    label: translate("detail.photo.chooseGallery"),
                     icon: "images-outline",
                     onPress: () => {
                         closePhotoModal();
@@ -132,11 +134,11 @@ export default function MachineDetailScreen() {
 
     const openRemovePhotoModal = () => {
         setPhotoModal({
-            title: "Remover foto?",
-            message: "A imagem atual será removida desta máquina.",
+            title: translate("detail.photo.removeTitle"),
+            message: translate("detail.photo.removeMessage"),
             actions: [
                 {
-                    label: "Remover foto",
+                    label: translate("detail.photo.removeAction"),
                     icon: "trash-outline",
                     variant: "danger",
                     onPress: () => {
@@ -155,16 +157,16 @@ export default function MachineDetailScreen() {
         }
 
         setPhotoModal({
-            title: "Foto da máquina",
-            message: "Escolha o que deseja fazer com a imagem.",
+            title: translate("detail.photo.actionsTitle"),
+            message: translate("detail.photo.actionsMessage"),
             actions: [
                 {
-                    label: "Trocar foto",
+                    label: translate("detail.photo.change"),
                     icon: "swap-horizontal-outline",
                     onPress: openSourceModal,
                 },
                 {
-                    label: "Remover foto",
+                    label: translate("detail.photo.removeAction"),
                     icon: "trash-outline",
                     variant: "danger",
                     onPress: openRemovePhotoModal,
@@ -224,7 +226,7 @@ export default function MachineDetailScreen() {
                         <View style={{ alignItems: "center", gap: 6 }}>
                             <Ionicons name="camera-outline" size={28} color={t.textDim} />
                             <Text style={{ color: t.textDim, fontSize: 12, fontWeight: "600" }}>
-                                adicionar foto
+                                {translate("detail.photo.add")}
                             </Text>
                         </View>
                     )}
@@ -241,13 +243,15 @@ export default function MachineDetailScreen() {
                     </Text>
                 )}
 
-                <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>histórico</Text>
+                <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>
+                    {translate("detail.history.title")}
+                </Text>
 
                 {history.length === 0 ? (
                     <Text
                         style={{ color: t.textDim, textAlign: "center", marginTop: 24, fontSize: 14 }}
                     >
-                        Nenhum registro ainda - inicie um treino para registrar pesos
+                        {translate("detail.history.empty")}
                     </Text>
                 ) : (
                     <View style={{ gap: 8 }}>
@@ -398,7 +402,7 @@ export default function MachineDetailScreen() {
                             }}
                         >
                             <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "700" }}>
-                                {photoModal?.closeLabel ?? "Cancelar"}
+                                {photoModal?.closeLabel ?? translate("common.actions.cancel")}
                             </Text>
                         </TouchableOpacity>
                     )}

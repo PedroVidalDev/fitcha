@@ -1,4 +1,5 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TextInput, View } from "react-native";
 import { StepPreferencesProps } from "./types";
@@ -14,6 +15,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
     } = props;
 
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     return (
         <View style={{ gap: 16 }}>
@@ -24,15 +26,14 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                     lineHeight: 20,
                 }}
             >
-                Esses campos são opcionais. Preencha se quiser que a IA respeite um limite de
-                tempo, volume diário ou um modelo de divisão específico.
+                {translate("aiWizard.preferences.description")}
             </Text>
 
             <View>
                 <Text
                     style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
                 >
-                    Horas por dia
+                    {translate("aiWizard.preferences.hoursLabel")}
                 </Text>
                 <View
                     style={{
@@ -55,7 +56,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                             fontSize: 18,
                             fontWeight: "700",
                         }}
-                        placeholder="Ex: 1, 1.5 ou 2"
+                        placeholder={translate("aiWizard.preferences.hoursPlaceholder")}
                         placeholderTextColor={t.textDim}
                         keyboardType="decimal-pad"
                         value={hoursPerDay}
@@ -68,7 +69,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                 <Text
                     style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
                 >
-                    Máquinas por dia
+                    {translate("aiWizard.preferences.machinesLabel")}
                 </Text>
                 <View
                     style={{
@@ -91,7 +92,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                             fontSize: 18,
                             fontWeight: "700",
                         }}
-                        placeholder="Ex: 6"
+                        placeholder={translate("aiWizard.preferences.machinesPlaceholder")}
                         placeholderTextColor={t.textDim}
                         keyboardType="numeric"
                         value={machinesPerDay}
@@ -104,7 +105,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                 <Text
                     style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
                 >
-                    Modelo de divisão
+                    {translate("aiWizard.preferences.splitLabel")}
                 </Text>
                 <View
                     style={{
@@ -127,7 +128,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                             fontSize: 18,
                             fontWeight: "700",
                         }}
-                        placeholder="Ex: ABC, ABCAB, fullbody"
+                        placeholder={translate("aiWizard.preferences.splitPlaceholder")}
                         placeholderTextColor={t.textDim}
                         autoCapitalize="none"
                         value={workoutSplit}

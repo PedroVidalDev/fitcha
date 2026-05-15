@@ -1,39 +1,66 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
-import { DAYS_LABEL } from "@/src/constants/categories";
+import { getDayLabelKey } from "@/src/constants/categories";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { Text, View } from "react-native";
 import { StepResultProps } from "./types";
 
 export const StepResult = (props: StepResultProps) => {
     const { data } = props;
     const { t } = useTheme();
+    const { t: translate } = useI18n();
+
+    const intensityLabelMap = {
+        leve: translate("aiWizard.intensity.light.title"),
+        moderado: translate("aiWizard.intensity.moderate.title"),
+        intenso: translate("aiWizard.intensity.intense.title"),
+    } as const;
+
+    const goalLabelMap = {
+        hipertrofia: translate("aiWizard.goal.hypertrophy.title"),
+        forca: translate("aiWizard.goal.strength.title"),
+        resistencia: translate("aiWizard.goal.endurance.title"),
+        emagrecimento: translate("aiWizard.goal.weightLoss.title"),
+    } as const;
 
     const selectedDaysLabel =
         data.selectedDays.length > 0
-            ? data.selectedDays.map((dayIndex) => DAYS_LABEL[dayIndex]).join(", ")
+            ? data.selectedDays.map((dayIndex) => translate(getDayLabelKey(dayIndex))).join(", ")
             : "-";
 
     const summaryItems = [
-        { label: "Altura", value: `${data.height} cm` },
-        { label: "Peso", value: `${data.weight} kg` },
-        { label: "Dias escolhidos", value: selectedDaysLabel },
-        { label: "Total de dias", value: String(data.selectedDays.length) },
         {
-            label: "Horas por dia",
-            value: data.hoursPerDay.trim() || "Não informado",
+            label: translate("aiWizard.review.height"),
+            value: `${data.height} ${translate("common.units.cm")}`,
         },
         {
-            label: "Máquinas por dia",
-            value: data.machinesPerDay.trim() || "Não informado",
+            label: translate("aiWizard.review.weight"),
+            value: `${data.weight} ${translate("common.units.kg")}`,
+        },
+        { label: translate("aiWizard.review.selectedDays"), value: selectedDaysLabel },
+        { label: translate("aiWizard.review.totalDays"), value: String(data.selectedDays.length) },
+        {
+            label: translate("aiWizard.review.hoursPerDay"),
+            value: data.hoursPerDay.trim() || translate("aiWizard.review.notInformed"),
         },
         {
-            label: "Modelo de divisão",
-            value: data.workoutSplit.trim() || "Nenhum modelo específico",
+            label: translate("aiWizard.review.machinesPerDay"),
+            value: data.machinesPerDay.trim() || translate("aiWizard.review.notInformed"),
         },
-        { label: "Intensidade", value: data.intensity ?? "-" },
-        { label: "Objetivo", value: data.goal ?? "-" },
         {
-            label: "Instruções personalizadas",
-            value: data.customInstructions.trim() || "Nenhuma observação adicional.",
+            label: translate("aiWizard.review.split"),
+            value: data.workoutSplit.trim() || translate("aiWizard.review.noSpecificSplit"),
+        },
+        {
+            label: translate("aiWizard.review.intensity"),
+            value: data.intensity ? intensityLabelMap[data.intensity] : "-",
+        },
+        {
+            label: translate("aiWizard.review.goal"),
+            value: data.goal ? goalLabelMap[data.goal] : "-",
+        },
+        {
+            label: translate("aiWizard.review.instructions"),
+            value: data.customInstructions.trim() || translate("aiWizard.review.noAdditionalNotes"),
         },
     ];
 
@@ -49,7 +76,7 @@ export const StepResult = (props: StepResultProps) => {
                     marginBottom: 8,
                 }}
             >
-                resumo da geração
+                {translate("aiWizard.review.title")}
             </Text>
             <View
                 style={{
@@ -80,7 +107,7 @@ export const StepResult = (props: StepResultProps) => {
                     </View>
                 ))}
                 <Text style={{ color: t.textMuted, fontSize: 12, lineHeight: 18 }}>
-                    O prompt final agora é montado somente no backend antes de chamar a IA.
+                    {translate("aiWizard.review.promptNote")}
                 </Text>
             </View>
         </View>

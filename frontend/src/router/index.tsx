@@ -16,7 +16,7 @@ import RegisterScreen from "../screens/Register";
 import WeekScreen from "../screens/Week";
 import WorkoutScreen from "../screens/Workout";
 
-import { DAYS_LABEL } from "../constants/categories";
+import { getDayLabelKey } from "../constants/categories";
 import MachineDetailScreen from "../screens/Detail";
 import { RootStackParamList } from "./types";
 
@@ -111,7 +111,7 @@ export function AppNavigator() {
                             name="Week"
                             component={WeekScreen}
                             options={{
-                                title: "Sua semana",
+                                title: translate("week.title"),
                                 headerRight: () => <HeaderActions showLogout />,
                             }}
                         />
@@ -129,7 +129,7 @@ export function AppNavigator() {
                             name="Day"
                             component={DayScreen}
                             options={({ route }) => ({
-                                title: DAYS_LABEL[route.params.dayIndex],
+                                title: translate(getDayLabelKey(route.params.dayIndex)),
                                 headerRight: () => <HeaderActions />,
                             })}
                         />
@@ -138,7 +138,7 @@ export function AppNavigator() {
                             name="MachineDetail"
                             component={MachineDetailScreen}
                             options={{
-                                title: "Detalhe",
+                                title: translate("navigation.machineDetail"),
                                 headerRight: () => <HeaderActions />,
                             }}
                         />

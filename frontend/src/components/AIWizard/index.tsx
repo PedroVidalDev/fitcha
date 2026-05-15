@@ -41,13 +41,13 @@ export function AIWizard(props: AIWizardProps) {
 
     const slideAnim = useRef(new Animated.Value(0)).current;
     const stepTitles = [
-        "Seus dados fisicos",
-        "Quais dias voce vai treinar?",
-        "Preferencias do treino",
-        "Qual a intensidade?",
-        "Qual seu objetivo?",
-        "Instrucoes personalizadas",
-        "Confirmar geracao",
+        translate("aiWizard.step.body"),
+        translate("aiWizard.step.days"),
+        translate("aiWizard.step.preferences"),
+        translate("aiWizard.step.intensity"),
+        translate("aiWizard.step.goal"),
+        translate("aiWizard.step.instructions"),
+        translate("aiWizard.step.review"),
     ];
     const lastStep = (stepTitles.length - 1) as WizardStep;
 
@@ -106,7 +106,7 @@ export function AIWizard(props: AIWizardProps) {
 
     if (visible && (user?.credits ?? 0) <= 0) {
         return (
-            <AppModal visible={visible} onClose={onClose}>
+            <AppModal visible={visible} onClose={onClose} compact>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 }}>
                     <Ionicons name="alert-circle-outline" size={22} color={t.accent} />
                     <Text style={{ color: t.textPrimary, fontSize: 20, fontWeight: "900" }}>
@@ -191,7 +191,7 @@ export function AIWizard(props: AIWizardProps) {
                             letterSpacing: 1,
                         }}
                     >
-                        treino com ia
+                        {translate("aiWizard.badge")}
                     </Text>
                 </View>
                 <TouchableOpacity
@@ -299,7 +299,7 @@ export function AIWizard(props: AIWizardProps) {
                                 fontWeight: "600",
                             }}
                         >
-                            Voltar
+                            {translate("common.actions.back")}
                         </Text>
                     </TouchableOpacity>
                 ) : (
@@ -328,7 +328,7 @@ export function AIWizard(props: AIWizardProps) {
                                     fontWeight: "800",
                                 }}
                             >
-                                Proximo
+                                {translate("common.actions.next")}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -342,10 +342,10 @@ export function AIWizard(props: AIWizardProps) {
                                 onClose();
                             } catch (error) {
                                 Alert.alert(
-                                    "Erro ao gerar treino",
+                                    translate("aiWizard.error.title"),
                                     error instanceof Error
                                         ? error.message
-                                        : "Nao foi possivel gerar o treino agora.",
+                                        : translate("aiWizard.error.message"),
                                 );
                             } finally {
                                 setIsSubmitting(false);
@@ -374,7 +374,9 @@ export function AIWizard(props: AIWizardProps) {
                                     fontWeight: "800",
                                 }}
                             >
-                                {isSubmitting ? "Gerando..." : "Gerar treino"}
+                                {isSubmitting
+                                    ? translate("aiWizard.actions.generating")
+                                    : translate("aiWizard.actions.generate")}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>

@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { ConfirmModal } from "../../components/ConfirmModal";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import {
     buildWorkoutResults,
@@ -27,6 +28,7 @@ import { Route, WorkoutDraft, WorkoutDraftMap, WorkoutModalConfig, WorkoutResult
 
 export default function WorkoutScreen() {
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const navigation = useNavigation();
     const route = useRoute<Route>();
@@ -103,9 +105,14 @@ export default function WorkoutScreen() {
 
     const showSavedWorkoutModal = (finalResults: WorkoutResult[]) => {
         openModal({
-            title: "Treino finalizado!",
-            message: `${finalResults.length} máquina${finalResults.length > 1 ? "s" : ""} registrada${finalResults.length > 1 ? "s" : ""} em ${formatTime(elapsed)}`,
-            confirmLabel: "Fechar",
+            title: translate("workout.saved.title"),
+            message: translate("workout.saved.message", {
+                count: finalResults.length,
+                machineSuffix: finalResults.length > 1 ? "s" : "",
+                registeredSuffix: finalResults.length > 1 ? "s" : "",
+                elapsed: formatTime(elapsed),
+            }),
+            confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
             onConfirm: () => navigation.goBack(),
@@ -114,9 +121,9 @@ export default function WorkoutScreen() {
 
     const showEmptyWorkoutModal = () => {
         openModal({
-            title: "Treino vazio",
-            message: "Nenhum peso foi registrado.",
-            confirmLabel: "Fechar",
+            title: translate("workout.empty.title"),
+            message: translate("workout.empty.message"),
+            confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
             onConfirm: () => navigation.goBack(),
@@ -125,9 +132,9 @@ export default function WorkoutScreen() {
 
     const showSaveErrorModal = () => {
         openModal({
-            title: "Erro ao salvar",
-            message: "Não foi possível salvar o treino agora. Tente novamente em instantes.",
-            confirmLabel: "Fechar",
+            title: translate("workout.error.title"),
+            message: translate("workout.error.message"),
+            confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
             onConfirm: () => {},
@@ -153,10 +160,9 @@ export default function WorkoutScreen() {
 
         if (finalResults.length === 0 && hasAnyDrafts) {
             openModal({
-                title: "Nenhuma máquina completa",
-                message:
-                    "Ainda não há exercício com as 3 séries completas. Se sair agora, os rascunhos serão descartados.",
-                confirmLabel: "Sair sem salvar",
+                title: translate("workout.incomplete.title"),
+                message: translate("workout.incomplete.message"),
+                confirmLabel: translate("workout.incomplete.confirm"),
                 confirmVariant: "danger",
                 onConfirm: () => navigation.goBack(),
             });
@@ -165,9 +171,12 @@ export default function WorkoutScreen() {
 
         if (pendingCount > 0 && finalResults.length > 0) {
             openModal({
-                title: "Finalizar com pendências?",
-                message: `${pendingCount} máquina${pendingCount > 1 ? "s ficaram" : " ficou"} sem as 3 séries completas. Você pode salvar agora ou continuar revisando.`,
-                confirmLabel: "Finalizar",
+                title: translate("workout.pending.title"),
+                message: translate("workout.pending.message", {
+                    count: pendingCount,
+                    machineSuffix: pendingCount > 1 ? "s ficaram" : " ficou",
+                }),
+                confirmLabel: translate("common.actions.finish"),
                 confirmVariant: "accent",
                 onConfirm: () => {
                     void finishWorkout(finalResults);
@@ -190,9 +199,9 @@ export default function WorkoutScreen() {
 
     const handleQuit = () => {
         openModal({
-            title: "Encerrar treino?",
-            message: "Se você sair agora, o treino será encerrado e nada será salvo.",
-            confirmLabel: "Encerrar",
+            title: translate("workout.quit.title"),
+            message: translate("workout.quit.message"),
+            confirmLabel: translate("workout.quit.confirm"),
             confirmVariant: "danger",
             onConfirm: () => navigation.goBack(),
         });
@@ -242,19 +251,19 @@ export default function WorkoutScreen() {
     const seriesFields = [
         {
             key: "set1" as const,
-            label: "Série 1",
+            label: translate("workout.series.one"),
             value: currentDraft.set1,
             placeholder: String(machine.lastSets?.[0] ?? 0),
         },
         {
             key: "set2" as const,
-            label: "Série 2",
+            label: translate("workout.series.two"),
             value: currentDraft.set2,
             placeholder: String(machine.lastSets?.[1] ?? 0),
         },
         {
             key: "set3" as const,
-            label: "Série 3",
+            label: translate("workout.series.three"),
             value: currentDraft.set3,
             placeholder: String(machine.lastSets?.[2] ?? 0),
         },
@@ -297,7 +306,10 @@ export default function WorkoutScreen() {
                             letterSpacing: 1,
                         }}
                     >
-                        {currentIdx + 1} de {machines.length}
+                        {translate("workout.position", {
+                            current: currentIdx + 1,
+                            total: machines.length,
+                        })}
                     </Text>
                     <Text
                         style={{
@@ -307,7 +319,10 @@ export default function WorkoutScreen() {
                             marginTop: 4,
                         }}
                     >
-                        {completedCount}/{machines.length} completas
+                        {translate("workout.completedProgress", {
+                            completed: completedCount,
+                            total: machines.length,
+                        })}
                     </Text>
                 </View>
 
@@ -451,7 +466,7 @@ export default function WorkoutScreen() {
                         lineHeight: 18,
                     }}
                 >
-                    Use as setas ou toque nos cartões para trocar de máquina sem perder os rascunhos.
+                    {translate("workout.swapHint")}
                 </Text>
             </View>
 
@@ -529,17 +544,17 @@ export default function WorkoutScreen() {
                             }}
                         >
                             {currentIsComplete
-                                ? "Exercício registrado"
+                                ? translate("workout.status.registeredTitle")
                                 : currentHasDraft
-                                  ? "Rascunho salvo"
-                                  : "Pode pular sem perder o fluxo"}
+                                  ? translate("workout.status.draftTitle")
+                                  : translate("workout.status.skipTitle")}
                         </Text>
                         <Text style={{ color: t.textDim, fontSize: 13, lineHeight: 18 }}>
                             {currentIsComplete
-                                ? "Você pode seguir adiante ou voltar depois para ajustar os pesos."
+                                ? translate("workout.status.registeredMessage")
                                 : currentHasDraft
-                                  ? "Os valores ficam guardados ao trocar de máquina. Complete quando ela estiver livre."
-                                  : "Se a máquina estiver ocupada, avance agora e volte quando quiser pelos cartões acima."}
+                                  ? translate("workout.status.draftMessage")
+                                  : translate("workout.status.skipMessage")}
                         </Text>
                     </View>
 
@@ -554,7 +569,7 @@ export default function WorkoutScreen() {
                             marginLeft: 4,
                         }}
                     >
-                        preencha as 3 séries
+                        {translate("workout.fillSeries")}
                     </Text>
 
                     <View style={{ gap: 10 }}>
@@ -599,7 +614,7 @@ export default function WorkoutScreen() {
                                     onChangeText={(value) => updateDraftField(item.key, value)}
                                 />
                                 <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>
-                                    kg
+                                    {translate("common.units.kg")}
                                 </Text>
                             </View>
                         ))}
@@ -632,7 +647,7 @@ export default function WorkoutScreen() {
                                     color={t.textMuted}
                                 />
                                 <Text style={{ color: t.textMuted, fontSize: 16, fontWeight: "800" }}>
-                                    Anterior
+                                    {translate("common.actions.back")}
                                 </Text>
                             </TouchableOpacity>
 
@@ -660,7 +675,9 @@ export default function WorkoutScreen() {
                                     <Text
                                         style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}
                                     >
-                                        {isLast ? "Finalizar treino" : "Próxima máquina"}
+                                        {isLast
+                                            ? translate("common.actions.finishWorkout")
+                                            : translate("workout.nextMachine")}
                                     </Text>
                                 </LinearGradient>
                             </TouchableOpacity>

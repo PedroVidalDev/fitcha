@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import { Machine } from "../dtos/Machine";
+import { translateRuntime } from "../translates/runtime";
 import { axiosApp, ensureApiUrlConfigured } from "./axios";
 
 export type DayResponse = {
@@ -58,7 +59,7 @@ export async function getMyDays() {
         const response = await axiosApp.get<DayResponse[]>("/me/days");
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Não foi possível carregar os dias"));
+        throw new Error(getDayErrorMessage(error, translateRuntime("services.days.loadError")));
     }
 }
 
@@ -72,7 +73,7 @@ export async function addMachineToDay(dayIndex: number, input: DayMachineInput) 
         );
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Não foi possível adicionar a máquina"));
+        throw new Error(getDayErrorMessage(error, translateRuntime("services.days.addError")));
     }
 }
 
@@ -85,7 +86,7 @@ export async function removeMachineFromDay(dayIndex: number, machineId: string) 
         );
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Não foi possível remover a máquina"));
+        throw new Error(getDayErrorMessage(error, translateRuntime("services.days.removeError")));
     }
 }
 
@@ -98,6 +99,6 @@ export async function replaceWeek(days: ReplaceWeekDayInput[]) {
         });
         return response.data;
     } catch (error) {
-        throw new Error(getDayErrorMessage(error, "Não foi possível substituir a semana"));
+        throw new Error(getDayErrorMessage(error, translateRuntime("services.days.replaceError")));
     }
 }
