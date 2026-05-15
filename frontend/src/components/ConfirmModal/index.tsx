@@ -25,7 +25,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
     const resolvedCancelLabel = cancelLabel ?? translate("common.actions.cancel");
 
     return (
-        <AppModal visible={visible} onClose={onClose} overlayPadding={24}>
+        <AppModal visible={visible} onClose={onClose} overlayPadding={24} compact>
             <Text
                 style={{
                     color: t.accent,
