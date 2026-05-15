@@ -74,7 +74,7 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
     const paymentExpiresAt = formatDate(payment?.paymentExpiresAt, locale);
 
     return (
-        <AppModal visible={visible} onClose={onClose} contentStyle={{ maxHeight: "88%" }}>
+        <AppModal visible={visible} onClose={onClose}>
             <View
                 style={{
                     flexDirection: "row",
@@ -141,7 +141,12 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                     <ActivityIndicator color={t.accent} />
                 </View>
             ) : (
-                <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+                <ScrollView
+                    contentContainerStyle={{ paddingBottom: 8 }}
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <Text
                         style={{
                             color: t.textMuted,

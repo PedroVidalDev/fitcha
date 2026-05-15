@@ -21,7 +21,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     return (
-        <AppModal visible={visible} onClose={onClose} contentStyle={{ padding: 24 }} overlayPadding={24}>
+        <AppModal visible={visible} onClose={onClose} overlayPadding={24}>
             <Text
                 style={{
                     color: t.accent,

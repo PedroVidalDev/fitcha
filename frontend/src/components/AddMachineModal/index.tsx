@@ -36,9 +36,13 @@ export function AddMachineModal(props: AddMachineModalProps) {
         <AppModal
             visible={visible}
             onClose={handleClose}
-            contentStyle={{ maxHeight: "85%", padding: 24 }}
         >
-            <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+            <ScrollView
+                contentContainerStyle={{ paddingBottom: 8 }}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+                keyboardShouldPersistTaps="handled"
+            >
                 <Text
                     style={{
                         color: t.accent,

@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef } from "react";
-import { Animated, Modal, Platform } from "react-native";
+import { Animated, Modal, Platform, View, useWindowDimensions } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { AppModalProps } from "./types";
 
@@ -10,6 +10,8 @@ export function AppModal(props: AppModalProps) {
     const scale = useRef(new Animated.Value(0.9)).current;
     const fade = useRef(new Animated.Value(0)).current;
     const { t } = useTheme();
+    const { height: viewportHeight } = useWindowDimensions();
+    const modalMinHeight = Math.min(viewportHeight * 0.5, viewportHeight - overlayPadding * 2);
 
     useEffect(() => {
         if (visible) {
@@ -29,7 +31,13 @@ export function AppModal(props: AppModalProps) {
     }, [fade, scale, visible]);
 
     return (
-        <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+        <Modal
+            visible={visible}
+            transparent
+            animationType="none"
+            onRequestClose={onClose}
+            statusBarTranslucent
+        >
             <Animated.View
                 style={{
                     flex: 1,
@@ -41,30 +49,39 @@ export function AppModal(props: AppModalProps) {
                 }}
             >
                 <Animated.View style={{ transform: [{ scale }], width: "100%" }}>
-                    <LinearGradient
-                        colors={t.gradientModal}
-                        style={[
-                            {
-                                width: "100%",
-                                borderRadius: 20,
-                                padding: 24,
-                                borderWidth: 0.5,
-                                borderColor: t.border,
-                                ...Platform.select({
-                                    ios: {
-                                        shadowColor: t.shadow,
-                                        shadowOffset: { width: 0, height: 8 },
-                                        shadowOpacity: 0.12,
-                                        shadowRadius: 24,
-                                    },
-                                    android: { elevation: 12 },
-                                }),
-                            },
-                            contentStyle,
-                        ]}
+                    <View
+                        style={{
+                            borderRadius: 20,
+                            ...Platform.select({
+                                ios: {
+                                    shadowColor: t.shadow,
+                                    shadowOffset: { width: 0, height: 8 },
+                                    shadowOpacity: 0.12,
+                                    shadowRadius: 24,
+                                },
+                                android: { elevation: 12 },
+                            }),
+                        }}
                     >
-                        {children}
-                    </LinearGradient>
+                        <LinearGradient
+                            colors={t.gradientModal}
+                            style={[
+                                {
+                                    width: "100%",
+                                    minHeight: modalMinHeight,
+                                    maxHeight: "80%",
+                                    borderRadius: 20,
+                                    padding: 26,
+                                    borderWidth: 0.5,
+                                    borderColor: t.border,
+                                    overflow: "hidden",
+                                },
+                                contentStyle,
+                            ]}
+                        >
+                            {children}
+                        </LinearGradient>
+                    </View>
                 </Animated.View>
             </Animated.View>
         </Modal>

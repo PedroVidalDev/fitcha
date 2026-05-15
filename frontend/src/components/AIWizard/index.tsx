@@ -171,7 +171,7 @@ export function AIWizard(props: AIWizardProps) {
     }
 
     return (
-        <AppModal visible={visible} onClose={handleClose} contentStyle={{ maxHeight: "85%" }}>
+        <AppModal visible={visible} onClose={handleClose}>
             <View
                 style={{
                     flexDirection: "row",
@@ -230,6 +230,7 @@ export function AIWizard(props: AIWizardProps) {
 
             <ScrollView
                 style={{ maxHeight: 320 }}
+                contentContainerStyle={{ paddingBottom: 4 }}
                 showsVerticalScrollIndicator={false}
                 bounces={false}
             >

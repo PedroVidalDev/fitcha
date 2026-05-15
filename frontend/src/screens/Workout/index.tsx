@@ -40,9 +40,12 @@ export default function WorkoutScreen() {
     const [elapsed, setElapsed] = useState(0);
     const [modal, setModal] = useState<WorkoutModalConfig | null>(null);
     const startTime = useRef(Date.now()).current;
+    const machineNavScrollRef = useRef<ScrollView>(null);
 
     const machine = machines[currentIdx];
     const isLast = currentIdx === machines.length - 1;
+    const canGoPrev = currentIdx > 0;
+    const canGoNext = currentIdx < machines.length - 1;
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
     const currentDraft = machine ? getWorkoutDraft(drafts[machine.id]) : getWorkoutDraft();
     const completedCount = machines.filter((item) => isDraftComplete(drafts[item.id])).length;
@@ -80,6 +83,16 @@ export default function WorkoutScreen() {
     const goToMachine = (idx: number) => {
         if (idx < 0 || idx >= machines.length || idx === currentIdx) return;
         setCurrentIdx(idx);
+    };
+
+    const goToPreviousMachine = () => {
+        if (!canGoPrev) return;
+        setCurrentIdx((prev) => prev - 1);
+    };
+
+    const goToNextMachine = () => {
+        if (!canGoNext) return;
+        setCurrentIdx((prev) => prev + 1);
     };
 
     const buildResults = (): WorkoutResult[] =>
@@ -172,7 +185,7 @@ export default function WorkoutScreen() {
             return;
         }
 
-        setCurrentIdx((prev) => Math.min(prev + 1, machines.length - 1));
+        goToNextMachine();
     };
 
     const handleQuit = () => {
@@ -216,6 +229,13 @@ export default function WorkoutScreen() {
             setCurrentIdx(machines.length - 1);
         }
     }, [currentIdx, machines.length]);
+
+    useEffect(() => {
+        machineNavScrollRef.current?.scrollTo({
+            x: Math.max(currentIdx * 72 - 72, 0),
+            animated: true,
+        });
+    }, [currentIdx]);
 
     if (!machine) return null;
 
@@ -294,37 +314,145 @@ export default function WorkoutScreen() {
                 <View style={{ width: 34 }} />
             </LinearGradient>
 
-            <View
-                style={{ flexDirection: "row", gap: 4, paddingHorizontal: 20, paddingVertical: 8 }}
-            >
-                {machines.map((item, idx) => {
-                    const isCurrent = idx === currentIdx;
-                    const hasDraft = hasDraftValue(drafts[item.id]);
-                    const isComplete = isDraftComplete(drafts[item.id]);
+            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 10 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <TouchableOpacity
+                        activeOpacity={0.75}
+                        onPress={goToPreviousMachine}
+                        disabled={!canGoPrev}
+                        style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 14,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: t.inputBg,
+                            borderWidth: 0.5,
+                            borderColor: t.border,
+                            opacity: canGoPrev ? 1 : 0.4,
+                        }}
+                    >
+                        <Ionicons name="chevron-back" size={20} color={t.textPrimary} />
+                    </TouchableOpacity>
 
-                    return (
-                        <TouchableOpacity
-                            key={item.id}
-                            activeOpacity={0.8}
-                            onPress={() => goToMachine(idx)}
-                            style={{ flex: 1 }}
-                        >
-                            <View
-                                style={{
-                                    height: isCurrent ? 5 : 3,
-                                    borderRadius: 999,
-                                    backgroundColor: isCurrent
-                                        ? t.accent + "80"
-                                        : isComplete
-                                          ? t.accent
-                                          : hasDraft
-                                            ? t.accentDark + "70"
-                                            : t.inputBg,
-                                }}
-                            />
-                        </TouchableOpacity>
-                    );
-                })}
+                    <ScrollView
+                        ref={machineNavScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+                        style={{ flex: 1 }}
+                    >
+                        {machines.map((item, idx) => {
+                            const isCurrent = idx === currentIdx;
+                            const hasDraft = hasDraftValue(drafts[item.id]);
+                            const isComplete = isDraftComplete(drafts[item.id]);
+
+                            const chipBackgroundColor = isCurrent
+                                ? t.accent
+                                : isComplete
+                                  ? t.accent + "18"
+                                  : hasDraft
+                                    ? t.chipBg
+                                    : t.inputBg;
+                            const chipBorderColor = isCurrent
+                                ? t.accent
+                                : isComplete
+                                  ? t.accent + "70"
+                                  : hasDraft
+                                    ? t.accentDark + "70"
+                                    : t.border;
+                            const chipTextColor = isCurrent ? btnColor : t.textPrimary;
+                            const statusIconName = isComplete
+                                ? "checkmark-circle"
+                                : hasDraft
+                                  ? "ellipse"
+                                  : "ellipse-outline";
+                            const statusIconColor = isCurrent
+                                ? btnColor
+                                : isComplete
+                                  ? t.accent
+                                  : hasDraft
+                                    ? t.accentDark
+                                    : t.textDim;
+
+                            return (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    activeOpacity={0.8}
+                                    onPress={() => goToMachine(idx)}
+                                    style={{ minWidth: 60 }}
+                                >
+                                    <View
+                                        style={{
+                                            minHeight: 44,
+                                            borderRadius: 16,
+                                            paddingHorizontal: 12,
+                                            paddingVertical: 10,
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            backgroundColor: chipBackgroundColor,
+                                            borderWidth: 1,
+                                            borderColor: chipBorderColor,
+                                        }}
+                                    >
+                                        <View
+                                            style={{
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: 6,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: chipTextColor,
+                                                    fontSize: 14,
+                                                    fontWeight: "900",
+                                                }}
+                                            >
+                                                {idx + 1}
+                                            </Text>
+                                            <Ionicons
+                                                name={statusIconName}
+                                                size={14}
+                                                color={statusIconColor}
+                                            />
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+
+                    <TouchableOpacity
+                        activeOpacity={0.75}
+                        onPress={goToNextMachine}
+                        disabled={!canGoNext}
+                        style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 14,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: t.inputBg,
+                            borderWidth: 0.5,
+                            borderColor: t.border,
+                            opacity: canGoNext ? 1 : 0.4,
+                        }}
+                    >
+                        <Ionicons name="chevron-forward" size={20} color={t.textPrimary} />
+                    </TouchableOpacity>
+                </View>
+
+                <Text
+                    style={{
+                        color: t.textDim,
+                        fontSize: 12,
+                        lineHeight: 18,
+                    }}
+                >
+                    Use as setas ou toque nos cartões para trocar de máquina sem perder os rascunhos.
+                </Text>
             </View>
 
             <ScrollView
@@ -411,7 +539,7 @@ export default function WorkoutScreen() {
                                 ? "Você pode seguir adiante ou voltar depois para ajustar os pesos."
                                 : currentHasDraft
                                   ? "Os valores ficam guardados ao trocar de máquina. Complete quando ela estiver livre."
-                                  : "Se a máquina estiver ocupada, avance agora e volte quando quiser pela barra acima."}
+                                  : "Se a máquina estiver ocupada, avance agora e volte quando quiser pelos cartões acima."}
                         </Text>
                     </View>
 
@@ -538,17 +666,6 @@ export default function WorkoutScreen() {
                             </TouchableOpacity>
                         </View>
 
-                        <Text
-                            style={{
-                                color: t.textDim,
-                                fontSize: 12,
-                                textAlign: "center",
-                                marginTop: 14,
-                                lineHeight: 18,
-                            }}
-                        >
-                            Toque nas barras acima para ir direto a qualquer exercício.
-                        </Text>
                     </View>
                 </RNAnimated.View>
             </ScrollView>

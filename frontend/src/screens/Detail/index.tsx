@@ -295,97 +295,114 @@ export default function MachineDetailScreen() {
                 )}
             </ScrollView>
 
-            <AppModal visible={!!photoModal} onClose={closePhotoModal} contentStyle={{ padding: 24 }}>
-                <Text
-                    style={{
-                        color: t.accent,
-                        fontSize: 20,
-                        fontWeight: "800",
-                        marginBottom: 10,
-                    }}
+            <AppModal visible={!!photoModal} onClose={closePhotoModal}>
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                    contentContainerStyle={{ paddingBottom: 4 }}
                 >
-                    {photoModal?.title ?? ""}
-                </Text>
-                {!!photoModal?.message && (
                     <Text
                         style={{
-                            color: t.textMuted,
-                            fontSize: 14,
-                            lineHeight: 20,
-                            marginBottom: 18,
+                            color: t.accent,
+                            fontSize: 20,
+                            fontWeight: "800",
+                            marginBottom: 10,
                         }}
                     >
-                        {photoModal.message}
+                        {photoModal?.title ?? ""}
                     </Text>
-                )}
+                    {!!photoModal?.message && (
+                        <Text
+                            style={{
+                                color: t.textMuted,
+                                fontSize: 14,
+                                lineHeight: 20,
+                                marginBottom: 18,
+                            }}
+                        >
+                            {photoModal.message}
+                        </Text>
+                    )}
 
-                <View style={{ gap: 10 }}>
-                    {photoModal?.actions.map((action) => (
-                        <TouchableOpacity key={action.label} activeOpacity={0.78} onPress={action.onPress}>
-                            {action.variant === "accent" ? (
-                                <LinearGradient
-                                    colors={t.gradientAccent}
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: 10,
-                                        paddingVertical: 14,
-                                        paddingHorizontal: 16,
-                                        borderRadius: 14,
-                                    }}
-                                >
-                                    <Ionicons name={action.icon} size={18} color={btnColor} />
-                                    <Text style={{ color: btnColor, fontSize: 15, fontWeight: "800" }}>
-                                        {action.label}
-                                    </Text>
-                                </LinearGradient>
-                            ) : (
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: 10,
-                                        paddingVertical: 14,
-                                        paddingHorizontal: 16,
-                                        borderRadius: 14,
-                                        backgroundColor:
-                                            action.variant === "danger" ? "#EF5350" : t.inputBg,
-                                        borderWidth: action.variant === "danger" ? 0 : 0.5,
-                                        borderColor: action.variant === "danger" ? "transparent" : t.border,
-                                    }}
-                                >
-                                    <Ionicons
-                                        name={action.icon}
-                                        size={18}
-                                        color={action.variant === "danger" ? "#FFF" : t.textMuted}
-                                    />
-                                    <Text
+                    <View style={{ gap: 10 }}>
+                        {photoModal?.actions.map((action) => (
+                            <TouchableOpacity key={action.label} activeOpacity={0.78} onPress={action.onPress}>
+                                {action.variant === "accent" ? (
+                                    <LinearGradient
+                                        colors={t.gradientAccent}
                                         style={{
-                                            color: action.variant === "danger" ? "#FFF" : t.textMuted,
-                                            fontSize: 15,
-                                            fontWeight: "700",
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 10,
+                                            paddingVertical: 14,
+                                            paddingHorizontal: 16,
+                                            borderRadius: 14,
                                         }}
                                     >
-                                        {action.label}
-                                    </Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                </View>
+                                        <Ionicons name={action.icon} size={18} color={btnColor} />
+                                        <Text style={{ color: btnColor, fontSize: 15, fontWeight: "800" }}>
+                                            {action.label}
+                                        </Text>
+                                    </LinearGradient>
+                                ) : (
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 10,
+                                            paddingVertical: 14,
+                                            paddingHorizontal: 16,
+                                            borderRadius: 14,
+                                            backgroundColor:
+                                                action.variant === "danger" ? "#EF5350" : t.inputBg,
+                                            borderWidth: action.variant === "danger" ? 0 : 0.5,
+                                            borderColor: action.variant === "danger" ? "transparent" : t.border,
+                                        }}
+                                    >
+                                        <Ionicons
+                                            name={action.icon}
+                                            size={18}
+                                            color={action.variant === "danger" ? "#FFF" : t.textMuted}
+                                        />
+                                        <Text
+                                            style={{
+                                                color: action.variant === "danger" ? "#FFF" : t.textMuted,
+                                                fontSize: 15,
+                                                fontWeight: "700",
+                                            }}
+                                        >
+                                            {action.label}
+                                        </Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
 
-                {!photoModal?.hideCloseButton && (
-                    <TouchableOpacity
-                        onPress={closePhotoModal}
-                        style={{ alignSelf: "flex-end", padding: 12, marginTop: 12 }}
-                    >
-                        <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "600" }}>
-                            {photoModal?.closeLabel ?? "Cancelar"}
-                        </Text>
-                    </TouchableOpacity>
-                )}
+                    {!photoModal?.hideCloseButton && (
+                        <TouchableOpacity
+                            onPress={closePhotoModal}
+                            activeOpacity={0.8}
+                            style={{
+                                marginTop: 12,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: 14,
+                                borderWidth: 0.5,
+                                borderColor: t.border,
+                                backgroundColor: t.card,
+                                paddingVertical: 14,
+                                paddingHorizontal: 16,
+                            }}
+                        >
+                            <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "700" }}>
+                                {photoModal?.closeLabel ?? "Cancelar"}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                </ScrollView>
             </AppModal>
         </>
     );

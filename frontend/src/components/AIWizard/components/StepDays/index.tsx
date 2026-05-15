@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { DAYS_LABEL, DAYS_SHORT } from "@/src/constants/categories";
 import { useTheme } from "@/src/contexts/ThemeContext";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { StepDaysProps } from "./types";
 
 export const StepDays = (props: StepDaysProps) => {
@@ -33,9 +34,18 @@ export const StepDays = (props: StepDaysProps) => {
                 isso para montar a divisão com mais precisão.
             </Text>
 
-            <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                bounces={false}
+                contentContainerStyle={{ gap: 8, paddingRight: 8 }}
+            >
                 {DAYS_LABEL.map((label, dayIndex) => {
                     const active = value.includes(dayIndex);
+                    const cardBackgroundColor = active ? t.accent : t.inputBg;
+                    const cardBorderColor = active ? t.accent : t.border;
+                    const textColor = active ? btnColor : t.textPrimary;
+                    const statusIconColor = active ? btnColor : t.textDim;
 
                     return (
                         <TouchableOpacity
@@ -43,33 +53,50 @@ export const StepDays = (props: StepDaysProps) => {
                             onPress={() => toggleDay(dayIndex)}
                             activeOpacity={0.7}
                             style={{
-                                width: "30%",
-                                minWidth: 92,
-                                paddingVertical: 14,
+                                width: 108,
+                                minHeight: 82,
+                                paddingVertical: 12,
                                 paddingHorizontal: 12,
                                 borderRadius: 16,
-                                backgroundColor: active ? t.accent : t.inputBg,
-                                borderWidth: 0.5,
-                                borderColor: active ? t.accent : t.border,
+                                backgroundColor: cardBackgroundColor,
+                                borderWidth: 1,
+                                borderColor: cardBorderColor,
+                                justifyContent: "space-between",
                             }}
                         >
-                            <Text
+                            <View
                                 style={{
-                                    fontSize: 11,
-                                    fontWeight: "800",
-                                    textTransform: "uppercase",
-                                    letterSpacing: 1.2,
-                                    color: active ? btnColor : t.textDim,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 8,
                                 }}
                             >
-                                {DAYS_SHORT[dayIndex]}
-                            </Text>
+                                <Text
+                                    style={{
+                                        fontSize: 11,
+                                        fontWeight: "800",
+                                        textTransform: "uppercase",
+                                        letterSpacing: 1.2,
+                                        color: active ? btnColor : t.textDim,
+                                    }}
+                                >
+                                    {DAYS_SHORT[dayIndex]}
+                                </Text>
+
+                                <Ionicons
+                                    name={active ? "checkmark-circle" : "ellipse-outline"}
+                                    size={16}
+                                    color={statusIconColor}
+                                />
+                            </View>
+
                             <Text
                                 style={{
                                     fontSize: 15,
-                                    fontWeight: "800",
-                                    marginTop: 6,
-                                    color: active ? btnColor : t.textMuted,
+                                    fontWeight: "900",
+                                    marginTop: 12,
+                                    color: textColor,
                                 }}
                             >
                                 {label}
@@ -77,7 +104,7 @@ export const StepDays = (props: StepDaysProps) => {
                         </TouchableOpacity>
                     );
                 })}
-            </View>
+            </ScrollView>
 
             <Text
                 style={{
