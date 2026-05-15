@@ -81,6 +81,30 @@ func TestValidateGeneratedWorkoutRejectsDayOutsideSelection(t *testing.T) {
 	}
 }
 
+func TestValidateGeneratedWorkoutRejectsDuplicateDaysInCategory(t *testing.T) {
+	err := validateGeneratedWorkout(
+		dtos.GenerateAIWorkoutResponse{
+			Categories: []dtos.GeneratedCategory{
+				{
+					Name: "Upper",
+					Days: []int{1, 1, 3, 5},
+					Machines: []dtos.GeneratedMachine{
+						{Name: "Supino reto", Sets: []float64{40, 35, 30}},
+					},
+				},
+			},
+		},
+		[]int{1, 3, 5},
+	)
+	if err == nil {
+		t.Fatal("expected validateGeneratedWorkout to reject duplicate days in a category")
+	}
+
+	if !strings.Contains(err.Error(), "duplicados") {
+		t.Fatalf("expected error to mention duplicate days, got: %v", err)
+	}
+}
+
 func TestValidateGeneratedWorkoutRejectsMissingSelectedDays(t *testing.T) {
 	err := validateGeneratedWorkout(
 		dtos.GenerateAIWorkoutResponse{

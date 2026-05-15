@@ -306,6 +306,7 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, allowedDa
 			return errors.New("a IA retornou uma categoria sem dias de treino")
 		}
 
+		categoryDaySet := make(map[int]struct{}, len(category.Days))
 		for _, day := range category.Days {
 			if day < 0 || day > 6 {
 				return errors.New("a IA retornou um dia de treino fora do intervalo permitido")
@@ -319,6 +320,15 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, allowedDa
 				)
 			}
 
+			if _, ok := categoryDaySet[day]; ok {
+				return fmt.Errorf(
+					"a IA retornou dias duplicados na categoria %q: %s",
+					category.Name,
+					buildSelectedDayNames([]int{day}),
+				)
+			}
+
+			categoryDaySet[day] = struct{}{}
 			seenDaySet[day] = struct{}{}
 		}
 
@@ -414,10 +424,9 @@ func buildAIWorkoutResponseSchema(allowedDays []int) map[string]any {
 							"minLength": 1,
 						},
 						"days": map[string]any{
-							"type":        "array",
-							"minItems":    1,
-							"maxItems":    len(allowedDays),
-							"uniqueItems": true,
+							"type":     "array",
+							"minItems": 1,
+							"maxItems": len(allowedDays),
 							"items": map[string]any{
 								"type": "integer",
 								"enum": dayEnum,
