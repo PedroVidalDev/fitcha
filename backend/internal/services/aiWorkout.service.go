@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	dtos "fitcha/internal/dtos/aiWorkout"
@@ -48,7 +49,7 @@ func NewAIWorkoutService(db *gorm.DB, userRepo repositories.IUserRepository) *AI
 	}
 }
 
-func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
+func (s *AIWorkoutService) Generate(ctx context.Context, userID uint, input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
 	if s.apiKey == "" {
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("configure OPENAI_API_KEY para gerar treinos com IA")
 	}
@@ -70,8 +71,12 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("voce nao possui creditos suficientes para gerar um treino com IA")
 	}
 
-	response, err := s.requestWorkoutPlan(input)
+	response, err := s.requestWorkoutPlan(ctx, input)
 	if err != nil {
+		if requestErr := mapAIWorkoutRequestError(err); requestErr != nil {
+			return dtos.GenerateAIWorkoutResponse{}, requestErr
+		}
+
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
 
@@ -82,8 +87,20 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 	weekInput := buildGeneratedWeekInputs(response)
 	remainingCredits := user.Credits
 
-	err = s.db.Transaction(func(tx *gorm.DB) error {
+	if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
+		return dtos.GenerateAIWorkoutResponse{}, err
+	}
+
+	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
+			return err
+		}
+
 		if _, _, err := replaceWeekInTx(tx, userID, weekInput); err != nil {
+			return err
+		}
+
+		if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
 			return err
 		}
 
@@ -108,11 +125,15 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 	return response, nil
 }
 
-func (s *AIWorkoutService) requestWorkoutPlan(input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
+func (s *AIWorkoutService) requestWorkoutPlan(ctx context.Context, input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
 	var lastErr error
 
 	for attempt := 0; attempt < aiWorkoutGenerationTries; attempt++ {
-		response, err := s.requestWorkoutPlanAttempt(input, lastErr)
+		if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
+			return dtos.GenerateAIWorkoutResponse{}, err
+		}
+
+		response, err := s.requestWorkoutPlanAttempt(ctx, input, lastErr)
 		if err == nil {
 			return response, nil
 		}
@@ -131,7 +152,7 @@ func (s *AIWorkoutService) requestWorkoutPlan(input dtos.GenerateAIWorkoutReques
 	return dtos.GenerateAIWorkoutResponse{}, errors.New("nao foi possivel gerar o treino automaticamente")
 }
 
-func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkoutRequest, previousErr error) (dtos.GenerateAIWorkoutResponse, error) {
+func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input dtos.GenerateAIWorkoutRequest, previousErr error) (dtos.GenerateAIWorkoutResponse, error) {
 	payload := openAIChatCompletionRequest{
 		Model:    s.model,
 		Messages: buildAIWorkoutMessages(input, previousErr),
@@ -151,7 +172,7 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkou
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, openAIChatCompletionsURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openAIChatCompletionsURL, bytes.NewReader(body))
 	if err != nil {
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
@@ -161,6 +182,10 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkou
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
+		if requestErr := mapAIWorkoutRequestError(err); requestErr != nil {
+			return dtos.GenerateAIWorkoutResponse{}, requestErr
+		}
+
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("falha ao conectar com a API da OpenAI")
 	}
 	defer resp.Body.Close()
@@ -202,6 +227,18 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkou
 	}
 
 	return parsed, nil
+}
+
+func mapAIWorkoutRequestError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return errors.New("a solicitacao foi cancelada antes de concluir a geracao")
+	}
+
+	return nil
 }
 
 func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {

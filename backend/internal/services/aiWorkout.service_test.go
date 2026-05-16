@@ -1,11 +1,16 @@
 package services
 
 import (
+	"context"
+	"errors"
+	"io"
+	"net/http"
 	"reflect"
 	"strings"
 	"testing"
 
 	dtos "fitcha/internal/dtos/aiWorkout"
+	"fitcha/internal/models"
 )
 
 func TestNormalizeSelectedDaysSortsAndDeduplicates(t *testing.T) {
@@ -161,5 +166,151 @@ func TestInferGeneratedMachineCategoryKeyIgnoresAccents(t *testing.T) {
 
 	if got != "pernas" {
 		t.Fatalf("expected pernas category key, got: %s", got)
+	}
+}
+
+type stubUserRepository struct {
+	user         models.User
+	findErr      error
+	consumeErr   error
+	consumeCalls int
+}
+
+func (r *stubUserRepository) FindByEmail(email string) (models.User, error) {
+	return models.User{}, nil
+}
+
+func (r *stubUserRepository) FindByID(userID uint) (models.User, error) {
+	if r.findErr != nil {
+		return models.User{}, r.findErr
+	}
+
+	return r.user, nil
+}
+
+func (r *stubUserRepository) CreateUser(user models.User) (models.User, error) {
+	return user, nil
+}
+
+func (r *stubUserRepository) UpdatePassword(userID uint, password string) (models.User, error) {
+	return r.user, nil
+}
+
+func (r *stubUserRepository) AddCredits(userID uint, amount int) (models.User, error) {
+	r.user.Credits += amount
+	return r.user, nil
+}
+
+func (r *stubUserRepository) ConsumeCredit(userID uint) (models.User, error) {
+	r.consumeCalls++
+	if r.consumeErr != nil {
+		return models.User{}, r.consumeErr
+	}
+
+	r.user.Credits -= 1
+	return r.user, nil
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+
+func newAIWorkoutServiceForTest(userRepo *stubUserRepository, transport roundTripFunc) *AIWorkoutService {
+	return &AIWorkoutService{
+		users: userRepo,
+		httpClient: &http.Client{
+			Transport: transport,
+		},
+		apiKey: "test-api-key",
+		model:  defaultAIWorkoutModel,
+	}
+}
+
+func validGenerateRequest() dtos.GenerateAIWorkoutRequest {
+	return dtos.GenerateAIWorkoutRequest{
+		Height:       "180",
+		Weight:       "80",
+		SelectedDays: []int{1, 3, 5},
+		Intensity:    "moderado",
+		Goal:         "hipertrofia",
+	}
+}
+
+func validOpenAIChatCompletionBody() string {
+	return `{"choices":[{"message":{"content":"{\"categories\":[{\"name\":\"Peito\",\"days\":[1,3,5],\"machines\":[{\"name\":\"Supino reto\",\"sets\":[40,35,30]}]}]}"}}]}`
+}
+
+func TestGenerateDoesNotConsumeCreditsWhenRequestIsCanceled(t *testing.T) {
+	userRepo := &stubUserRepository{
+		user: models.User{Credits: 3},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	service := newAIWorkoutServiceForTest(userRepo, func(req *http.Request) (*http.Response, error) {
+		cancel()
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(strings.NewReader(validOpenAIChatCompletionBody())),
+			Header:     make(http.Header),
+		}, nil
+	})
+
+	_, err := service.Generate(ctx, 1, validGenerateRequest())
+	if err == nil {
+		t.Fatal("expected canceled request to return an error")
+	}
+
+	if !strings.Contains(err.Error(), "cancelada") {
+		t.Fatalf("expected cancellation error, got: %v", err)
+	}
+
+	if userRepo.consumeCalls != 0 {
+		t.Fatalf("expected no credit consumption on canceled request, got %d calls", userRepo.consumeCalls)
+	}
+}
+
+func TestGenerateDoesNotConsumeCreditsWhenAIResponseIsInvalid(t *testing.T) {
+	userRepo := &stubUserRepository{
+		user: models.User{Credits: 3},
+	}
+
+	service := newAIWorkoutServiceForTest(userRepo, func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body: io.NopCloser(strings.NewReader(
+				`{"choices":[{"message":{"content":"{\"categories\":["}}]}`,
+			)),
+			Header: make(http.Header),
+		}, nil
+	})
+
+	_, err := service.Generate(context.Background(), 1, validGenerateRequest())
+	if err == nil {
+		t.Fatal("expected invalid AI response to return an error")
+	}
+
+	if !strings.Contains(err.Error(), "JSON invalido") {
+		t.Fatalf("expected invalid JSON error, got: %v", err)
+	}
+
+	if userRepo.consumeCalls != 0 {
+		t.Fatalf("expected no credit consumption on invalid AI response, got %d calls", userRepo.consumeCalls)
+	}
+}
+
+func TestMapAIWorkoutRequestErrorRecognizesContextCancellation(t *testing.T) {
+	err := mapAIWorkoutRequestError(context.Canceled)
+	if err == nil {
+		t.Fatal("expected context cancellation to be mapped")
+	}
+
+	if !strings.Contains(err.Error(), "cancelada") {
+		t.Fatalf("unexpected mapped message: %v", err)
+	}
+
+	if mapped := mapAIWorkoutRequestError(errors.New("outro erro")); mapped != nil {
+		t.Fatalf("expected unrelated errors not to be mapped, got: %v", mapped)
 	}
 }
