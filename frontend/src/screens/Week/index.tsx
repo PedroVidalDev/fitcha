@@ -3,6 +3,7 @@ import { RootStackParamList } from "@/src/router/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useLayoutEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddMachineModal } from "../../components/AddMachineModal";
@@ -54,12 +55,16 @@ export default function WeekScreen() {
     const [successVisible, setSuccessVisible] = useState(false);
 
     const today = new Date().getDay();
+    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     useLayoutEffect(() => {
         navigation.setOptions({
             headerLeft: user
                 ? () => (
-                      <TouchableOpacity onPress={() => setWizardVisible(true)} style={{ padding: 6 }}>
+                      <TouchableOpacity
+                          onPress={() => setWizardVisible(true)}
+                          style={{ padding: 6 }}
+                      >
                           <Ionicons name="sparkles" size={22} color={t.accent} />
                       </TouchableOpacity>
                   )
@@ -86,19 +91,66 @@ export default function WeekScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
-            <Text
+            <LinearGradient
+                colors={t.gradientHero}
                 style={{
-                    color: t.textDim,
-                    fontSize: 11,
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                    letterSpacing: 2,
+                    borderRadius: 22,
+                    padding: 18,
                     marginBottom: 18,
-                    marginLeft: 2,
+                    borderWidth: 1,
+                    borderColor: t.border,
+                    overflow: "hidden",
                 }}
             >
-                {translate("week.title")}
-            </Text>
+                <View
+                    style={{
+                        position: "absolute",
+                        right: -20,
+                        top: -26,
+                        width: 96,
+                        height: 96,
+                        borderRadius: 999,
+                        backgroundColor: t.chipBg,
+                    }}
+                />
+                <Text
+                    style={{
+                        color: t.textDim,
+                        fontSize: 11,
+                        fontWeight: "700",
+                        textTransform: "uppercase",
+                        letterSpacing: 2,
+                    }}
+                >
+                    {translate("week.title")}
+                </Text>
+                <Text
+                    style={{
+                        color: t.textPrimary,
+                        fontSize: 24,
+                        fontWeight: "900",
+                        marginTop: 8,
+                    }}
+                >
+                    {translate("week.title")}
+                </Text>
+                <Text
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 13,
+                        lineHeight: 19,
+                        marginTop: 8,
+                    }}
+                >
+                    {translate("week.machineCount", {
+                        count: Object.values(days).reduce((sum, items) => sum + items.length, 0),
+                        pluralSuffix:
+                            Object.values(days).reduce((sum, items) => sum + items.length, 0) !== 1
+                                ? "s"
+                                : "",
+                    })}
+                </Text>
+            </LinearGradient>
 
             <FlatList
                 data={[0, 1, 2, 3, 4, 5, 6]}
@@ -140,15 +192,17 @@ export default function WeekScreen() {
                                         {isToday ? (
                                             <View
                                                 style={{
-                                                    backgroundColor: t.accent,
-                                                    paddingHorizontal: 8,
-                                                    paddingVertical: 2,
-                                                    borderRadius: 8,
+                                                    paddingHorizontal: 9,
+                                                    paddingVertical: 4,
+                                                    borderRadius: 999,
+                                                    backgroundColor: t.chipBg,
+                                                    borderWidth: 1,
+                                                    borderColor: t.accent,
                                                 }}
                                             >
                                                 <Text
                                                     style={{
-                                                        color: t.mode === "dark" ? "#0d0500" : "#FFF",
+                                                        color: t.accent,
                                                         fontSize: 10,
                                                         fontWeight: "800",
                                                     }}
@@ -179,11 +233,13 @@ export default function WeekScreen() {
                                                 marginTop: 8,
                                             }}
                                         >
-                                            {[...new Set(machines.map((machine) => machine.categoryKey))].map(
-                                                (key) => (
-                                                    <CategoryBadge key={key} categoryKey={key} />
+                                            {[
+                                                ...new Set(
+                                                    machines.map((machine) => machine.categoryKey),
                                                 ),
-                                            )}
+                                            ].map((key) => (
+                                                <CategoryBadge key={key} categoryKey={key} />
+                                            ))}
                                             <Text
                                                 style={{
                                                     color: t.textDim,
@@ -201,7 +257,11 @@ export default function WeekScreen() {
                                     )}
                                 </View>
                                 {!isEmpty ? (
-                                    <Ionicons name="chevron-forward" size={18} color={t.textMuted} />
+                                    <Ionicons
+                                        name="chevron-forward"
+                                        size={18}
+                                        color={t.textMuted}
+                                    />
                                 ) : null}
                             </GradientCard>
                         </AnimatedCard>

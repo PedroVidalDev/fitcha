@@ -200,6 +200,14 @@ export default function MachineDetailScreen() {
 
     const recordEntry = getRecordHistoryEntry(history);
     const recordVolume = recordEntry ? getHistoryEntryVolume(recordEntry) : null;
+    const recordOverlayColor =
+        t.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.44)";
+    const recordStripeColors =
+        t.mode === "dark"
+            ? (["rgba(255,208,112,0.16)", "rgba(244,162,97,0.06)"] as const)
+            : (["rgba(244,162,97,0.16)", "rgba(255,208,112,0.18)"] as const);
+    const recordSequenceColor = t.mode === "dark" ? "#FFF4E6" : t.textPrimary;
+    const recordDateColor = t.mode === "dark" ? "#D9A57A" : t.textMuted;
 
     return (
         <>
@@ -258,16 +266,56 @@ export default function MachineDetailScreen() {
                     </Text>
                 )}
 
-                <View
+                <LinearGradient
+                    colors={t.gradientCard}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                     style={{
-                        backgroundColor: t.inputBg,
                         borderRadius: 16,
                         padding: 16,
-                        borderWidth: 0.5,
-                        borderColor: t.border,
                         marginBottom: 16,
+                        overflow: "hidden",
+                        borderWidth: 1,
+                        borderColor: t.border,
                     }}
                 >
+                    <View
+                        pointerEvents="none"
+                        style={{
+                            position: "absolute",
+                            top: -28,
+                            right: -18,
+                            width: 104,
+                            height: 104,
+                            borderRadius: 999,
+                            backgroundColor: recordOverlayColor,
+                        }}
+                    />
+                    <View
+                        pointerEvents="none"
+                        style={{
+                            position: "absolute",
+                            bottom: -30,
+                            left: -26,
+                            width: 78,
+                            height: 78,
+                            borderRadius: 999,
+                            backgroundColor: recordOverlayColor,
+                        }}
+                    />
+                    <LinearGradient
+                        colors={t.gradientAccent}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 4,
+                        }}
+                    />
+
                     <View
                         style={{
                             flexDirection: "row",
@@ -277,7 +325,36 @@ export default function MachineDetailScreen() {
                         }}
                     >
                         <View style={{ flex: 1 }}>
-                            <Text style={labelStyle}>{translate("detail.record.title")}</Text>
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 8,
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: 12,
+                                        backgroundColor: t.chipBg,
+                                        borderWidth: 1,
+                                        borderColor: t.border,
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <Ionicons name="trophy" size={18} color={t.accent} />
+                                </View>
+                                <Text
+                                    style={{
+                                        ...labelStyle,
+                                        color: t.textPrimary,
+                                    }}
+                                >
+                                    {translate("detail.record.title")}
+                                </Text>
+                            </View>
                             <Text
                                 style={{
                                     color: t.textMuted,
@@ -299,6 +376,8 @@ export default function MachineDetailScreen() {
                                     borderRadius: 999,
                                     paddingHorizontal: 12,
                                     paddingVertical: 8,
+                                    borderWidth: 1,
+                                    borderColor: t.border,
                                 }}
                             >
                                 <Text
@@ -315,20 +394,22 @@ export default function MachineDetailScreen() {
                     </View>
 
                     {recordEntry && (
-                        <View
+                        <LinearGradient
+                            colors={recordStripeColors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
                             style={{
                                 marginTop: 16,
-                                backgroundColor: t.histBg,
                                 borderRadius: 14,
                                 paddingHorizontal: 14,
                                 paddingVertical: 12,
-                                borderWidth: 0.5,
+                                borderWidth: 1,
                                 borderColor: t.border,
                             }}
                         >
                             <Text
                                 style={{
-                                    color: t.textPrimary,
+                                    color: recordSequenceColor,
                                     fontSize: 22,
                                     fontWeight: "900",
                                 }}
@@ -341,16 +422,16 @@ export default function MachineDetailScreen() {
                             </Text>
                             <Text
                                 style={{
-                                    color: t.textDim,
+                                    color: recordDateColor,
                                     fontSize: 12,
                                     marginTop: 6,
                                 }}
                             >
                                 {recordEntry.label}
                             </Text>
-                        </View>
+                        </LinearGradient>
                     )}
-                </View>
+                </LinearGradient>
 
                 <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>
                     {translate("detail.history.title")}

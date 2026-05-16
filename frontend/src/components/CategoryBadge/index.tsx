@@ -13,8 +13,10 @@ export function CategoryBadge(props: CategoryBadgeProps) {
             style={{
                 backgroundColor: cat.color + "20",
                 paddingHorizontal: 10,
-                paddingVertical: 3,
-                borderRadius: 8,
+                paddingVertical: 4,
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: cat.color + "28",
                 alignSelf: "flex-start",
             }}
         >

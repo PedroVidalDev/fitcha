@@ -40,6 +40,96 @@ function formatRecord(value: [number, number, number] | null) {
     return value === null ? "--" : formatSetSequence(value);
 }
 
+function getStatTone(index: number, mode: "dark" | "light") {
+    const tones =
+        mode === "dark"
+            ? [
+                  {
+                      background: "rgba(244, 162, 97, 0.12)",
+                      border: "rgba(244, 162, 97, 0.28)",
+                      iconBg: "rgba(244, 162, 97, 0.18)",
+                      iconColor: "#F4A261",
+                  },
+                  {
+                      background: "rgba(224, 122, 47, 0.14)",
+                      border: "rgba(224, 122, 47, 0.28)",
+                      iconBg: "rgba(224, 122, 47, 0.2)",
+                      iconColor: "#E07A2F",
+                  },
+                  {
+                      background: "rgba(255, 208, 112, 0.14)",
+                      border: "rgba(255, 208, 112, 0.28)",
+                      iconBg: "rgba(255, 208, 112, 0.2)",
+                      iconColor: "#FFD070",
+                  },
+              ]
+            : [
+                  {
+                      background: "#FFF4EA",
+                      border: "rgba(194, 101, 26, 0.14)",
+                      iconBg: "#FFE2C6",
+                      iconColor: "#C2651A",
+                  },
+                  {
+                      background: "#FFF0E2",
+                      border: "rgba(163, 82, 15, 0.14)",
+                      iconBg: "#FFD8B6",
+                      iconColor: "#A3520F",
+                  },
+                  {
+                      background: "#FFF8DE",
+                      border: "rgba(224, 122, 47, 0.16)",
+                      iconBg: "#FFE9A8",
+                      iconColor: "#C98200",
+                  },
+              ];
+
+    return tones[index] ?? tones[0];
+}
+
+function getRecordPalette(mode: "dark" | "light") {
+    return mode === "dark"
+        ? {
+              cardBg: "rgba(244, 162, 97, 0.14)",
+              cardBorder: "rgba(255, 208, 112, 0.26)",
+              cardGlow: "rgba(255, 208, 112, 0.14)",
+              sequence: "#FFF1DC",
+              volume: "#FFD070",
+          }
+        : {
+              cardBg: "#FFF3E4",
+              cardBorder: "rgba(224, 122, 47, 0.16)",
+              cardGlow: "#FFF0C2",
+              sequence: "#4A1F00",
+              volume: "#A3520F",
+          };
+}
+
+function getChartColors(
+    index: number,
+    isLatest: boolean,
+    mode: "dark" | "light",
+): [string, string] {
+    if (isLatest) {
+        return mode === "dark" ? ["#FFD070", "#F4A261"] : ["#FFD070", "#E07A2F"];
+    }
+
+    const palettes =
+        mode === "dark"
+            ? [
+                  ["#FB923C", "#F97316"],
+                  ["#F4A261", "#E07A2F"],
+                  ["#FFD070", "#E9A800"],
+              ]
+            : [
+                  ["#FDBA74", "#EA580C"],
+                  ["#F4A261", "#C2651A"],
+                  ["#FFE08A", "#D49A00"],
+              ];
+
+    return palettes[index % palettes.length] as [string, string];
+}
+
 function formatDelta(
     value: number | null,
     t: (
@@ -123,24 +213,26 @@ function DashboardPanel({ children }: { children: ReactNode }) {
 }
 
 function StatCard(props: {
+    index: number;
     title: string;
     value: string;
     hint: string;
     icon: keyof typeof Ionicons.glyphMap;
 }) {
-    const { title, value, hint, icon } = props;
+    const { index, title, value, hint, icon } = props;
     const { t } = useTheme();
+    const tone = getStatTone(index, t.mode);
 
     return (
         <View
             style={{
                 flex: 1,
                 minWidth: 0,
-                backgroundColor: t.inputBg,
+                backgroundColor: tone.background,
                 borderRadius: 18,
                 padding: 14,
-                borderWidth: 0.5,
-                borderColor: t.border,
+                borderWidth: 1,
+                borderColor: tone.border,
             }}
         >
             <View
@@ -148,13 +240,13 @@ function StatCard(props: {
                     width: 34,
                     height: 34,
                     borderRadius: 12,
-                    backgroundColor: t.chipBg,
+                    backgroundColor: tone.iconBg,
                     justifyContent: "center",
                     alignItems: "center",
                     marginBottom: 12,
                 }}
             >
-                <Ionicons name={icon} size={18} color={t.accent} />
+                <Ionicons name={icon} size={18} color={tone.iconColor} />
             </View>
             <Text
                 style={{
@@ -188,6 +280,9 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
     const { item, width } = props;
     const { t } = useTheme();
     const { t: translate } = useI18n();
+    const currentTone = getStatTone(0, t.mode);
+    const initialTone = getStatTone(1, t.mode);
+    const recordPalette = getRecordPalette(t.mode);
 
     const chartMax = Math.max(...item.points.map((point) => point.maxWeight), 1);
     const deltaColor =
@@ -289,9 +384,11 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                 <View
                     style={{
                         flex: 1,
-                        backgroundColor: t.card,
+                        backgroundColor: currentTone.background,
                         borderRadius: 16,
                         padding: 12,
+                        borderWidth: 1,
+                        borderColor: currentTone.border,
                     }}
                 >
                     <Text
@@ -320,9 +417,11 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                 <View
                     style={{
                         flex: 1,
-                        backgroundColor: t.card,
+                        backgroundColor: initialTone.background,
                         borderRadius: 16,
                         padding: 12,
+                        borderWidth: 1,
+                        borderColor: initialTone.border,
                     }}
                 >
                     <Text
@@ -351,9 +450,12 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                 <View
                     style={{
                         flex: 1,
-                        backgroundColor: t.card,
+                        backgroundColor: recordPalette.cardBg,
                         borderRadius: 16,
                         padding: 12,
+                        borderWidth: 1,
+                        borderColor: recordPalette.cardBorder,
+                        overflow: "hidden",
                     }}
                 >
                     <Text
@@ -369,7 +471,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                     </Text>
                     <Text
                         style={{
-                            color: t.textPrimary,
+                            color: recordPalette.sequence,
                             fontSize: 17,
                             fontWeight: "900",
                             marginTop: 6,
@@ -378,7 +480,13 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                         {formatRecord(item.bestRecordSets)}
                     </Text>
                     <Text
-                        style={{ color: t.textMuted, fontSize: 12, lineHeight: 17, marginTop: 4 }}
+                        style={{
+                            color: recordPalette.volume,
+                            fontSize: 12,
+                            lineHeight: 17,
+                            marginTop: 4,
+                            fontWeight: "700",
+                        }}
                     >
                         {item.bestVolume === null
                             ? translate("home.machine.previous.noHistory")
@@ -386,6 +494,17 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                                   volume: `${item.bestVolume} ${translate("common.units.kg")}`,
                               })}
                     </Text>
+                    <View
+                        style={{
+                            position: "absolute",
+                            top: -8,
+                            right: -8,
+                            width: 44,
+                            height: 44,
+                            borderRadius: 999,
+                            backgroundColor: recordPalette.cardGlow,
+                        }}
+                    />
                 </View>
             </View>
 
@@ -452,9 +571,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                                         {point.maxWeight}
                                     </Text>
                                     <LinearGradient
-                                        colors={
-                                            isLatest ? t.gradientAccent : [t.accentDark, t.accent]
-                                        }
+                                        colors={getChartColors(index, isLatest, t.mode)}
                                         start={{ x: 0, y: 1 }}
                                         end={{ x: 0, y: 0 }}
                                         style={{
@@ -704,6 +821,7 @@ export default function HomeScreen() {
             <AnimatedCard index={1}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
                     <StatCard
+                        index={0}
                         title={translate("home.stats.streakTitle")}
                         value={`${summary.streak}`}
                         hint={translate("home.stats.streakHint", {
@@ -713,6 +831,7 @@ export default function HomeScreen() {
                         icon="flame-outline"
                     />
                     <StatCard
+                        index={1}
                         title={translate("home.stats.last7Title")}
                         value={`${summary.recentWorkoutDays}/7`}
                         hint={translate("home.stats.last7Hint")}
@@ -724,12 +843,14 @@ export default function HomeScreen() {
             <AnimatedCard index={2}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
                     <StatCard
+                        index={1}
                         title={translate("home.stats.monthTitle")}
                         value={`${summary.monthlyWorkoutDays}`}
                         hint={translate("home.stats.monthHint")}
                         icon="barbell-outline"
                     />
                     <StatCard
+                        index={2}
                         title={translate("home.stats.weekTitle")}
                         value={`${summary.scheduledDayCount}`}
                         hint={translate("home.stats.weekHint", {

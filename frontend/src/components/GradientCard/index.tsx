@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Platform, TouchableOpacity } from "react-native";
+import { Platform, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { GradientCardProps } from "./types";
 
@@ -31,15 +31,40 @@ export const GradientCard = (props: GradientCardProps) => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
+                    position: "relative",
                     flexDirection: "row",
                     alignItems: "center",
                     borderRadius: 16,
                     padding: 16,
                     gap: 14,
-                    borderWidth: 0.5,
+                    overflow: "hidden",
+                    borderWidth: 1,
                     borderColor: t.border,
                 }}
             >
+                <View
+                    style={{
+                        position: "absolute",
+                        top: -20,
+                        right: -14,
+                        width: 82,
+                        height: 82,
+                        borderRadius: 999,
+                        backgroundColor: t.chipBg,
+                    }}
+                />
+                <View
+                    style={{
+                        position: "absolute",
+                        bottom: -26,
+                        left: -18,
+                        width: 70,
+                        height: 70,
+                        borderRadius: 999,
+                        backgroundColor: t.chipBg,
+                        opacity: 0.7,
+                    }}
+                />
                 {children}
             </LinearGradient>
         </TouchableOpacity>
