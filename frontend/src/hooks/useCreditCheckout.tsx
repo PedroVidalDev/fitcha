@@ -40,11 +40,9 @@ export function useCreditCheckout(params: UseCreditCheckoutParams = {}) {
                 setCreditQuantity(String(data.payment.creditQuantity));
             }
 
-            const hasLivePayment =
-                data.payment?.status === "pending" || data.payment?.status === "approved";
-
             setStep((current) => {
-                if (hasLivePayment) return 3;
+                if (data.payment?.status === "pending") return 3;
+                if (data.payment?.status === "approved" && current === 3) return 3;
                 if (current === 3) return 1;
                 return current;
             });
@@ -68,9 +66,7 @@ export function useCreditCheckout(params: UseCreditCheckoutParams = {}) {
                 await syncSummary(response);
             } catch (error) {
                 setErrorMessage(
-                    error instanceof Error
-                        ? error.message
-                        : t("creditCheckout.error.loadSummary"),
+                    error instanceof Error ? error.message : t("creditCheckout.error.loadSummary"),
                 );
             } finally {
                 if (!silent) {
@@ -100,7 +96,7 @@ export function useCreditCheckout(params: UseCreditCheckoutParams = {}) {
 
     const openModal = useCallback(() => {
         setErrorMessage(null);
-        setStep(payment?.status === "pending" || payment?.status === "approved" ? 3 : 1);
+        setStep(payment?.status === "pending" ? 3 : 1);
         setIsModalVisible(true);
         void loadSummary();
     }, [loadSummary, payment?.status]);
@@ -109,7 +105,7 @@ export function useCreditCheckout(params: UseCreditCheckoutParams = {}) {
         setErrorMessage(null);
         setIsModalVisible(false);
 
-        if (payment?.status !== "pending" && payment?.status !== "approved") {
+        if (payment?.status !== "pending") {
             setStep(1);
         }
     }, [payment?.status]);

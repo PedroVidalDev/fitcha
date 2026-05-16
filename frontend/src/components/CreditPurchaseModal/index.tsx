@@ -60,9 +60,9 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
     const { t } = useTheme();
     const { t: translate, locale } = useI18n();
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
-    const effectiveStep =
-        payment?.status === "pending" || payment?.status === "approved" ? 3 : step;
-    const livePayment = payment?.status === "pending" || payment?.status === "approved";
+    const effectiveStep = step;
+    const livePayment =
+        step === 3 && (payment?.status === "pending" || payment?.status === "approved");
 
     const parsedQuantity = Number.parseInt(creditQuantity, 10);
     const quantity = Number.isFinite(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : 1;
@@ -124,7 +124,9 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                 ))}
             </View>
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 18 }}>
+            <View
+                style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 18 }}
+            >
                 <Text style={{ color: t.textDim, fontSize: 11, fontWeight: "800" }}>
                     {translate("creditCheckout.step.quantity")}
                 </Text>
@@ -201,7 +203,9 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                                     marginBottom: 18,
                                 }}
                             >
-                                <Text style={{ color: t.textPrimary, fontSize: 14, lineHeight: 21 }}>
+                                <Text
+                                    style={{ color: t.textPrimary, fontSize: 14, lineHeight: 21 }}
+                                >
                                     {translate("creditCheckout.quantityHint", {
                                         price: formatCurrency(unitAmountCents, locale),
                                         total: amountLabel,
@@ -218,7 +222,9 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                                         alignItems: "center",
                                     }}
                                 >
-                                    <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
+                                    <Text
+                                        style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}
+                                    >
                                         {translate("common.actions.continue")}
                                     </Text>
                                 </LinearGradient>
@@ -267,9 +273,13 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                                         marginBottom: 4,
                                     }}
                                 >
-                                    {translate("creditCheckout.summaryCredits", { count: quantity })}
+                                    {translate("creditCheckout.summaryCredits", {
+                                        count: quantity,
+                                    })}
                                 </Text>
-                                <Text style={{ color: t.textMuted, fontSize: 13 }}>{amountLabel}</Text>
+                                <Text style={{ color: t.textMuted, fontSize: 13 }}>
+                                    {amountLabel}
+                                </Text>
                             </View>
 
                             <Input
@@ -296,7 +306,13 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                                         backgroundColor: t.card,
                                     }}
                                 >
-                                    <Text style={{ color: t.textPrimary, fontSize: 15, fontWeight: "800" }}>
+                                    <Text
+                                        style={{
+                                            color: t.textPrimary,
+                                            fontSize: 15,
+                                            fontWeight: "800",
+                                        }}
+                                    >
                                         {translate("common.actions.back")}
                                     </Text>
                                 </TouchableOpacity>
@@ -316,7 +332,11 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                                         }}
                                     >
                                         <Text
-                                            style={{ color: btnColor, fontSize: 15, fontWeight: "900" }}
+                                            style={{
+                                                color: btnColor,
+                                                fontSize: 15,
+                                                fontWeight: "900",
+                                            }}
                                         >
                                             {isCreatingCheckout
                                                 ? translate("creditCheckout.generatingPix")
@@ -402,14 +422,18 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                                         marginBottom: 12,
                                     }}
                                 >
-                                    {translate("creditCheckout.pixValidUntil", { date: paymentExpiresAt })}
+                                    {translate("creditCheckout.pixValidUntil", {
+                                        date: paymentExpiresAt,
+                                    })}
                                 </Text>
                             ) : null}
 
                             {payment.status === "pending" && payment.qrCodeBase64 ? (
                                 <View style={{ alignItems: "center", marginVertical: 10 }}>
                                     <Image
-                                        source={{ uri: `data:image/png;base64,${payment.qrCodeBase64}` }}
+                                        source={{
+                                            uri: `data:image/png;base64,${payment.qrCodeBase64}`,
+                                        }}
                                         style={{
                                             width: 220,
                                             height: 220,
@@ -457,7 +481,13 @@ export function CreditPurchaseModal(props: CreditPurchaseModalProps) {
                                         padding: 14,
                                     }}
                                 >
-                                    <Text style={{ color: t.textPrimary, fontSize: 14, lineHeight: 20 }}>
+                                    <Text
+                                        style={{
+                                            color: t.textPrimary,
+                                            fontSize: 14,
+                                            lineHeight: 20,
+                                        }}
+                                    >
                                         {translate("creditCheckout.approvedMessage")}
                                     </Text>
                                 </View>
