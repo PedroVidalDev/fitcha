@@ -12,6 +12,11 @@ import { AppModal } from "../../components/AppModal";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import {
+    formatSetSequence,
+    getHistoryEntryVolume,
+    getRecordHistoryEntry,
+} from "../../utils/workoutRecords";
 
 type Route = RouteProp<RootStackParamList, "MachineDetail">;
 type PhotoModalAction = {
@@ -193,6 +198,9 @@ export default function MachineDetailScreen() {
 
     if (!machine) return null;
 
+    const recordEntry = getRecordHistoryEntry(history);
+    const recordVolume = recordEntry ? getHistoryEntryVolume(recordEntry) : null;
+
     return (
         <>
             <ScrollView
@@ -232,16 +240,117 @@ export default function MachineDetailScreen() {
                     )}
                 </TouchableOpacity>
 
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <View
+                    style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}
+                >
                     <CategoryBadge categoryKey={machine.categoryKey} />
                 </View>
                 {machine.description && (
                     <Text
-                        style={{ color: t.textMuted, fontSize: 14, lineHeight: 20, marginBottom: 16 }}
+                        style={{
+                            color: t.textMuted,
+                            fontSize: 14,
+                            lineHeight: 20,
+                            marginBottom: 16,
+                        }}
                     >
                         {machine.description}
                     </Text>
                 )}
+
+                <View
+                    style={{
+                        backgroundColor: t.inputBg,
+                        borderRadius: 16,
+                        padding: 16,
+                        borderWidth: 0.5,
+                        borderColor: t.border,
+                        marginBottom: 16,
+                    }}
+                >
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            gap: 12,
+                        }}
+                    >
+                        <View style={{ flex: 1 }}>
+                            <Text style={labelStyle}>{translate("detail.record.title")}</Text>
+                            <Text
+                                style={{
+                                    color: t.textMuted,
+                                    fontSize: 13,
+                                    lineHeight: 18,
+                                    marginTop: 8,
+                                }}
+                            >
+                                {recordEntry
+                                    ? translate("detail.record.subtitle")
+                                    : translate("detail.record.empty")}
+                            </Text>
+                        </View>
+
+                        {recordVolume !== null && (
+                            <View
+                                style={{
+                                    backgroundColor: t.chipBg,
+                                    borderRadius: 999,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 8,
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: t.accent,
+                                        fontSize: 12,
+                                        fontWeight: "800",
+                                    }}
+                                >
+                                    {translate("detail.record.volume", { volume: recordVolume })}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {recordEntry && (
+                        <View
+                            style={{
+                                marginTop: 16,
+                                backgroundColor: t.histBg,
+                                borderRadius: 14,
+                                paddingHorizontal: 14,
+                                paddingVertical: 12,
+                                borderWidth: 0.5,
+                                borderColor: t.border,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: t.textPrimary,
+                                    fontSize: 22,
+                                    fontWeight: "900",
+                                }}
+                            >
+                                {formatSetSequence(recordEntry.sets, " / ")}
+                                <Text style={{ color: t.textMuted, fontSize: 13 }}>
+                                    {" "}
+                                    {translate("common.units.kg")}
+                                </Text>
+                            </Text>
+                            <Text
+                                style={{
+                                    color: t.textDim,
+                                    fontSize: 12,
+                                    marginTop: 6,
+                                }}
+                            >
+                                {recordEntry.label}
+                            </Text>
+                        </View>
+                    )}
+                </View>
 
                 <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>
                     {translate("detail.history.title")}
@@ -249,7 +358,12 @@ export default function MachineDetailScreen() {
 
                 {history.length === 0 ? (
                     <Text
-                        style={{ color: t.textDim, textAlign: "center", marginTop: 24, fontSize: 14 }}
+                        style={{
+                            color: t.textDim,
+                            textAlign: "center",
+                            marginTop: 24,
+                            fontSize: 14,
+                        }}
                     >
                         {translate("detail.history.empty")}
                     </Text>
@@ -271,7 +385,11 @@ export default function MachineDetailScreen() {
                                     }}
                                 >
                                     <Text
-                                        style={{ color: t.textMuted, fontSize: 13, fontWeight: "500" }}
+                                        style={{
+                                            color: t.textMuted,
+                                            fontSize: 13,
+                                            fontWeight: "500",
+                                        }}
                                     >
                                         {item.label}
                                     </Text>
@@ -299,7 +417,7 @@ export default function MachineDetailScreen() {
                 )}
             </ScrollView>
 
-            <AppModal visible={!!photoModal} onClose={closePhotoModal}>
+            <AppModal visible={!!photoModal} onClose={closePhotoModal} compact>
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     bounces={false}
@@ -330,7 +448,11 @@ export default function MachineDetailScreen() {
 
                     <View style={{ gap: 10 }}>
                         {photoModal?.actions.map((action) => (
-                            <TouchableOpacity key={action.label} activeOpacity={0.78} onPress={action.onPress}>
+                            <TouchableOpacity
+                                key={action.label}
+                                activeOpacity={0.78}
+                                onPress={action.onPress}
+                            >
                                 {action.variant === "accent" ? (
                                     <LinearGradient
                                         colors={t.gradientAccent}
@@ -345,7 +467,13 @@ export default function MachineDetailScreen() {
                                         }}
                                     >
                                         <Ionicons name={action.icon} size={18} color={btnColor} />
-                                        <Text style={{ color: btnColor, fontSize: 15, fontWeight: "800" }}>
+                                        <Text
+                                            style={{
+                                                color: btnColor,
+                                                fontSize: 15,
+                                                fontWeight: "800",
+                                            }}
+                                        >
                                             {action.label}
                                         </Text>
                                     </LinearGradient>
@@ -362,17 +490,25 @@ export default function MachineDetailScreen() {
                                             backgroundColor:
                                                 action.variant === "danger" ? "#EF5350" : t.inputBg,
                                             borderWidth: action.variant === "danger" ? 0 : 0.5,
-                                            borderColor: action.variant === "danger" ? "transparent" : t.border,
+                                            borderColor:
+                                                action.variant === "danger"
+                                                    ? "transparent"
+                                                    : t.border,
                                         }}
                                     >
                                         <Ionicons
                                             name={action.icon}
                                             size={18}
-                                            color={action.variant === "danger" ? "#FFF" : t.textMuted}
+                                            color={
+                                                action.variant === "danger" ? "#FFF" : t.textMuted
+                                            }
                                         />
                                         <Text
                                             style={{
-                                                color: action.variant === "danger" ? "#FFF" : t.textMuted,
+                                                color:
+                                                    action.variant === "danger"
+                                                        ? "#FFF"
+                                                        : t.textMuted,
                                                 fontSize: 15,
                                                 fontWeight: "700",
                                             }}

@@ -77,9 +77,7 @@ function getRandomMessage(categories: string): { title: string; body: string } {
     };
 }
 
-export async function scheduleWeeklyNotifications(
-    daysWithCategories: Record<number, string[]>,
-) {
+export async function scheduleWeeklyNotifications(daysWithCategories: Record<number, string[]>) {
     await Notifications.cancelAllScheduledNotificationsAsync();
 
     const hasPermission = await requestNotificationPermission();
@@ -131,4 +129,9 @@ export async function syncNotifications(
     }
 
     await scheduleWeeklyNotifications(daysWithCategories);
+}
+
+export async function clearScheduledNotifications() {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await AsyncStorage.removeItem(NOTIF_KEY);
 }

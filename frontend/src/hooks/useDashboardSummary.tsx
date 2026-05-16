@@ -5,6 +5,11 @@ import { AppData } from "../dtos/AppData";
 import { HistoryEntry } from "../dtos/HistoryEntry";
 import { getCachedWorkoutData, loadWorkoutData } from "../services/workoutData";
 import { TranslationKey } from "../translates";
+import {
+    getHistoryEntryMaxWeight,
+    getHistoryEntryVolume,
+    getRecordHistoryEntry,
+} from "../utils/workoutRecords";
 
 type WorkoutDayAggregate = {
     key: string;
@@ -37,6 +42,8 @@ export type DashboardMachineProgress = {
     previousWeight: number | null;
     firstWeight: number | null;
     bestWeight: number | null;
+    bestRecordSets: [number, number, number] | null;
+    bestVolume: number | null;
     deltaFromStart: number | null;
     deltaFromPrevious: number | null;
     lastTrainedLabel: string | null;
@@ -94,12 +101,7 @@ function diffInDays(from: Date, to: Date) {
     return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function formatRelativeDay(
-    date: Date,
-    now: Date,
-    locale: string,
-    t: Translator,
-) {
+function formatRelativeDay(date: Date, now: Date, locale: string, t: Translator) {
     const diff = diffInDays(now, date);
 
     if (diff === 0) return t("common.relative.today");
@@ -107,10 +109,6 @@ function formatRelativeDay(
     if (diff < 7) return t("home.relative.daysAgo", { count: diff });
 
     return date.toLocaleDateString(locale, { day: "2-digit", month: "2-digit" });
-}
-
-function getEntryMaxWeight(entry: HistoryEntry) {
-    return Math.max(...entry.sets);
 }
 
 function buildWorkoutDays(data: AppData) {
@@ -133,11 +131,7 @@ function buildWorkoutDays(data: AppData) {
     return [...workoutDays.values()].sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
-function buildWeekPlan(
-    data: AppData,
-    todayIndex: number,
-    t: Translator,
-) {
+function buildWeekPlan(data: AppData, todayIndex: number, t: Translator) {
     return Array.from({ length: 7 }, (_, dayIndex) => {
         const machineIds = data.days[dayIndex] ?? [];
         const categoryKeys = [
@@ -159,11 +153,7 @@ function buildWeekPlan(
     });
 }
 
-function buildNextPlannedDayLabel(
-    weekPlan: DashboardPlanDay[],
-    todayIndex: number,
-    t: Translator,
-) {
+function buildNextPlannedDayLabel(weekPlan: DashboardPlanDay[], todayIndex: number, t: Translator) {
     for (let offset = 0; offset < 7; offset += 1) {
         const dayIndex = (todayIndex + offset) % 7;
         const day = weekPlan[dayIndex];
@@ -252,13 +242,11 @@ function buildMachineProgress(
     const latestEntry = sortedHistory[sortedHistory.length - 1];
     const previousEntry = sortedHistory[sortedHistory.length - 2];
     const firstEntry = sortedHistory[0];
-    const latestWeight = latestEntry ? getEntryMaxWeight(latestEntry) : null;
-    const previousWeight = previousEntry ? getEntryMaxWeight(previousEntry) : null;
-    const firstWeight = firstEntry ? getEntryMaxWeight(firstEntry) : null;
-    const bestWeight =
-        sortedHistory.length > 0
-            ? Math.max(...sortedHistory.map((entry) => getEntryMaxWeight(entry)))
-            : null;
+    const recordEntry = getRecordHistoryEntry(sortedHistory);
+    const latestWeight = latestEntry ? getHistoryEntryMaxWeight(latestEntry) : null;
+    const previousWeight = previousEntry ? getHistoryEntryMaxWeight(previousEntry) : null;
+    const firstWeight = firstEntry ? getHistoryEntryMaxWeight(firstEntry) : null;
+    const bestWeight = recordEntry ? getHistoryEntryMaxWeight(recordEntry) : null;
 
     return {
         machineId: machine.id,
@@ -269,6 +257,8 @@ function buildMachineProgress(
         previousWeight,
         firstWeight,
         bestWeight,
+        bestRecordSets: recordEntry?.sets ?? null,
+        bestVolume: recordEntry ? getHistoryEntryVolume(recordEntry) : null,
         deltaFromStart:
             latestWeight !== null && firstWeight !== null && sortedHistory.length > 1
                 ? latestWeight - firstWeight
@@ -281,16 +271,12 @@ function buildMachineProgress(
         points: sortedHistory.slice(-4).map((entry) => ({
             key: entry.id,
             label: formatRelativeDay(new Date(entry.date), now, locale, t),
-            maxWeight: getEntryMaxWeight(entry),
+            maxWeight: getHistoryEntryMaxWeight(entry),
         })),
     };
 }
 
-function buildSummary(
-    data: AppData,
-    locale: string,
-    t: Translator,
-): DashboardSummary {
+function buildSummary(data: AppData, locale: string, t: Translator): DashboardSummary {
     const now = new Date();
     const today = startOfLocalDay(now);
     const todayIndex = now.getDay();

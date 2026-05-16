@@ -110,8 +110,7 @@ export const ptBR = {
     "creditCheckout.step.document": "CPF",
     "creditCheckout.step.payment": "Pix",
     "creditCheckout.quantityTitle": "Quantos créditos você quer comprar?",
-    "creditCheckout.quantityDescription":
-        "Cada crédito libera 1 nova geração de treino com IA.",
+    "creditCheckout.quantityDescription": "Cada crédito libera 1 nova geração de treino com IA.",
     "creditCheckout.quantityLabel": "Quantidade de créditos",
     "creditCheckout.quantityPlaceholder": "1",
     "creditCheckout.quantityHint": "Cada crédito custa {price}. Total estimado: {total}.",
@@ -166,7 +165,7 @@ export const ptBR = {
     "day.maxWeight": "máx. {weight}kg",
     "day.remove.title": "Remover máquina",
     "day.remove.message":
-        "Remover \"{name}\" deste dia? O histórico será mantido se ela estiver em outro dia.",
+        'Remover "{name}" deste dia? O histórico será mantido se ela estiver em outro dia.',
     "detail.permission.title": "Permissão necessária",
     "detail.permission.galleryMessage":
         "Permita acesso à galeria para selecionar uma foto da máquina.",
@@ -182,6 +181,10 @@ export const ptBR = {
     "detail.photo.removeAction": "Remover foto",
     "detail.photo.actionsTitle": "Foto da máquina",
     "detail.photo.actionsMessage": "Escolha o que deseja fazer com a imagem.",
+    "detail.record.title": "recorde",
+    "detail.record.subtitle": "Sequência de 3 séries com maior volume já salva nessa máquina.",
+    "detail.record.empty": "Ainda não há recorde salvo para essa máquina.",
+    "detail.record.volume": "volume {volume}kg",
     "detail.history.title": "histórico",
     "detail.history.empty": "Nenhum registro ainda. Inicie um treino para registrar pesos.",
     "home.greetingFallback": "atleta",
@@ -213,6 +216,7 @@ export const ptBR = {
     "home.machine.metric.current": "atual",
     "home.machine.metric.initial": "inicial",
     "home.machine.metric.record": "recorde",
+    "home.machine.recordVolume": "{volume} de volume",
     "home.machine.noHistoryCard":
         "Essa máquina já está no dia planejado, mas ainda não tem histórico salvo.",
     "home.machine.recordsTitle": "últimos registros",
@@ -263,8 +267,7 @@ export const ptBR = {
     "aiWizard.days.description":
         "Marque exatamente os dias em que você quer ir para a academia. A IA vai usar isso para montar a divisão com mais precisão.",
     "aiWizard.days.empty": "Selecione pelo menos um dia.",
-    "aiWizard.days.selectedCount":
-        "{count} dia{daySuffix} selecionado{selectedSuffix}.",
+    "aiWizard.days.selectedCount": "{count} dia{daySuffix} selecionado{selectedSuffix}.",
     "aiWizard.preferences.description":
         "Esses campos são opcionais. Preencha se quiser que a IA respeite um limite de tempo, volume diário ou um modelo de divisão específico.",
     "aiWizard.preferences.hoursLabel": "Horas por dia",

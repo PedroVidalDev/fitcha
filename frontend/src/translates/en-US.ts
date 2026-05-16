@@ -112,8 +112,7 @@ export const enUS: TranslationDictionary = {
     "creditCheckout.step.document": "CPF",
     "creditCheckout.step.payment": "Pix",
     "creditCheckout.quantityTitle": "How many credits do you want to buy?",
-    "creditCheckout.quantityDescription":
-        "Each credit unlocks 1 new AI workout generation.",
+    "creditCheckout.quantityDescription": "Each credit unlocks 1 new AI workout generation.",
     "creditCheckout.quantityLabel": "Credit quantity",
     "creditCheckout.quantityPlaceholder": "1",
     "creditCheckout.quantityHint": "Each credit costs {price}. Estimated total: {total}.",
@@ -168,12 +167,10 @@ export const enUS: TranslationDictionary = {
     "day.maxWeight": "max {weight}kg",
     "day.remove.title": "Remove machine",
     "day.remove.message":
-        "Remove \"{name}\" from this day? History will be kept if it is still in another day.",
+        'Remove "{name}" from this day? History will be kept if it is still in another day.',
     "detail.permission.title": "Permission required",
-    "detail.permission.galleryMessage":
-        "Allow gallery access to choose a photo for this machine.",
-    "detail.permission.cameraMessage":
-        "Allow camera access to take a photo of this machine.",
+    "detail.permission.galleryMessage": "Allow gallery access to choose a photo for this machine.",
+    "detail.permission.cameraMessage": "Allow camera access to take a photo of this machine.",
     "detail.photo.add": "Add photo",
     "detail.photo.change": "Change photo",
     "detail.photo.sourceMessage": "Choose where the image should come from.",
@@ -184,6 +181,10 @@ export const enUS: TranslationDictionary = {
     "detail.photo.removeAction": "Remove photo",
     "detail.photo.actionsTitle": "Machine photo",
     "detail.photo.actionsMessage": "Choose what you want to do with the image.",
+    "detail.record.title": "record",
+    "detail.record.subtitle": "3-set sequence with the highest saved volume for this machine.",
+    "detail.record.empty": "There is no saved record for this machine yet.",
+    "detail.record.volume": "volume {volume}kg",
     "detail.history.title": "history",
     "detail.history.empty": "No records yet. Start a workout to log weights.",
     "home.greetingFallback": "athlete",
@@ -191,11 +192,9 @@ export const enUS: TranslationDictionary = {
     "home.delta.zero": "0 kg",
     "home.relative.daysAgo": "{count} days",
     "home.featured.emptyTitle": "progress by machine",
-    "home.featured.emptySubtitle":
-        "Set up your week to unlock this comparison for each exercise.",
+    "home.featured.emptySubtitle": "Set up your week to unlock this comparison for each exercise.",
     "home.featured.todayTitle": "today's machines",
-    "home.featured.todaySubtitle":
-        "Swipe sideways to see load progress for each machine.",
+    "home.featured.todaySubtitle": "Swipe sideways to see load progress for each machine.",
     "home.featured.nextTitle": "next workout - {day}",
     "home.featured.nextSubtitle":
         "There are no planned machines for today, so the comparison uses the next active day.",
@@ -205,8 +204,7 @@ export const enUS: TranslationDictionary = {
         "Open Week, spread machines across your days, and this area will start showing progress for each one.",
     "home.machine.comparison.noHistory": "There is no saved workout for this machine yet.",
     "home.machine.comparison.needMore": "Save one more workout to compare your progress.",
-    "home.machine.comparison.default":
-        "Current load compared with the first saved record.",
+    "home.machine.comparison.default": "Current load compared with the first saved record.",
     "home.machine.previous.noHistory": "no history",
     "home.machine.previous.oneRecord": "1 saved record",
     "home.machine.previous.noComparison": "no comparison",
@@ -216,6 +214,7 @@ export const enUS: TranslationDictionary = {
     "home.machine.metric.current": "current",
     "home.machine.metric.initial": "initial",
     "home.machine.metric.record": "record",
+    "home.machine.recordVolume": "{volume} volume",
     "home.machine.noHistoryCard":
         "This machine is already planned for the day, but it still has no saved history.",
     "home.machine.recordsTitle": "latest records",

@@ -12,6 +12,8 @@ import {
     User,
 } from "../../@types/auth";
 import { axiosApp, ensureApiUrlConfigured, setAxiosAuthToken } from "../../services/axios";
+import { clearScheduledNotifications } from "../../services/notifications";
+import { clearData } from "../../services/storage";
 import { resetWorkoutSyncState } from "../../services/workoutData";
 
 const AUTH_KEY = "auth_session";
@@ -244,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const clearSession = useCallback(async () => {
+        await Promise.all([clearData(), clearScheduledNotifications()]);
         resetWorkoutSyncState();
         setAxiosAuthToken(null);
         await AsyncStorage.multiRemove([AUTH_KEY, LEGACY_AUTH_KEY]);

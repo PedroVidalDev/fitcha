@@ -90,8 +90,7 @@ export const esES: TranslationDictionary = {
     "profile.credits.pendingTitle": "Pago pendiente",
     "profile.credits.pendingDescriptionWithDate":
         "Hay un Pix de {quantity} credito(s) esperando pago hasta {date}.",
-    "profile.credits.pendingDescription":
-        "Hay un Pix esperando pago para liberar mas creditos.",
+    "profile.credits.pendingDescription": "Hay un Pix esperando pago para liberar mas creditos.",
     "profile.credits.continuePayment": "Continuar pago",
     "profile.credits.buy": "Comprar creditos",
     "profile.form.title": "Tus datos",
@@ -168,7 +167,7 @@ export const esES: TranslationDictionary = {
     "day.maxWeight": "max {weight}kg",
     "day.remove.title": "Eliminar maquina",
     "day.remove.message":
-        "Eliminar \"{name}\" de este dia? El historial se mantendra si sigue en otro dia.",
+        'Eliminar "{name}" de este dia? El historial se mantendra si sigue en otro dia.',
     "detail.permission.title": "Permiso necesario",
     "detail.permission.galleryMessage":
         "Permite acceso a la galeria para elegir una foto de la maquina.",
@@ -184,9 +183,13 @@ export const esES: TranslationDictionary = {
     "detail.photo.removeAction": "Eliminar foto",
     "detail.photo.actionsTitle": "Foto de la maquina",
     "detail.photo.actionsMessage": "Elige lo que quieres hacer con la imagen.",
+    "detail.record.title": "record",
+    "detail.record.subtitle":
+        "Secuencia de 3 series con el mayor volumen guardado en esta maquina.",
+    "detail.record.empty": "Todavia no hay un record guardado para esta maquina.",
+    "detail.record.volume": "volumen {volume}kg",
     "detail.history.title": "historial",
-    "detail.history.empty":
-        "Todavia no hay registros. Inicia un entrenamiento para guardar pesos.",
+    "detail.history.empty": "Todavia no hay registros. Inicia un entrenamiento para guardar pesos.",
     "home.greetingFallback": "atleta",
     "home.delta.noBase": "Sin base",
     "home.delta.zero": "0 kg",
@@ -206,8 +209,7 @@ export const esES: TranslationDictionary = {
         "Abre Week, distribuye las maquinas en los dias de la semana y esta area empezara a mostrar la evolucion de cada una.",
     "home.machine.comparison.noHistory":
         "Todavia no existe un entrenamiento guardado para esta maquina.",
-    "home.machine.comparison.needMore":
-        "Guarda un entrenamiento mas para comparar tu evolucion.",
+    "home.machine.comparison.needMore": "Guarda un entrenamiento mas para comparar tu evolucion.",
     "home.machine.comparison.default":
         "Comparacion de la carga actual contra el primer registro guardado.",
     "home.machine.previous.noHistory": "sin historial",
@@ -219,6 +221,7 @@ export const esES: TranslationDictionary = {
     "home.machine.metric.current": "actual",
     "home.machine.metric.initial": "inicial",
     "home.machine.metric.record": "record",
+    "home.machine.recordVolume": "{volume} de volumen",
     "home.machine.noHistoryCard":
         "Esta maquina ya esta en el dia planificado, pero todavia no tiene historial guardado.",
     "home.machine.recordsTitle": "ultimos registros",
@@ -328,8 +331,7 @@ export const esES: TranslationDictionary = {
     "workout.pending.message":
         "{count} maquina{machineSuffix} sin las 3 series completas. Puedes guardar ahora o seguir revisando.",
     "workout.quit.title": "Cerrar entrenamiento?",
-    "workout.quit.message":
-        "Si sales ahora, el entrenamiento terminara y no se guardara nada.",
+    "workout.quit.message": "Si sales ahora, el entrenamiento terminara y no se guardara nada.",
     "workout.quit.confirm": "Cerrar",
     "workout.series.one": "Serie 1",
     "workout.series.two": "Serie 2",
@@ -364,17 +366,13 @@ export const esES: TranslationDictionary = {
     "notifications.emulatorUnsupported": "Las notificaciones no funcionan en el emulador",
     "notifications.channelName": "Recordatorios de entrenamiento",
     "notifications.message1.title": "Vamos a entrenar! 💪",
-    "notifications.message1.body":
-        "Hoy toca {categories}. No lo dejes para manana!",
+    "notifications.message1.body": "Hoy toca {categories}. No lo dejes para manana!",
     "notifications.message2.title": "Hora del hierro! 🏋️",
-    "notifications.message2.body":
-        "Tu entrenamiento de {categories} te esta esperando.",
+    "notifications.message2.body": "Tu entrenamiento de {categories} te esta esperando.",
     "notifications.message3.title": "Es la hora! ⚡",
     "notifications.message3.body": "Dia de {categories}. Vamos a meter carga!",
     "notifications.message4.title": "Entrenamiento del dia 🔥",
-    "notifications.message4.body":
-        "{categories} en el menu de hoy. Ven al gimnasio!",
+    "notifications.message4.body": "{categories} en el menu de hoy. Ven al gimnasio!",
     "notifications.message5.title": "No faltes al entrenamiento! 💪",
-    "notifications.message5.body":
-        "Hoy hay {categories}. Tu cuerpo te lo va a agradecer.",
+    "notifications.message5.body": "Hoy hay {categories}. Tu cuerpo te lo va a agradecer.",
 };

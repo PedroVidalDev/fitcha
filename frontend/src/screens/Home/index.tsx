@@ -23,6 +23,7 @@ import { CategoryBadge } from "../../components/CategoryBadge";
 import { useAuth } from "../../contexts/AuthContext";
 import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { formatSetSequence } from "../../utils/workoutRecords";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, "Home">;
 
@@ -33,6 +34,10 @@ function getFirstName(name?: string, fallback = "athlete") {
 
 function formatWeight(value: number | null) {
     return value === null ? "--" : `${value}kg`;
+}
+
+function formatRecord(value: [number, number, number] | null) {
+    return value === null ? "--" : formatSetSequence(value);
 }
 
 function formatDelta(
@@ -365,12 +370,21 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                     <Text
                         style={{
                             color: t.textPrimary,
-                            fontSize: 18,
+                            fontSize: 17,
                             fontWeight: "900",
                             marginTop: 6,
                         }}
                     >
-                        {formatWeight(item.bestWeight)}
+                        {formatRecord(item.bestRecordSets)}
+                    </Text>
+                    <Text
+                        style={{ color: t.textMuted, fontSize: 12, lineHeight: 17, marginTop: 4 }}
+                    >
+                        {item.bestVolume === null
+                            ? translate("home.machine.previous.noHistory")
+                            : translate("home.machine.recordVolume", {
+                                  volume: `${item.bestVolume} ${translate("common.units.kg")}`,
+                              })}
                     </Text>
                 </View>
             </View>
@@ -581,8 +595,7 @@ export default function HomeScreen() {
                                       streakSuffix: summary.streak !== 1 ? "s" : "",
                                       recent: summary.recentWorkoutDays,
                                       recentSuffix: summary.recentWorkoutDays !== 1 ? "s" : "",
-                                      activeSuffix:
-                                          summary.recentWorkoutDays !== 1 ? "s" : "",
+                                      activeSuffix: summary.recentWorkoutDays !== 1 ? "s" : "",
                                   })
                                 : translate("home.header.summaryWithoutHistory")}
                         </Text>
@@ -656,7 +669,8 @@ export default function HomeScreen() {
                                         marginTop: 6,
                                     }}
                                 >
-                                    {summary.nextPlannedDayLabel ?? translate("home.header.buildWeek")}
+                                    {summary.nextPlannedDayLabel ??
+                                        translate("home.header.buildWeek")}
                                 </Text>
                             </View>
                         </View>
@@ -693,7 +707,8 @@ export default function HomeScreen() {
                         title={translate("home.stats.streakTitle")}
                         value={`${summary.streak}`}
                         hint={translate("home.stats.streakHint", {
-                            suffix: summary.streak === 0 ? translate("home.stats.streakHintZero") : "",
+                            suffix:
+                                summary.streak === 0 ? translate("home.stats.streakHintZero") : "",
                         })}
                         icon="flame-outline"
                     />
@@ -750,8 +765,7 @@ export default function HomeScreen() {
                         {summary.featuredPlanDay
                             ? translate("home.featured.focusCount", {
                                   count: summary.machineProgress.length,
-                                  pluralSuffix:
-                                      summary.machineProgress.length !== 1 ? "s" : "",
+                                  pluralSuffix: summary.machineProgress.length !== 1 ? "s" : "",
                               })
                             : translate("home.featured.noPlannedDays")}
                     </Text>

@@ -1,9 +1,9 @@
 import { useDayMachines } from "@/src/hooks/useDayMachines";
 import { useSaveWorkout } from "@/src/screens/Workout/hooks/useSaveWorkout";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Image,
     Animated as RNAnimated,
@@ -34,7 +34,7 @@ export default function WorkoutScreen() {
     const route = useRoute<Route>();
     const day = route.params.dayIndex;
 
-    const { machines } = useDayMachines(day);
+    const { machines, refresh } = useDayMachines(day);
     const saveWorkout = useSaveWorkout();
 
     const [currentIdx, setCurrentIdx] = useState(0);
@@ -246,6 +246,12 @@ export default function WorkoutScreen() {
         });
     }, [currentIdx]);
 
+    useFocusEffect(
+        useCallback(() => {
+            void refresh();
+        }, [refresh]),
+    );
+
     if (!machine) return null;
 
     const seriesFields = [
@@ -253,19 +259,19 @@ export default function WorkoutScreen() {
             key: "set1" as const,
             label: translate("workout.series.one"),
             value: currentDraft.set1,
-            placeholder: String(machine.lastSets?.[0] ?? 0),
+            placeholder: machine.recordSets?.[0]?.toString() ?? "",
         },
         {
             key: "set2" as const,
             label: translate("workout.series.two"),
             value: currentDraft.set2,
-            placeholder: String(machine.lastSets?.[1] ?? 0),
+            placeholder: machine.recordSets?.[1]?.toString() ?? "",
         },
         {
             key: "set3" as const,
             label: translate("workout.series.three"),
             value: currentDraft.set3,
-            placeholder: String(machine.lastSets?.[2] ?? 0),
+            placeholder: machine.recordSets?.[2]?.toString() ?? "",
         },
     ];
 
@@ -575,7 +581,7 @@ export default function WorkoutScreen() {
                     <View style={{ gap: 10 }}>
                         {seriesFields.map((item) => (
                             <View
-                                key={item.key}
+                                key={`${machine.id}-${item.key}`}
                                 style={{
                                     flexDirection: "row",
                                     alignItems: "center",
@@ -613,7 +619,9 @@ export default function WorkoutScreen() {
                                     value={item.value}
                                     onChangeText={(value) => updateDraftField(item.key, value)}
                                 />
-                                <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>
+                                <Text
+                                    style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}
+                                >
                                     {translate("common.units.kg")}
                                 </Text>
                             </View>
@@ -646,7 +654,9 @@ export default function WorkoutScreen() {
                                     size={20}
                                     color={t.textMuted}
                                 />
-                                <Text style={{ color: t.textMuted, fontSize: 16, fontWeight: "800" }}>
+                                <Text
+                                    style={{ color: t.textMuted, fontSize: 16, fontWeight: "800" }}
+                                >
                                     {translate("common.actions.back")}
                                 </Text>
                             </TouchableOpacity>
@@ -668,7 +678,11 @@ export default function WorkoutScreen() {
                                     }}
                                 >
                                     <Ionicons
-                                        name={isLast ? "checkmark-done-circle" : "arrow-forward-circle"}
+                                        name={
+                                            isLast
+                                                ? "checkmark-done-circle"
+                                                : "arrow-forward-circle"
+                                        }
                                         size={22}
                                         color={btnColor}
                                     />
@@ -682,7 +696,6 @@ export default function WorkoutScreen() {
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
-
                     </View>
                 </RNAnimated.View>
             </ScrollView>
