@@ -1,28 +1,53 @@
 services:
-  api:
-    env_file:
-      - .env
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      REDIS_ADDR: redis:6379
-    ports:
-      - "${PORT:-8080}:${PORT:-8080}"
-
   worker:
+    build:
+      context: .
+    container_name: fitcha_worker
+    restart: always
+    command: ["./worker"]
     env_file:
       - .env
-    environment:
-      REDIS_ADDR: redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - fitcha-network
 
   db:
-    environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-postgres}
+    image: postgres:17
+    container_name: fitcha_postgres
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env
     ports:
       - "${DB_PORT:-5432}:${DB_PORT:-5432}"
+    volumes:
+      - fitcha_data:/var/lib/postgresql/data
+    networks:
+      - fitcha-network
 
   redis:
+    image: redis:7-alpine
+    container_name: fitcha_redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
+    volumes:
+      - fitcha_redis_data:/data
+    networks:
+      - fitcha-network
+
+volumes:
+  fitcha_data:
+  fitcha_redis_data:
