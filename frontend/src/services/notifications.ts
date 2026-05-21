@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import { translateRuntime } from "../translates/runtime";
 
 const NOTIF_KEY = "fitcha_notifications_scheduled";
 
@@ -17,13 +18,13 @@ Notifications.setNotificationHandler({
 
 export async function requestNotificationPermission(): Promise<boolean> {
     if (!Device.isDevice) {
-        console.log("Notificações não funcionam no emulador");
+        console.log(translateRuntime("notifications.emulatorUnsupported"));
         return false;
     }
 
     if (Platform.OS === "android") {
         await Notifications.setNotificationChannelAsync("treino", {
-            name: "Lembretes de treino",
+            name: translateRuntime("notifications.channelName"),
             importance: Notifications.AndroidImportance.HIGH,
             sound: "default",
             vibrationPattern: [0, 250, 250, 250],
@@ -42,25 +43,41 @@ export async function requestNotificationPermission(): Promise<boolean> {
     return finalStatus === "granted";
 }
 
-const MESSAGES = [
-    { title: "Bora treinar! 💪", body: "Hoje é dia de {categories}. Não deixa pra amanhã!" },
-    { title: "Hora do ferro! 🏋️", body: "Seu treino de {categories} tá te esperando." },
-    { title: "Tá na hora! ⚡", body: "Dia de {categories}. Bora meter carga!" },
-    { title: "Treino do dia 🔥", body: "{categories} no cardápio de hoje. Cola na academia!" },
-    { title: "Não fura o treino! 💪", body: "Hoje tem {categories}. Seu corpo agradece." },
-];
+function buildMessages() {
+    return [
+        {
+            title: translateRuntime("notifications.message1.title"),
+            body: translateRuntime("notifications.message1.body"),
+        },
+        {
+            title: translateRuntime("notifications.message2.title"),
+            body: translateRuntime("notifications.message2.body"),
+        },
+        {
+            title: translateRuntime("notifications.message3.title"),
+            body: translateRuntime("notifications.message3.body"),
+        },
+        {
+            title: translateRuntime("notifications.message4.title"),
+            body: translateRuntime("notifications.message4.body"),
+        },
+        {
+            title: translateRuntime("notifications.message5.title"),
+            body: translateRuntime("notifications.message5.body"),
+        },
+    ];
+}
 
 function getRandomMessage(categories: string): { title: string; body: string } {
-    const msg = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
+    const messages = buildMessages();
+    const msg = messages[Math.floor(Math.random() * messages.length)];
     return {
         title: msg.title,
         body: msg.body.replace("{categories}", categories),
     };
 }
 
-export async function scheduleWeeklyNotifications(
-    daysWithCategories: Record<number, string[]>,
-) {
+export async function scheduleWeeklyNotifications(daysWithCategories: Record<number, string[]>) {
     await Notifications.cancelAllScheduledNotificationsAsync();
 
     const hasPermission = await requestNotificationPermission();
@@ -112,4 +129,9 @@ export async function syncNotifications(
     }
 
     await scheduleWeeklyNotifications(daysWithCategories);
+}
+
+export async function clearScheduledNotifications() {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await AsyncStorage.removeItem(NOTIF_KEY);
 }

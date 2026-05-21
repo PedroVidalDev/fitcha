@@ -1,4 +1,5 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import { StepGoalProps } from "./types";
@@ -7,18 +8,44 @@ export const StepGoal = (props: StepGoalProps) => {
     const { value, onChange } = props;
 
     const { t } = useTheme();
+    const { t: translate } = useI18n();
     const options: {
         key: "hipertrofia" | "forca" | "resistencia" | "emagrecimento";
         icon: string;
-        desc: string;
+        titleKey:
+            | "aiWizard.goal.hypertrophy.title"
+            | "aiWizard.goal.strength.title"
+            | "aiWizard.goal.endurance.title"
+            | "aiWizard.goal.weightLoss.title";
+        descKey:
+            | "aiWizard.goal.hypertrophy.description"
+            | "aiWizard.goal.strength.description"
+            | "aiWizard.goal.endurance.description"
+            | "aiWizard.goal.weightLoss.description";
     }[] = [
-        { key: "hipertrofia", icon: "body-outline", desc: "Ganho de massa muscular" },
-        { key: "forca", icon: "barbell-outline", desc: "Aumento de carga máxima" },
-        { key: "resistencia", icon: "heart-outline", desc: "Mais repetições e stamina" },
+        {
+            key: "hipertrofia",
+            icon: "body-outline",
+            titleKey: "aiWizard.goal.hypertrophy.title",
+            descKey: "aiWizard.goal.hypertrophy.description",
+        },
+        {
+            key: "forca",
+            icon: "barbell-outline",
+            titleKey: "aiWizard.goal.strength.title",
+            descKey: "aiWizard.goal.strength.description",
+        },
+        {
+            key: "resistencia",
+            icon: "heart-outline",
+            titleKey: "aiWizard.goal.endurance.title",
+            descKey: "aiWizard.goal.endurance.description",
+        },
         {
             key: "emagrecimento",
             icon: "trending-down-outline",
-            desc: "Perda de gordura com treino",
+            titleKey: "aiWizard.goal.weightLoss.title",
+            descKey: "aiWizard.goal.weightLoss.description",
         },
     ];
 
@@ -60,7 +87,7 @@ export const StepGoal = (props: StepGoalProps) => {
                                         : t.textPrimary,
                                 }}
                             >
-                                {opt.key}
+                                {translate(opt.titleKey)}
                             </Text>
                             <Text
                                 style={{
@@ -73,7 +100,7 @@ export const StepGoal = (props: StepGoalProps) => {
                                         : t.textMuted,
                                 }}
                             >
-                                {opt.desc}
+                                {translate(opt.descKey)}
                             </Text>
                         </View>
                     </TouchableOpacity>

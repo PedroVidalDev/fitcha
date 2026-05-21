@@ -2,8 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { AppModal } from "../AppModal";
+import { useAuth } from "../../contexts/AuthContext";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { AppModal } from "../AppModal";
 import { StepBody } from "./components/StepBody";
 import { StepDays } from "./components/StepDays";
 import { StepGoal } from "./components/StepGoal";
@@ -28,22 +30,24 @@ function createInitialWizardData(): WizardData {
 }
 
 export function AIWizard(props: AIWizardProps) {
-    const { visible, onClose, onFinish } = props;
+    const { visible, onClose, onRequestBuyCredits, onFinish } = props;
 
     const { t } = useTheme();
+    const { t: translate } = useI18n();
+    const { user } = useAuth();
     const [step, setStep] = useState<WizardStep>(0);
     const [data, setData] = useState<WizardData>(createInitialWizardData);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const slideAnim = useRef(new Animated.Value(0)).current;
     const stepTitles = [
-        "Seus dados físicos",
-        "Quais dias você vai treinar?",
-        "Preferências do treino",
-        "Qual a intensidade?",
-        "Qual seu objetivo?",
-        "Instruções personalizadas",
-        "Confirmar geração",
+        translate("aiWizard.step.body"),
+        translate("aiWizard.step.days"),
+        translate("aiWizard.step.preferences"),
+        translate("aiWizard.step.intensity"),
+        translate("aiWizard.step.goal"),
+        translate("aiWizard.step.instructions"),
+        translate("aiWizard.step.review"),
     ];
     const lastStep = (stepTitles.length - 1) as WizardStep;
 
@@ -100,8 +104,74 @@ export function AIWizard(props: AIWizardProps) {
         }
     }, [visible]);
 
+    if (visible && (user?.credits ?? 0) <= 0) {
+        return (
+            <AppModal visible={visible} onClose={onClose} compact>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <Ionicons name="alert-circle-outline" size={22} color={t.accent} />
+                    <Text style={{ color: t.textPrimary, fontSize: 20, fontWeight: "900" }}>
+                        {translate("aiWizard.noCredits.title")}
+                    </Text>
+                </View>
+
+                <Text
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 14,
+                        lineHeight: 22,
+                        marginBottom: 24,
+                    }}
+                >
+                    {translate("aiWizard.noCredits.description")}
+                </Text>
+
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={onClose}
+                        style={{
+                            flex: 1,
+                            borderRadius: 16,
+                            borderWidth: 0.5,
+                            borderColor: t.border,
+                            paddingVertical: 14,
+                            alignItems: "center",
+                            backgroundColor: t.card,
+                        }}
+                    >
+                        <Text style={{ color: t.textPrimary, fontSize: 15, fontWeight: "800" }}>
+                            {translate("common.actions.close")}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => {
+                            onClose();
+                            onRequestBuyCredits();
+                        }}
+                        style={{ flex: 1 }}
+                    >
+                        <LinearGradient
+                            colors={t.gradientAccent}
+                            style={{
+                                borderRadius: 16,
+                                paddingVertical: 14,
+                                alignItems: "center",
+                            }}
+                        >
+                            <Text style={{ color: btnColor, fontSize: 15, fontWeight: "900" }}>
+                                {translate("aiWizard.noCredits.buy")}
+                            </Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            </AppModal>
+        );
+    }
+
     return (
-        <AppModal visible={visible} onClose={handleClose} contentStyle={{ maxHeight: "85%" }}>
+        <AppModal visible={visible} onClose={handleClose}>
             <View
                 style={{
                     flexDirection: "row",
@@ -121,7 +191,7 @@ export function AIWizard(props: AIWizardProps) {
                             letterSpacing: 1,
                         }}
                     >
-                        treino com ia
+                        {translate("aiWizard.badge")}
                     </Text>
                 </View>
                 <TouchableOpacity
@@ -134,14 +204,14 @@ export function AIWizard(props: AIWizardProps) {
             </View>
 
             <View style={{ flexDirection: "row", gap: 6, marginBottom: 20 }}>
-                {stepTitles.map((_, i) => (
+                {stepTitles.map((_, index) => (
                     <View
-                        key={i}
+                        key={index}
                         style={{
                             flex: 1,
                             height: 3,
                             borderRadius: 2,
-                            backgroundColor: i <= step ? t.accent : t.inputBg,
+                            backgroundColor: index <= step ? t.accent : t.inputBg,
                         }}
                     />
                 ))}
@@ -160,53 +230,56 @@ export function AIWizard(props: AIWizardProps) {
 
             <ScrollView
                 style={{ maxHeight: 320 }}
+                contentContainerStyle={{ paddingBottom: 4 }}
                 showsVerticalScrollIndicator={false}
                 bounces={false}
             >
                 <Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
-                    {step === 0 && (
+                    {step === 0 ? (
                         <StepBody
                             height={data.height}
                             weight={data.weight}
-                            onHeightChange={(v) => setData({ ...data, height: v })}
-                            onWeightChange={(v) => setData({ ...data, weight: v })}
+                            onHeightChange={(value) => setData({ ...data, height: value })}
+                            onWeightChange={(value) => setData({ ...data, weight: value })}
                         />
-                    )}
-                    {step === 1 && (
+                    ) : null}
+                    {step === 1 ? (
                         <StepDays
                             value={data.selectedDays}
                             onChange={(value) => setData({ ...data, selectedDays: value })}
                         />
-                    )}
-                    {step === 2 && (
+                    ) : null}
+                    {step === 2 ? (
                         <StepPreferences
                             hoursPerDay={data.hoursPerDay}
                             machinesPerDay={data.machinesPerDay}
                             workoutSplit={data.workoutSplit}
-                            onHoursPerDayChange={(v) => setData({ ...data, hoursPerDay: v })}
-                            onMachinesPerDayChange={(v) => setData({ ...data, machinesPerDay: v })}
-                            onWorkoutSplitChange={(v) => setData({ ...data, workoutSplit: v })}
+                            onHoursPerDayChange={(value) => setData({ ...data, hoursPerDay: value })}
+                            onMachinesPerDayChange={(value) =>
+                                setData({ ...data, machinesPerDay: value })
+                            }
+                            onWorkoutSplitChange={(value) => setData({ ...data, workoutSplit: value })}
                         />
-                    )}
-                    {step === 3 && (
+                    ) : null}
+                    {step === 3 ? (
                         <StepIntensity
                             value={data.intensity}
-                            onChange={(v) => setData({ ...data, intensity: v })}
+                            onChange={(value) => setData({ ...data, intensity: value })}
                         />
-                    )}
-                    {step === 4 && (
+                    ) : null}
+                    {step === 4 ? (
                         <StepGoal
                             value={data.goal}
-                            onChange={(v) => setData({ ...data, goal: v })}
+                            onChange={(value) => setData({ ...data, goal: value })}
                         />
-                    )}
-                    {step === 5 && (
+                    ) : null}
+                    {step === 5 ? (
                         <StepInstructions
                             value={data.customInstructions}
-                            onChange={(v) => setData({ ...data, customInstructions: v })}
+                            onChange={(value) => setData({ ...data, customInstructions: value })}
                         />
-                    )}
-                    {step === 6 && <StepResult data={data} />}
+                    ) : null}
+                    {step === 6 ? <StepResult data={data} /> : null}
                 </Animated.View>
             </ScrollView>
 
@@ -226,7 +299,7 @@ export function AIWizard(props: AIWizardProps) {
                                 fontWeight: "600",
                             }}
                         >
-                            Voltar
+                            {translate("common.actions.back")}
                         </Text>
                     </TouchableOpacity>
                 ) : (
@@ -255,7 +328,7 @@ export function AIWizard(props: AIWizardProps) {
                                     fontWeight: "800",
                                 }}
                             >
-                                Próximo
+                                {translate("common.actions.next")}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -269,10 +342,10 @@ export function AIWizard(props: AIWizardProps) {
                                 onClose();
                             } catch (error) {
                                 Alert.alert(
-                                    "Erro ao gerar treino",
+                                    translate("aiWizard.error.title"),
                                     error instanceof Error
                                         ? error.message
-                                        : "Não foi possível gerar o treino agora.",
+                                        : translate("aiWizard.error.message"),
                                 );
                             } finally {
                                 setIsSubmitting(false);
@@ -301,7 +374,9 @@ export function AIWizard(props: AIWizardProps) {
                                     fontWeight: "800",
                                 }}
                             >
-                                {isSubmitting ? "Gerando..." : "Gerar treino"}
+                                {isSubmitting
+                                    ? translate("aiWizard.actions.generating")
+                                    : translate("aiWizard.actions.generate")}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>

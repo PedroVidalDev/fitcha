@@ -12,13 +12,13 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { CreditPurchaseModal } from "../../components/CreditPurchaseModal";
 import { Input } from "../../components/Input";
-import { PlanCheckoutModal } from "../../components/PlanCheckoutModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useCreditCheckout } from "../../hooks/useCreditCheckout";
 import { localeLabels, supportedLocales } from "../../translates";
-import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useProfileForm } from "./hooks/useProfileForm";
 
 function formatDate(value: string | null | undefined, locale: string) {
@@ -38,7 +38,7 @@ function formatDate(value: string | null | undefined, locale: string) {
 
 export default function ProfileScreen() {
     const { t: theme } = useTheme();
-    const { user, updateProfile, setAiPlanActive } = useAuth();
+    const { user, updateProfile } = useAuth();
     const { locale, setLocale, t } = useI18n();
 
     const { values, errors, isSubmitting, setField, handleSubmit } = useProfileForm({
@@ -47,40 +47,39 @@ export default function ProfileScreen() {
     });
 
     const {
-        plan,
+        payment,
+        creditQuantity,
         documentNumber,
-        setDocumentNumber,
+        step,
         isModalVisible,
         isLoading,
         isCreatingCheckout,
         isRefreshingStatus,
         errorMessage,
+        setCreditQuantity,
+        setDocumentNumber,
         openModal,
         closeModal,
+        goToDocumentStep,
+        goBackStep,
         generateCheckout,
         refreshStatus,
-        reloadPlan,
-    } = usePlanCheckout({
-        onPlanActiveChange: setAiPlanActive,
+        reloadSummary,
+    } = useCreditCheckout({
+        autoLoad: true,
     });
 
     useFocusEffect(
         useCallback(() => {
-            void reloadPlan();
-        }, [reloadPlan]),
+            void reloadSummary();
+        }, [reloadSummary]),
     );
 
     if (!user) return null;
 
     const btnColor = theme.mode === "dark" ? "#0d0500" : "#FFF";
-    const accessExpiresAt = formatDate(plan?.accessExpiresAt, locale);
-    const paymentExpiresAt = formatDate(plan?.paymentExpiresAt, locale);
-    const hasPendingPayment = plan?.status === "pending";
-    const aiBenefits = [
-        t("profile.ai.benefit.assistantButton"),
-        t("profile.ai.benefit.autoActivation"),
-        t("profile.ai.benefit.accessWindow"),
-    ];
+    const paymentExpiresAt = formatDate(payment?.paymentExpiresAt, locale);
+    const hasPendingPayment = payment?.status === "pending";
 
     const handleSaveProfile = async () => {
         const saved = await handleSubmit();
@@ -292,14 +291,14 @@ export default function ProfileScreen() {
                                         Fitcha AI
                                     </Text>
                                     <Text style={{ color: theme.textMuted, fontSize: 13 }}>
-                                        {t("profile.ai.subtitle")}
+                                        {t("profile.credits.subtitle")}
                                     </Text>
                                 </View>
                             </View>
 
                             <View
                                 style={{
-                                    backgroundColor: user.hasAiPlan ? theme.accent : theme.surface,
+                                    backgroundColor: theme.accent,
                                     borderRadius: 999,
                                     paddingHorizontal: 12,
                                     paddingVertical: 6,
@@ -309,16 +308,14 @@ export default function ProfileScreen() {
                             >
                                 <Text
                                     style={{
-                                        color: user.hasAiPlan ? btnColor : theme.textMuted,
+                                        color: btnColor,
                                         fontSize: 11,
                                         fontWeight: "800",
                                         textTransform: "uppercase",
                                         letterSpacing: 1,
                                     }}
                                 >
-                                    {user.hasAiPlan
-                                        ? t("profile.ai.status.active")
-                                        : t("profile.ai.status.inactive")}
+                                    {t("profile.credits.balanceLabel")}
                                 </Text>
                             </View>
                         </View>
@@ -331,68 +328,53 @@ export default function ProfileScreen() {
                                 marginBottom: 14,
                             }}
                         >
-                            {t("profile.ai.description")}
+                            {t("profile.credits.description")}
                         </Text>
 
-                        <View style={{ gap: 10, marginBottom: 20 }}>
-                            {aiBenefits.map((benefit) => (
-                                <View
-                                    key={benefit}
-                                    style={{
-                                        flexDirection: "row",
-                                        gap: 10,
-                                        alignItems: "flex-start",
-                                    }}
-                                >
-                                    <Ionicons
-                                        name={user.hasAiPlan ? "checkmark-circle" : "ellipse-outline"}
-                                        size={18}
-                                        color={user.hasAiPlan ? theme.accent : theme.textDim}
-                                        style={{ marginTop: 1 }}
-                                    />
-                                    <Text
-                                        style={{
-                                            flex: 1,
-                                            color: theme.textPrimary,
-                                            fontSize: 13,
-                                            lineHeight: 19,
-                                        }}
-                                    >
-                                        {benefit}
-                                    </Text>
-                                </View>
-                            ))}
+                        <View
+                            style={{
+                                backgroundColor: theme.chipBg,
+                                borderRadius: 20,
+                                padding: 18,
+                                marginBottom: 18,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: theme.textDim,
+                                    fontSize: 12,
+                                    fontWeight: "800",
+                                    textTransform: "uppercase",
+                                    letterSpacing: 1.2,
+                                    marginBottom: 8,
+                                }}
+                            >
+                                {t("profile.credits.balanceLabel")}
+                            </Text>
+                            <Text
+                                style={{
+                                    color: theme.textPrimary,
+                                    fontSize: 42,
+                                    fontWeight: "900",
+                                }}
+                            >
+                                {user.credits}
+                            </Text>
+                            <Text
+                                style={{
+                                    color: theme.textMuted,
+                                    fontSize: 13,
+                                    lineHeight: 20,
+                                    marginTop: 6,
+                                }}
+                            >
+                                {t("profile.credits.balanceHint")}
+                            </Text>
                         </View>
 
                         {isLoading ? (
                             <View style={{ paddingVertical: 18, alignItems: "center" }}>
                                 <ActivityIndicator color={theme.accent} />
-                            </View>
-                        ) : user.hasAiPlan ? (
-                            <View
-                                style={{
-                                    backgroundColor: theme.chipBg,
-                                    borderRadius: 16,
-                                    padding: 16,
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        color: theme.textPrimary,
-                                        fontSize: 16,
-                                        fontWeight: "900",
-                                        marginBottom: 6,
-                                    }}
-                                >
-                                    {t("profile.ai.activeTitle")}
-                                </Text>
-                                <Text style={{ color: theme.textMuted, fontSize: 14, lineHeight: 21 }}>
-                                    {accessExpiresAt
-                                        ? t("profile.ai.activeDescriptionWithDate", {
-                                              date: accessExpiresAt,
-                                          })
-                                        : t("profile.ai.activeDescription")}
-                                </Text>
                             </View>
                         ) : hasPendingPayment ? (
                             <View style={{ gap: 12 }}>
@@ -411,7 +393,7 @@ export default function ProfileScreen() {
                                             marginBottom: 6,
                                         }}
                                     >
-                                        {t("profile.ai.pendingTitle")}
+                                        {t("profile.credits.pendingTitle")}
                                     </Text>
                                     <Text
                                         style={{
@@ -421,10 +403,11 @@ export default function ProfileScreen() {
                                         }}
                                     >
                                         {paymentExpiresAt
-                                            ? t("profile.ai.pendingDescriptionWithDate", {
+                                            ? t("profile.credits.pendingDescriptionWithDate", {
                                                   date: paymentExpiresAt,
+                                                  quantity: payment?.creditQuantity ?? 1,
                                               })
-                                            : t("profile.ai.pendingDescription")}
+                                            : t("profile.credits.pendingDescription")}
                                     </Text>
                                 </View>
 
@@ -445,7 +428,7 @@ export default function ProfileScreen() {
                                                 textAlign: "center",
                                             }}
                                         >
-                                            {t("profile.ai.continuePayment")}
+                                            {t("profile.credits.continuePayment")}
                                         </Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
@@ -468,7 +451,7 @@ export default function ProfileScreen() {
                                             textAlign: "center",
                                         }}
                                     >
-                                        {t("profile.ai.subscribe")}
+                                        {t("profile.credits.buy")}
                                     </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -568,15 +551,21 @@ export default function ProfileScreen() {
                 </ScrollView>
             </KeyboardAvoidingView>
 
-            <PlanCheckoutModal
+            <CreditPurchaseModal
                 visible={isModalVisible}
-                plan={plan}
+                step={step}
+                payment={payment}
+                creditQuantity={creditQuantity}
                 documentNumber={documentNumber}
+                isLoading={isLoading}
                 isCreatingCheckout={isCreatingCheckout}
                 isRefreshingStatus={isRefreshingStatus}
                 errorMessage={errorMessage}
                 onClose={closeModal}
+                onCreditQuantityChange={setCreditQuantity}
                 onDocumentNumberChange={setDocumentNumber}
+                onContinue={goToDocumentStep}
+                onBack={goBackStep}
                 onGenerateCheckout={() => void generateCheckout()}
                 onRefreshStatus={() => void refreshStatus()}
             />

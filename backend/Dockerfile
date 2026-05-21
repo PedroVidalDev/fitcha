@@ -14,21 +14,21 @@ RUN go mod tidy
 # Copy the rest of the source code
 COPY . .
 
-# Compile the application
-# -o main: binary name
-# ./cmd/api/main.go: path to your main file
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api/main.go
+# Compile the applications
+RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o worker ./cmd/worker/main.go
 
 # Stage 2: Runner (Lightweight final image)
 FROM alpine:latest
 
 WORKDIR /app
 
-# Copy only the binary from the previous stage
-COPY --from=builder /app/main .
+# Copy only the binaries from the previous stage
+COPY --from=builder /app/api .
+COPY --from=builder /app/worker .
 
 # Expose the port (documentation only, actual port is set in docker-compose.yml)
 EXPOSE 8080
 
 # Command to run
-CMD ["./main"]
+CMD ["./api"]

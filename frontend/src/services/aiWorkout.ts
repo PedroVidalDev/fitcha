@@ -1,7 +1,10 @@
 import { GPTResponse, WizardData } from "../components/AIWizard/types";
+import { translateRuntime } from "../translates/runtime";
 import { ensureApiUrlConfigured, axiosApp } from "./axios";
 
-type GenerateAIWorkoutResponse = GPTResponse;
+type GenerateAIWorkoutResponse = GPTResponse & {
+    remainingCredits: number;
+};
 
 function getAIWorkoutErrorMessage(error: unknown, fallback: string) {
     if (
@@ -44,7 +47,7 @@ export async function generateAIWorkout(data: WizardData): Promise<GenerateAIWor
         return response.data;
     } catch (error) {
         throw new Error(
-            getAIWorkoutErrorMessage(error, "Não foi possível gerar o treino automaticamente"),
+            getAIWorkoutErrorMessage(error, translateRuntime("services.aiWorkout.generateError")),
         );
     }
 }

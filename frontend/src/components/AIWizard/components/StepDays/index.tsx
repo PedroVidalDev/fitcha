@@ -1,11 +1,14 @@
-import { DAYS_LABEL, DAYS_SHORT } from "@/src/constants/categories";
+import { Ionicons } from "@expo/vector-icons";
+import { DAY_LABEL_KEYS, DAY_SHORT_LABEL_KEYS } from "@/src/constants/categories";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { useTheme } from "@/src/contexts/ThemeContext";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { StepDaysProps } from "./types";
 
 export const StepDays = (props: StepDaysProps) => {
     const { value, onChange } = props;
     const { t } = useTheme();
+    const { t: translate } = useI18n();
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     const toggleDay = (dayIndex: number) => {
@@ -29,13 +32,22 @@ export const StepDays = (props: StepDaysProps) => {
                     marginBottom: 16,
                 }}
             >
-                Marque exatamente os dias em que você quer ir para a academia. A IA vai usar
-                isso para montar a divisão com mais precisão.
+                {translate("aiWizard.days.description")}
             </Text>
 
-            <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                {DAYS_LABEL.map((label, dayIndex) => {
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                bounces={false}
+                contentContainerStyle={{ gap: 8, paddingRight: 8 }}
+            >
+                {DAY_LABEL_KEYS.map((labelKey, dayIndex) => {
+                    const label = translate(labelKey);
                     const active = value.includes(dayIndex);
+                    const cardBackgroundColor = active ? t.accent : t.inputBg;
+                    const cardBorderColor = active ? t.accent : t.border;
+                    const textColor = active ? btnColor : t.textPrimary;
+                    const statusIconColor = active ? btnColor : t.textDim;
 
                     return (
                         <TouchableOpacity
@@ -43,33 +55,50 @@ export const StepDays = (props: StepDaysProps) => {
                             onPress={() => toggleDay(dayIndex)}
                             activeOpacity={0.7}
                             style={{
-                                width: "30%",
-                                minWidth: 92,
-                                paddingVertical: 14,
+                                width: 108,
+                                minHeight: 82,
+                                paddingVertical: 12,
                                 paddingHorizontal: 12,
                                 borderRadius: 16,
-                                backgroundColor: active ? t.accent : t.inputBg,
-                                borderWidth: 0.5,
-                                borderColor: active ? t.accent : t.border,
+                                backgroundColor: cardBackgroundColor,
+                                borderWidth: 1,
+                                borderColor: cardBorderColor,
+                                justifyContent: "space-between",
                             }}
                         >
-                            <Text
+                            <View
                                 style={{
-                                    fontSize: 11,
-                                    fontWeight: "800",
-                                    textTransform: "uppercase",
-                                    letterSpacing: 1.2,
-                                    color: active ? btnColor : t.textDim,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 8,
                                 }}
                             >
-                                {DAYS_SHORT[dayIndex]}
-                            </Text>
+                                <Text
+                                    style={{
+                                        fontSize: 11,
+                                        fontWeight: "800",
+                                        textTransform: "uppercase",
+                                        letterSpacing: 1.2,
+                                        color: active ? btnColor : t.textDim,
+                                    }}
+                                >
+                                    {translate(DAY_SHORT_LABEL_KEYS[dayIndex])}
+                                </Text>
+
+                                <Ionicons
+                                    name={active ? "checkmark-circle" : "ellipse-outline"}
+                                    size={16}
+                                    color={statusIconColor}
+                                />
+                            </View>
+
                             <Text
                                 style={{
                                     fontSize: 15,
-                                    fontWeight: "800",
-                                    marginTop: 6,
-                                    color: active ? btnColor : t.textMuted,
+                                    fontWeight: "900",
+                                    marginTop: 12,
+                                    color: textColor,
                                 }}
                             >
                                 {label}
@@ -77,7 +106,7 @@ export const StepDays = (props: StepDaysProps) => {
                         </TouchableOpacity>
                     );
                 })}
-            </View>
+            </ScrollView>
 
             <Text
                 style={{
@@ -88,8 +117,12 @@ export const StepDays = (props: StepDaysProps) => {
                 }}
             >
                 {value.length === 0
-                    ? "Selecione pelo menos um dia."
-                    : `${value.length} dia${value.length > 1 ? "s" : ""} selecionado${value.length > 1 ? "s" : ""}.`}
+                    ? translate("aiWizard.days.empty")
+                    : translate("aiWizard.days.selectedCount", {
+                          count: value.length,
+                          daySuffix: value.length > 1 ? "s" : "",
+                          selectedSuffix: value.length > 1 ? "s" : "",
+                      })}
             </Text>
         </View>
     );

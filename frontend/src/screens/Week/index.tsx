@@ -3,114 +3,63 @@ import { RootStackParamList } from "@/src/router/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useLayoutEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { AddMachineModal } from "../../components/AddMachineModal";
 import { AIWizard } from "../../components/AIWizard";
-import { GPTResponse, WizardData } from "../../components/AIWizard/types";
+import { WizardData } from "../../components/AIWizard/types";
 import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { ConfirmModal } from "../../components/ConfirmModal";
+import { CreditPurchaseModal } from "../../components/CreditPurchaseModal";
 import { GradientCard } from "../../components/GradientCard";
-import { DAYS_LABEL, MachineCategoryKey } from "../../constants/categories";
+import { getDayLabelKey } from "../../constants/categories";
 import { useAuth } from "../../contexts/AuthContext";
-import { Machine } from "../../dtos/Machine";
-import { generateAIWorkout } from "../../services/aiWorkout";
-import { replaceWeekWithMachines } from "../../services/workoutData";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useCreditCheckout } from "../../hooks/useCreditCheckout";
+import { generateAIWorkout } from "../../services/aiWorkout";
+import { syncWorkoutData } from "../../services/workoutData";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Week">;
 
-const CATEGORY_ALIASES: Record<MachineCategoryKey, string[]> = {
-    peito: ["peito", "supino", "crucifixo", "chest", "peitoral"],
-    costas: ["costas", "remada", "puxada", "barra", "pulldown", "rowing", "back"],
-    pernas: [
-        "perna",
-        "pernas",
-        "quadriceps",
-        "posterior",
-        "gluteo",
-        "gluteos",
-        "leg",
-        "panturrilha",
-        "agachamento",
-        "cadeira",
-        "mesa flexora",
-    ],
-    ombros: ["ombro", "ombros", "shoulder", "desenvolvimento", "elevacao lateral"],
-    biceps: ["biceps", "bíceps", "rosca", "curl"],
-    triceps: ["triceps", "tríceps", "triceps", "corda", "testa", "pulley"],
-    core: ["core", "abdomen", "abdominal", "prancha", "lombar"],
-    cardio: ["cardio", "esteira", "bike", "bicicleta", "eliptico", "elíptico", "corrida"],
-};
-
-function normalizeText(value: string) {
-    return value
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-}
-
-function inferCategoryKey(categoryName: string, machineName: string): MachineCategoryKey {
-    const haystack = normalizeText(`${categoryName} ${machineName}`);
-
-    for (const [key, aliases] of Object.entries(CATEGORY_ALIASES) as [
-        MachineCategoryKey,
-        string[],
-    ][]) {
-        if (aliases.some((alias) => haystack.includes(normalizeText(alias)))) {
-            return key;
-        }
-    }
-
-    return "peito";
-}
-
-function buildGeneratedWeek(response: GPTResponse): Record<number, Omit<Machine, "id">[]> {
-    const generatedDays: Record<number, Omit<Machine, "id">[]> = {
-        0: [],
-        1: [],
-        2: [],
-        3: [],
-        4: [],
-        5: [],
-        6: [],
-    };
-
-    response.categories.forEach((category) => {
-        category.days.forEach((dayIndex) => {
-            if (!(dayIndex in generatedDays)) return;
-
-            const machines = category.machines.map((machine) => ({
-                name: machine.name,
-                categoryKey: inferCategoryKey(category.name, machine.name),
-                description: `${category.name} • Séries sugeridas (kg): ${machine.sets.join(" / ")}`,
-            }));
-
-            generatedDays[dayIndex] = [...generatedDays[dayIndex], ...machines];
-        });
-    });
-
-    return generatedDays;
-}
-
 export default function WeekScreen() {
     const { t } = useTheme();
-    const { user } = useAuth();
-
+    const { t: translate } = useI18n();
+    const { user, setCredits } = useAuth();
     const navigation = useNavigation<Nav>();
-
     const { days, addMachineToDay, refresh } = useWeek();
+    const {
+        payment,
+        creditQuantity,
+        documentNumber,
+        step,
+        isModalVisible,
+        isLoading,
+        isCreatingCheckout,
+        isRefreshingStatus,
+        errorMessage,
+        setCreditQuantity,
+        setDocumentNumber,
+        openModal,
+        closeModal,
+        goToDocumentStep,
+        goBackStep,
+        generateCheckout,
+        refreshStatus,
+    } = useCreditCheckout();
 
     const [addTarget, setAddTarget] = useState<number | null>(null);
     const [wizardVisible, setWizardVisible] = useState(false);
     const [successVisible, setSuccessVisible] = useState(false);
 
     const today = new Date().getDay();
+    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerLeft: user?.hasAiPlan
+            headerLeft: user
                 ? () => (
                       <TouchableOpacity
                           onPress={() => setWizardVisible(true)}
@@ -121,7 +70,7 @@ export default function WeekScreen() {
                   )
                 : undefined,
         });
-    }, [navigation, t.accent, user?.hasAiPlan]);
+    }, [navigation, t.accent, user]);
 
     useFocusEffect(
         useCallback(() => {
@@ -132,30 +81,76 @@ export default function WeekScreen() {
     const handleGenerateWorkout = useCallback(
         async (wizardData: WizardData) => {
             const response = await generateAIWorkout(wizardData);
-            const generatedWeek = buildGeneratedWeek(response);
-
-            await replaceWeekWithMachines(generatedWeek);
+            await syncWorkoutData();
+            await setCredits(response.remainingCredits);
             await refresh();
             setSuccessVisible(true);
         },
-        [refresh],
+        [refresh, setCredits],
     );
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
-            <Text
+            <LinearGradient
+                colors={t.gradientHero}
                 style={{
-                    color: t.textDim,
-                    fontSize: 11,
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                    letterSpacing: 2,
+                    borderRadius: 22,
+                    padding: 18,
                     marginBottom: 18,
-                    marginLeft: 2,
+                    borderWidth: 1,
+                    borderColor: t.border,
+                    overflow: "hidden",
                 }}
             >
-                sua semana
-            </Text>
+                <View
+                    style={{
+                        position: "absolute",
+                        right: -20,
+                        top: -26,
+                        width: 96,
+                        height: 96,
+                        borderRadius: 999,
+                        backgroundColor: t.chipBg,
+                    }}
+                />
+                <Text
+                    style={{
+                        color: t.textDim,
+                        fontSize: 11,
+                        fontWeight: "700",
+                        textTransform: "uppercase",
+                        letterSpacing: 2,
+                    }}
+                >
+                    {translate("week.title")}
+                </Text>
+                <Text
+                    style={{
+                        color: t.textPrimary,
+                        fontSize: 24,
+                        fontWeight: "900",
+                        marginTop: 8,
+                    }}
+                >
+                    {translate("week.title")}
+                </Text>
+                <Text
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 13,
+                        lineHeight: 19,
+                        marginTop: 8,
+                    }}
+                >
+                    {translate("week.machineCount", {
+                        count: Object.values(days).reduce((sum, items) => sum + items.length, 0),
+                        pluralSuffix:
+                            Object.values(days).reduce((sum, items) => sum + items.length, 0) !== 1
+                                ? "s"
+                                : "",
+                    })}
+                </Text>
+            </LinearGradient>
 
             <FlatList
                 data={[0, 1, 2, 3, 4, 5, 6]}
@@ -192,29 +187,30 @@ export default function WeekScreen() {
                                                 fontWeight: "700",
                                             }}
                                         >
-                                            {DAYS_LABEL[dayIndex]}
+                                            {translate(getDayLabelKey(dayIndex))}
                                         </Text>
-                                        {isToday && (
+                                        {isToday ? (
                                             <View
                                                 style={{
-                                                    backgroundColor: t.accent,
-                                                    paddingHorizontal: 8,
-                                                    paddingVertical: 2,
-                                                    borderRadius: 8,
+                                                    paddingHorizontal: 9,
+                                                    paddingVertical: 4,
+                                                    borderRadius: 999,
+                                                    backgroundColor: t.chipBg,
+                                                    borderWidth: 1,
+                                                    borderColor: t.accent,
                                                 }}
                                             >
                                                 <Text
                                                     style={{
-                                                        color:
-                                                            t.mode === "dark" ? "#0d0500" : "#FFF",
+                                                        color: t.accent,
                                                         fontSize: 10,
                                                         fontWeight: "800",
                                                     }}
                                                 >
-                                                    HOJE
+                                                    {translate("week.todayBadge")}
                                                 </Text>
                                             </View>
-                                        )}
+                                        ) : null}
                                     </View>
 
                                     {isEmpty ? (
@@ -226,7 +222,7 @@ export default function WeekScreen() {
                                                 fontStyle: "italic",
                                             }}
                                         >
-                                            Nenhuma máquina — segure para adicionar
+                                            {translate("week.emptyDay")}
                                         </Text>
                                     ) : (
                                         <View
@@ -237,11 +233,13 @@ export default function WeekScreen() {
                                                 marginTop: 8,
                                             }}
                                         >
-                                            {[...new Set(machines.map((m) => m.categoryKey))].map(
-                                                (key) => (
-                                                    <CategoryBadge key={key} categoryKey={key} />
+                                            {[
+                                                ...new Set(
+                                                    machines.map((machine) => machine.categoryKey),
                                                 ),
-                                            )}
+                                            ].map((key) => (
+                                                <CategoryBadge key={key} categoryKey={key} />
+                                            ))}
                                             <Text
                                                 style={{
                                                     color: t.textDim,
@@ -250,19 +248,21 @@ export default function WeekScreen() {
                                                     marginLeft: 2,
                                                 }}
                                             >
-                                                {machines.length} máquina
-                                                {machines.length !== 1 ? "s" : ""}
+                                                {translate("week.machineCount", {
+                                                    count: machines.length,
+                                                    pluralSuffix: machines.length !== 1 ? "s" : "",
+                                                })}
                                             </Text>
                                         </View>
                                     )}
                                 </View>
-                                {!isEmpty && (
+                                {!isEmpty ? (
                                     <Ionicons
                                         name="chevron-forward"
                                         size={18}
                                         color={t.textMuted}
                                     />
-                                )}
+                                ) : null}
                             </GradientCard>
                         </AnimatedCard>
                     );
@@ -281,16 +281,36 @@ export default function WeekScreen() {
             <AIWizard
                 visible={wizardVisible}
                 onClose={() => setWizardVisible(false)}
+                onRequestBuyCredits={openModal}
                 onFinish={handleGenerateWorkout}
+            />
+
+            <CreditPurchaseModal
+                visible={isModalVisible}
+                step={step}
+                payment={payment}
+                creditQuantity={creditQuantity}
+                documentNumber={documentNumber}
+                isLoading={isLoading}
+                isCreatingCheckout={isCreatingCheckout}
+                isRefreshingStatus={isRefreshingStatus}
+                errorMessage={errorMessage}
+                onClose={closeModal}
+                onCreditQuantityChange={setCreditQuantity}
+                onDocumentNumberChange={setDocumentNumber}
+                onContinue={goToDocumentStep}
+                onBack={goBackStep}
+                onGenerateCheckout={() => void generateCheckout()}
+                onRefreshStatus={() => void refreshStatus()}
             />
 
             <ConfirmModal
                 visible={successVisible}
                 onClose={() => setSuccessVisible(false)}
                 onConfirm={() => setSuccessVisible(false)}
-                title="Treino gerado"
-                message="Seu treino automático foi criado com sucesso e substituiu a semana atual."
-                confirmLabel="Fechar"
+                title={translate("week.generated.title")}
+                message={translate("week.generated.message")}
+                confirmLabel={translate("common.actions.close")}
                 hideCancel
                 confirmVariant="accent"
             />

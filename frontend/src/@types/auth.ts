@@ -2,7 +2,7 @@ export type ApiUser = {
     ID?: number;
     CreatedAt?: string;
     UpdatedAt?: string;
-    planActive?: boolean;
+    credits?: number;
     name: string;
     email: string;
 };
@@ -11,7 +11,7 @@ export type User = {
     id?: number;
     createdAt?: string;
     updatedAt?: string;
-    planActive?: boolean;
+    credits: number;
     name: string;
     email: string;
 };
@@ -20,12 +20,9 @@ export type MockProfile = {
     name: string;
     email: string;
     mockPassword: string;
-    hasAiPlan: boolean;
 };
 
-export type AuthenticatedUser = User & {
-    hasAiPlan: boolean;
-};
+export type AuthenticatedUser = User;
 
 export type StoredAuthSession = {
     token: string;
@@ -57,5 +54,5 @@ export type AuthContextValue = {
     register: (name: string, email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     updateProfile: (input: UpdateProfileInput) => Promise<void>;
-    setAiPlanActive: (active: boolean) => Promise<void>;
+    setCredits: (credits: number) => Promise<void>;
 };

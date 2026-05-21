@@ -3,20 +3,26 @@ package services
 import (
 	"errors"
 	dtos "fitcha/internal/dtos/user"
+	"fitcha/internal/jobs"
 	"fitcha/internal/models"
 	"fitcha/internal/repositories"
 	"fitcha/pkg/auth"
+	"log"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type AuthService struct {
-	repo repositories.IUserRepository
+	repo   repositories.IUserRepository
+	emails jobs.EmailJobEnqueuer
 }
 
-func NewAuthService(repo repositories.IUserRepository) *AuthService {
-	return &AuthService{repo: repo}
+func NewAuthService(repo repositories.IUserRepository, emailJobs jobs.EmailJobEnqueuer) *AuthService {
+	return &AuthService{
+		repo:   repo,
+		emails: emailJobs,
+	}
 }
 
 func (s *AuthService) Login(email, password string) (dtos.AuthResponseType, error) {
@@ -75,6 +81,12 @@ func (s *AuthService) Register(name, email, password string) (dtos.AuthResponseT
 	token, err := auth.GenerateToken(createdUser.ID)
 	if err != nil {
 		return dtos.AuthResponseType{}, err
+	}
+
+	if s.emails != nil {
+		if err := s.emails.EnqueueWelcomeEmail(createdUser.Name, createdUser.Email); err != nil {
+			log.Printf("falha ao enfileirar email de boas-vindas: %v", err)
+		}
 	}
 
 	return dtos.AuthResponseType{

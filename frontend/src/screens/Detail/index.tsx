@@ -10,7 +10,13 @@ import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { AnimatedCard } from "../../components/AnimatedCard";
 import { AppModal } from "../../components/AppModal";
 import { CategoryBadge } from "../../components/CategoryBadge";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import {
+    formatSetSequence,
+    getHistoryEntryVolume,
+    getRecordHistoryEntry,
+} from "../../utils/workoutRecords";
 
 type Route = RouteProp<RootStackParamList, "MachineDetail">;
 type PhotoModalAction = {
@@ -30,6 +36,7 @@ type PhotoModalState = {
 
 export default function MachineDetailScreen() {
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const route = useRoute<Route>();
     const navigation = useNavigation();
@@ -52,7 +59,7 @@ export default function MachineDetailScreen() {
             hideCloseButton: true,
             actions: [
                 {
-                    label: "Fechar",
+                    label: translate("common.actions.close"),
                     icon: "checkmark-circle-outline",
                     variant: "accent",
                     onPress: closePhotoModal,
@@ -65,8 +72,8 @@ export default function MachineDetailScreen() {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
             openInfoModal(
-                "Permissão necessária",
-                "Permita acesso à galeria para selecionar uma foto da máquina.",
+                translate("detail.permission.title"),
+                translate("detail.permission.galleryMessage"),
             );
             return;
         }
@@ -87,8 +94,8 @@ export default function MachineDetailScreen() {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
             openInfoModal(
-                "Permissão necessária",
-                "Permita acesso à câmera para registrar uma foto da máquina.",
+                translate("detail.permission.title"),
+                translate("detail.permission.cameraMessage"),
             );
             return;
         }
@@ -106,11 +113,11 @@ export default function MachineDetailScreen() {
 
     const openSourceModal = () => {
         setPhotoModal({
-            title: photo ? "Trocar foto" : "Adicionar foto",
-            message: "Escolha de onde a imagem deve vir.",
+            title: photo ? translate("detail.photo.change") : translate("detail.photo.add"),
+            message: translate("detail.photo.sourceMessage"),
             actions: [
                 {
-                    label: "Usar câmera",
+                    label: translate("detail.photo.useCamera"),
                     icon: "camera-outline",
                     variant: "accent",
                     onPress: () => {
@@ -119,7 +126,7 @@ export default function MachineDetailScreen() {
                     },
                 },
                 {
-                    label: "Escolher da galeria",
+                    label: translate("detail.photo.chooseGallery"),
                     icon: "images-outline",
                     onPress: () => {
                         closePhotoModal();
@@ -132,11 +139,11 @@ export default function MachineDetailScreen() {
 
     const openRemovePhotoModal = () => {
         setPhotoModal({
-            title: "Remover foto?",
-            message: "A imagem atual será removida desta máquina.",
+            title: translate("detail.photo.removeTitle"),
+            message: translate("detail.photo.removeMessage"),
             actions: [
                 {
-                    label: "Remover foto",
+                    label: translate("detail.photo.removeAction"),
                     icon: "trash-outline",
                     variant: "danger",
                     onPress: () => {
@@ -155,16 +162,16 @@ export default function MachineDetailScreen() {
         }
 
         setPhotoModal({
-            title: "Foto da máquina",
-            message: "Escolha o que deseja fazer com a imagem.",
+            title: translate("detail.photo.actionsTitle"),
+            message: translate("detail.photo.actionsMessage"),
             actions: [
                 {
-                    label: "Trocar foto",
+                    label: translate("detail.photo.change"),
                     icon: "swap-horizontal-outline",
                     onPress: openSourceModal,
                 },
                 {
-                    label: "Remover foto",
+                    label: translate("detail.photo.removeAction"),
                     icon: "trash-outline",
                     variant: "danger",
                     onPress: openRemovePhotoModal,
@@ -190,6 +197,17 @@ export default function MachineDetailScreen() {
     }, [machine?.name, navigation]);
 
     if (!machine) return null;
+
+    const recordEntry = getRecordHistoryEntry(history);
+    const recordVolume = recordEntry ? getHistoryEntryVolume(recordEntry) : null;
+    const recordOverlayColor =
+        t.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.44)";
+    const recordStripeColors =
+        t.mode === "dark"
+            ? (["rgba(255,208,112,0.16)", "rgba(244,162,97,0.06)"] as const)
+            : (["rgba(244,162,97,0.16)", "rgba(255,208,112,0.18)"] as const);
+    const recordSequenceColor = t.mode === "dark" ? "#FFF4E6" : t.textPrimary;
+    const recordDateColor = t.mode === "dark" ? "#D9A57A" : t.textMuted;
 
     return (
         <>
@@ -224,30 +242,211 @@ export default function MachineDetailScreen() {
                         <View style={{ alignItems: "center", gap: 6 }}>
                             <Ionicons name="camera-outline" size={28} color={t.textDim} />
                             <Text style={{ color: t.textDim, fontSize: 12, fontWeight: "600" }}>
-                                adicionar foto
+                                {translate("detail.photo.add")}
                             </Text>
                         </View>
                     )}
                 </TouchableOpacity>
 
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <View
+                    style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}
+                >
                     <CategoryBadge categoryKey={machine.categoryKey} />
                 </View>
                 {machine.description && (
                     <Text
-                        style={{ color: t.textMuted, fontSize: 14, lineHeight: 20, marginBottom: 16 }}
+                        style={{
+                            color: t.textMuted,
+                            fontSize: 14,
+                            lineHeight: 20,
+                            marginBottom: 16,
+                        }}
                     >
                         {machine.description}
                     </Text>
                 )}
 
-                <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>histórico</Text>
+                <LinearGradient
+                    colors={t.gradientCard}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                        borderRadius: 16,
+                        padding: 16,
+                        marginBottom: 16,
+                        overflow: "hidden",
+                        borderWidth: 1,
+                        borderColor: t.border,
+                    }}
+                >
+                    <View
+                        pointerEvents="none"
+                        style={{
+                            position: "absolute",
+                            top: -28,
+                            right: -18,
+                            width: 104,
+                            height: 104,
+                            borderRadius: 999,
+                            backgroundColor: recordOverlayColor,
+                        }}
+                    />
+                    <View
+                        pointerEvents="none"
+                        style={{
+                            position: "absolute",
+                            bottom: -30,
+                            left: -26,
+                            width: 78,
+                            height: 78,
+                            borderRadius: 999,
+                            backgroundColor: recordOverlayColor,
+                        }}
+                    />
+                    <LinearGradient
+                        colors={t.gradientAccent}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 4,
+                        }}
+                    />
+
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            gap: 12,
+                        }}
+                    >
+                        <View style={{ flex: 1 }}>
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 8,
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: 12,
+                                        backgroundColor: t.chipBg,
+                                        borderWidth: 1,
+                                        borderColor: t.border,
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <Ionicons name="trophy" size={18} color={t.accent} />
+                                </View>
+                                <Text
+                                    style={{
+                                        ...labelStyle,
+                                        color: t.textPrimary,
+                                    }}
+                                >
+                                    {translate("detail.record.title")}
+                                </Text>
+                            </View>
+                            <Text
+                                style={{
+                                    color: t.textMuted,
+                                    fontSize: 13,
+                                    lineHeight: 18,
+                                    marginTop: 8,
+                                }}
+                            >
+                                {recordEntry
+                                    ? translate("detail.record.subtitle")
+                                    : translate("detail.record.empty")}
+                            </Text>
+                        </View>
+
+                        {recordVolume !== null && (
+                            <View
+                                style={{
+                                    backgroundColor: t.chipBg,
+                                    borderRadius: 999,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 8,
+                                    borderWidth: 1,
+                                    borderColor: t.border,
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: t.accent,
+                                        fontSize: 12,
+                                        fontWeight: "800",
+                                    }}
+                                >
+                                    {translate("detail.record.volume", { volume: recordVolume })}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {recordEntry && (
+                        <LinearGradient
+                            colors={recordStripeColors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{
+                                marginTop: 16,
+                                borderRadius: 14,
+                                paddingHorizontal: 14,
+                                paddingVertical: 12,
+                                borderWidth: 1,
+                                borderColor: t.border,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: recordSequenceColor,
+                                    fontSize: 22,
+                                    fontWeight: "900",
+                                }}
+                            >
+                                {formatSetSequence(recordEntry.sets, " / ")}
+                                <Text style={{ color: t.textMuted, fontSize: 13 }}>
+                                    {" "}
+                                    {translate("common.units.kg")}
+                                </Text>
+                            </Text>
+                            <Text
+                                style={{
+                                    color: recordDateColor,
+                                    fontSize: 12,
+                                    marginTop: 6,
+                                }}
+                            >
+                                {recordEntry.label}
+                            </Text>
+                        </LinearGradient>
+                    )}
+                </LinearGradient>
+
+                <Text style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}>
+                    {translate("detail.history.title")}
+                </Text>
 
                 {history.length === 0 ? (
                     <Text
-                        style={{ color: t.textDim, textAlign: "center", marginTop: 24, fontSize: 14 }}
+                        style={{
+                            color: t.textDim,
+                            textAlign: "center",
+                            marginTop: 24,
+                            fontSize: 14,
+                        }}
                     >
-                        Nenhum registro ainda - inicie um treino para registrar pesos
+                        {translate("detail.history.empty")}
                     </Text>
                 ) : (
                     <View style={{ gap: 8 }}>
@@ -267,7 +466,11 @@ export default function MachineDetailScreen() {
                                     }}
                                 >
                                     <Text
-                                        style={{ color: t.textMuted, fontSize: 13, fontWeight: "500" }}
+                                        style={{
+                                            color: t.textMuted,
+                                            fontSize: 13,
+                                            fontWeight: "500",
+                                        }}
                                     >
                                         {item.label}
                                     </Text>
@@ -295,97 +498,132 @@ export default function MachineDetailScreen() {
                 )}
             </ScrollView>
 
-            <AppModal visible={!!photoModal} onClose={closePhotoModal} contentStyle={{ padding: 24 }}>
-                <Text
-                    style={{
-                        color: t.accent,
-                        fontSize: 20,
-                        fontWeight: "800",
-                        marginBottom: 10,
-                    }}
+            <AppModal visible={!!photoModal} onClose={closePhotoModal} compact>
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                    contentContainerStyle={{ paddingBottom: 4 }}
                 >
-                    {photoModal?.title ?? ""}
-                </Text>
-                {!!photoModal?.message && (
                     <Text
                         style={{
-                            color: t.textMuted,
-                            fontSize: 14,
-                            lineHeight: 20,
-                            marginBottom: 18,
+                            color: t.accent,
+                            fontSize: 20,
+                            fontWeight: "800",
+                            marginBottom: 10,
                         }}
                     >
-                        {photoModal.message}
+                        {photoModal?.title ?? ""}
                     </Text>
-                )}
+                    {!!photoModal?.message && (
+                        <Text
+                            style={{
+                                color: t.textMuted,
+                                fontSize: 14,
+                                lineHeight: 20,
+                                marginBottom: 18,
+                            }}
+                        >
+                            {photoModal.message}
+                        </Text>
+                    )}
 
-                <View style={{ gap: 10 }}>
-                    {photoModal?.actions.map((action) => (
-                        <TouchableOpacity key={action.label} activeOpacity={0.78} onPress={action.onPress}>
-                            {action.variant === "accent" ? (
-                                <LinearGradient
-                                    colors={t.gradientAccent}
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: 10,
-                                        paddingVertical: 14,
-                                        paddingHorizontal: 16,
-                                        borderRadius: 14,
-                                    }}
-                                >
-                                    <Ionicons name={action.icon} size={18} color={btnColor} />
-                                    <Text style={{ color: btnColor, fontSize: 15, fontWeight: "800" }}>
-                                        {action.label}
-                                    </Text>
-                                </LinearGradient>
-                            ) : (
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: 10,
-                                        paddingVertical: 14,
-                                        paddingHorizontal: 16,
-                                        borderRadius: 14,
-                                        backgroundColor:
-                                            action.variant === "danger" ? "#EF5350" : t.inputBg,
-                                        borderWidth: action.variant === "danger" ? 0 : 0.5,
-                                        borderColor: action.variant === "danger" ? "transparent" : t.border,
-                                    }}
-                                >
-                                    <Ionicons
-                                        name={action.icon}
-                                        size={18}
-                                        color={action.variant === "danger" ? "#FFF" : t.textMuted}
-                                    />
-                                    <Text
+                    <View style={{ gap: 10 }}>
+                        {photoModal?.actions.map((action) => (
+                            <TouchableOpacity
+                                key={action.label}
+                                activeOpacity={0.78}
+                                onPress={action.onPress}
+                            >
+                                {action.variant === "accent" ? (
+                                    <LinearGradient
+                                        colors={t.gradientAccent}
                                         style={{
-                                            color: action.variant === "danger" ? "#FFF" : t.textMuted,
-                                            fontSize: 15,
-                                            fontWeight: "700",
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 10,
+                                            paddingVertical: 14,
+                                            paddingHorizontal: 16,
+                                            borderRadius: 14,
                                         }}
                                     >
-                                        {action.label}
-                                    </Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                </View>
+                                        <Ionicons name={action.icon} size={18} color={btnColor} />
+                                        <Text
+                                            style={{
+                                                color: btnColor,
+                                                fontSize: 15,
+                                                fontWeight: "800",
+                                            }}
+                                        >
+                                            {action.label}
+                                        </Text>
+                                    </LinearGradient>
+                                ) : (
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 10,
+                                            paddingVertical: 14,
+                                            paddingHorizontal: 16,
+                                            borderRadius: 14,
+                                            backgroundColor:
+                                                action.variant === "danger" ? "#EF5350" : t.inputBg,
+                                            borderWidth: action.variant === "danger" ? 0 : 0.5,
+                                            borderColor:
+                                                action.variant === "danger"
+                                                    ? "transparent"
+                                                    : t.border,
+                                        }}
+                                    >
+                                        <Ionicons
+                                            name={action.icon}
+                                            size={18}
+                                            color={
+                                                action.variant === "danger" ? "#FFF" : t.textMuted
+                                            }
+                                        />
+                                        <Text
+                                            style={{
+                                                color:
+                                                    action.variant === "danger"
+                                                        ? "#FFF"
+                                                        : t.textMuted,
+                                                fontSize: 15,
+                                                fontWeight: "700",
+                                            }}
+                                        >
+                                            {action.label}
+                                        </Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
 
-                {!photoModal?.hideCloseButton && (
-                    <TouchableOpacity
-                        onPress={closePhotoModal}
-                        style={{ alignSelf: "flex-end", padding: 12, marginTop: 12 }}
-                    >
-                        <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "600" }}>
-                            {photoModal?.closeLabel ?? "Cancelar"}
-                        </Text>
-                    </TouchableOpacity>
-                )}
+                    {!photoModal?.hideCloseButton && (
+                        <TouchableOpacity
+                            onPress={closePhotoModal}
+                            activeOpacity={0.8}
+                            style={{
+                                marginTop: 12,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: 14,
+                                borderWidth: 0.5,
+                                borderColor: t.border,
+                                backgroundColor: t.card,
+                                paddingVertical: 14,
+                                paddingHorizontal: 16,
+                            }}
+                        >
+                            <Text style={{ color: t.textMuted, fontSize: 15, fontWeight: "700" }}>
+                                {photoModal?.closeLabel ?? translate("common.actions.cancel")}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                </ScrollView>
             </AppModal>
         </>
     );

@@ -2,31 +2,36 @@ package routes
 
 import (
 	"fitcha/internal/controllers"
+	"fitcha/internal/jobs"
 	"fitcha/internal/repositories"
 	"fitcha/internal/services"
 	"fitcha/pkg/mercadopago"
+	"fitcha/pkg/queue"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func SetupRoutes(r *gin.Engine, db *gorm.DB) {
+	queueClient := queue.NewClientFromEnv()
+	emailJobs := jobs.NewEmailJobs(queueClient)
+
 	authRepo := repositories.NewUserRepository(db)
-	authService := services.NewAuthService(authRepo)
+	authService := services.NewAuthService(authRepo, emailJobs)
 	authController := controllers.NewAuthController(authService)
 
-	planRepo := repositories.NewPlanRepository(db)
+	paymentRepo := repositories.NewPaymentRepository(db)
 	machineRepo := repositories.NewMachineRepository(db)
 	dayRepo := repositories.NewDayRepository(db)
 	historyRepo := repositories.NewHistoryRepository(db)
 
-	aiWorkoutService := services.NewAIWorkoutService(planRepo)
+	aiWorkoutService := services.NewAIWorkoutService(db, authRepo)
 	aiWorkoutController := controllers.NewAIWorkoutController(aiWorkoutService)
 
 	mpClient, mpErr := mercadopago.NewClientFromEnv()
 
-	planService := services.NewPlanService(planRepo, authRepo, mpClient, mpErr)
-	planController := controllers.NewPlanController(planService)
+	creditService := services.NewCreditService(db, paymentRepo, authRepo, mpClient, mpErr, emailJobs)
+	creditController := controllers.NewCreditController(creditService)
 	machineService := services.NewMachineService(machineRepo)
 	machineController := controllers.NewMachineController(machineService)
 	dayService := services.NewDayService(db, dayRepo)
@@ -35,7 +40,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	historyController := controllers.NewHistoryController(historyService)
 
 	RegisterAuthRoutes(r, authController)
-	RegisterPlanRoutes(r, planController)
+	RegisterCreditRoutes(r, creditController)
 	RegisterAIWorkoutRoutes(r, aiWorkoutController)
 	RegisterMachineRoutes(r, machineController)
 	RegisterDayRoutes(r, dayController)

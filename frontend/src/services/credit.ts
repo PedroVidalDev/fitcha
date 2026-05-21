@@ -1,8 +1,9 @@
 import { isAxiosError } from "axios";
-import { PlanCheckoutResponse, PlanStatusResponse } from "../@types/plan";
+import { CreditCheckoutResponse, CreditSummaryResponse } from "../@types/credit";
+import { translateRuntime } from "../translates/runtime";
 import { axiosApp, ensureApiUrlConfigured } from "./axios";
 
-function getPlanErrorMessage(error: unknown, fallback: string) {
+function getCreditErrorMessage(error: unknown, fallback: string) {
     if (isAxiosError(error)) {
         const responseData = error.response?.data;
 
@@ -24,27 +25,30 @@ function getPlanErrorMessage(error: unknown, fallback: string) {
     return fallback;
 }
 
-export async function getMyPlanStatus() {
+export async function getCreditSummary() {
     ensureApiUrlConfigured();
 
     try {
-        const response = await axiosApp.get<PlanStatusResponse>("/me/plan");
+        const response = await axiosApp.get<CreditSummaryResponse>("/me/credits");
         return response.data;
     } catch (error) {
-        throw new Error(getPlanErrorMessage(error, "Não foi possível carregar o plano"));
+        throw new Error(
+            getCreditErrorMessage(error, translateRuntime("services.credit.loadError")),
+        );
     }
 }
 
-export async function createPlanCheckout(documentNumber: string) {
+export async function createCreditCheckout(creditQuantity: number, documentNumber: string) {
     ensureApiUrlConfigured();
 
     try {
-        const response = await axiosApp.post<PlanCheckoutResponse>("/me/plan/checkout", {
+        const response = await axiosApp.post<CreditCheckoutResponse>("/me/credits/checkout", {
+            creditQuantity,
             documentNumber,
         });
 
         return response.data;
     } catch (error) {
-        throw new Error(getPlanErrorMessage(error, "Não foi possível gerar o Pix"));
+        throw new Error(getCreditErrorMessage(error, translateRuntime("services.credit.checkoutError")));
     }
 }

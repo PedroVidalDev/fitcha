@@ -7,6 +7,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fitcha-network
+
+  worker:
+    build:
+      context: .
+    container_name: fitcha_worker
+    restart: always
+    command: ["./worker"]
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - fitcha-network
 
@@ -24,10 +38,24 @@ services:
     networks:
       - fitcha-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: fitcha_redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - fitcha_redis_data:/data
+    networks:
+      - fitcha-network
+
 volumes:
   fitcha_data:
+  fitcha_redis_data:
 
 networks:
   fitcha-network:
-  local:
-    external: true

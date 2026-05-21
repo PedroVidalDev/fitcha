@@ -1,10 +1,12 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
+import { useI18n } from "@/src/contexts/I18nContext";
 import { Text, TextInput, View } from "react-native";
 import { StepInstructionsProps } from "./types";
 
 export const StepInstructions = (props: StepInstructionsProps) => {
     const { value, onChange } = props;
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     return (
         <View>
@@ -16,8 +18,7 @@ export const StepInstructions = (props: StepInstructionsProps) => {
                     marginBottom: 12,
                 }}
             >
-                Adicione observações para a IA, como lesões, exercícios que você prefere
-                evitar, foco em algum grupo muscular ou equipamentos que a academia tem.
+                {translate("aiWizard.instructions.description")}
             </Text>
 
             <View
@@ -38,7 +39,7 @@ export const StepInstructions = (props: StepInstructionsProps) => {
                         lineHeight: 22,
                         textAlignVertical: "top",
                     }}
-                    placeholder="Ex: evitar agachamento livre por dor no joelho e priorizar máquinas."
+                    placeholder={translate("aiWizard.instructions.placeholder")}
                     placeholderTextColor={t.textDim}
                     multiline
                     value={value}

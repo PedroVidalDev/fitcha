@@ -1,9 +1,9 @@
 import { useDayMachines } from "@/src/hooks/useDayMachines";
 import { useSaveWorkout } from "@/src/screens/Workout/hooks/useSaveWorkout";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Image,
     Animated as RNAnimated,
@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { ConfirmModal } from "../../components/ConfirmModal";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import {
     buildWorkoutResults,
@@ -27,12 +28,13 @@ import { Route, WorkoutDraft, WorkoutDraftMap, WorkoutModalConfig, WorkoutResult
 
 export default function WorkoutScreen() {
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const navigation = useNavigation();
     const route = useRoute<Route>();
     const day = route.params.dayIndex;
 
-    const { machines } = useDayMachines(day);
+    const { machines, refresh } = useDayMachines(day);
     const saveWorkout = useSaveWorkout();
 
     const [currentIdx, setCurrentIdx] = useState(0);
@@ -40,9 +42,12 @@ export default function WorkoutScreen() {
     const [elapsed, setElapsed] = useState(0);
     const [modal, setModal] = useState<WorkoutModalConfig | null>(null);
     const startTime = useRef(Date.now()).current;
+    const machineNavScrollRef = useRef<ScrollView>(null);
 
     const machine = machines[currentIdx];
     const isLast = currentIdx === machines.length - 1;
+    const canGoPrev = currentIdx > 0;
+    const canGoNext = currentIdx < machines.length - 1;
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
     const currentDraft = machine ? getWorkoutDraft(drafts[machine.id]) : getWorkoutDraft();
     const completedCount = machines.filter((item) => isDraftComplete(drafts[item.id])).length;
@@ -82,6 +87,16 @@ export default function WorkoutScreen() {
         setCurrentIdx(idx);
     };
 
+    const goToPreviousMachine = () => {
+        if (!canGoPrev) return;
+        setCurrentIdx((prev) => prev - 1);
+    };
+
+    const goToNextMachine = () => {
+        if (!canGoNext) return;
+        setCurrentIdx((prev) => prev + 1);
+    };
+
     const buildResults = (): WorkoutResult[] =>
         buildWorkoutResults(
             machines.map((item) => item.id),
@@ -90,9 +105,14 @@ export default function WorkoutScreen() {
 
     const showSavedWorkoutModal = (finalResults: WorkoutResult[]) => {
         openModal({
-            title: "Treino finalizado!",
-            message: `${finalResults.length} máquina${finalResults.length > 1 ? "s" : ""} registrada${finalResults.length > 1 ? "s" : ""} em ${formatTime(elapsed)}`,
-            confirmLabel: "Fechar",
+            title: translate("workout.saved.title"),
+            message: translate("workout.saved.message", {
+                count: finalResults.length,
+                machineSuffix: finalResults.length > 1 ? "s" : "",
+                registeredSuffix: finalResults.length > 1 ? "s" : "",
+                elapsed: formatTime(elapsed),
+            }),
+            confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
             onConfirm: () => navigation.goBack(),
@@ -101,9 +121,9 @@ export default function WorkoutScreen() {
 
     const showEmptyWorkoutModal = () => {
         openModal({
-            title: "Treino vazio",
-            message: "Nenhum peso foi registrado.",
-            confirmLabel: "Fechar",
+            title: translate("workout.empty.title"),
+            message: translate("workout.empty.message"),
+            confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
             onConfirm: () => navigation.goBack(),
@@ -112,9 +132,9 @@ export default function WorkoutScreen() {
 
     const showSaveErrorModal = () => {
         openModal({
-            title: "Erro ao salvar",
-            message: "Não foi possível salvar o treino agora. Tente novamente em instantes.",
-            confirmLabel: "Fechar",
+            title: translate("workout.error.title"),
+            message: translate("workout.error.message"),
+            confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
             onConfirm: () => {},
@@ -140,10 +160,9 @@ export default function WorkoutScreen() {
 
         if (finalResults.length === 0 && hasAnyDrafts) {
             openModal({
-                title: "Nenhuma máquina completa",
-                message:
-                    "Ainda não há exercício com as 3 séries completas. Se sair agora, os rascunhos serão descartados.",
-                confirmLabel: "Sair sem salvar",
+                title: translate("workout.incomplete.title"),
+                message: translate("workout.incomplete.message"),
+                confirmLabel: translate("workout.incomplete.confirm"),
                 confirmVariant: "danger",
                 onConfirm: () => navigation.goBack(),
             });
@@ -152,9 +171,12 @@ export default function WorkoutScreen() {
 
         if (pendingCount > 0 && finalResults.length > 0) {
             openModal({
-                title: "Finalizar com pendências?",
-                message: `${pendingCount} máquina${pendingCount > 1 ? "s ficaram" : " ficou"} sem as 3 séries completas. Você pode salvar agora ou continuar revisando.`,
-                confirmLabel: "Finalizar",
+                title: translate("workout.pending.title"),
+                message: translate("workout.pending.message", {
+                    count: pendingCount,
+                    machineSuffix: pendingCount > 1 ? "s ficaram" : " ficou",
+                }),
+                confirmLabel: translate("common.actions.finish"),
                 confirmVariant: "accent",
                 onConfirm: () => {
                     void finishWorkout(finalResults);
@@ -172,14 +194,14 @@ export default function WorkoutScreen() {
             return;
         }
 
-        setCurrentIdx((prev) => Math.min(prev + 1, machines.length - 1));
+        goToNextMachine();
     };
 
     const handleQuit = () => {
         openModal({
-            title: "Encerrar treino?",
-            message: "Se você sair agora, o treino será encerrado e nada será salvo.",
-            confirmLabel: "Encerrar",
+            title: translate("workout.quit.title"),
+            message: translate("workout.quit.message"),
+            confirmLabel: translate("workout.quit.confirm"),
             confirmVariant: "danger",
             onConfirm: () => navigation.goBack(),
         });
@@ -217,26 +239,39 @@ export default function WorkoutScreen() {
         }
     }, [currentIdx, machines.length]);
 
+    useEffect(() => {
+        machineNavScrollRef.current?.scrollTo({
+            x: Math.max(currentIdx * 72 - 72, 0),
+            animated: true,
+        });
+    }, [currentIdx]);
+
+    useFocusEffect(
+        useCallback(() => {
+            void refresh();
+        }, [refresh]),
+    );
+
     if (!machine) return null;
 
     const seriesFields = [
         {
             key: "set1" as const,
-            label: "Série 1",
+            label: translate("workout.series.one"),
             value: currentDraft.set1,
-            placeholder: String(machine.lastSets?.[0] ?? 0),
+            placeholder: machine.recordSets?.[0]?.toString() ?? "",
         },
         {
             key: "set2" as const,
-            label: "Série 2",
+            label: translate("workout.series.two"),
             value: currentDraft.set2,
-            placeholder: String(machine.lastSets?.[1] ?? 0),
+            placeholder: machine.recordSets?.[1]?.toString() ?? "",
         },
         {
             key: "set3" as const,
-            label: "Série 3",
+            label: translate("workout.series.three"),
             value: currentDraft.set3,
-            placeholder: String(machine.lastSets?.[2] ?? 0),
+            placeholder: machine.recordSets?.[2]?.toString() ?? "",
         },
     ];
 
@@ -277,7 +312,10 @@ export default function WorkoutScreen() {
                             letterSpacing: 1,
                         }}
                     >
-                        {currentIdx + 1} de {machines.length}
+                        {translate("workout.position", {
+                            current: currentIdx + 1,
+                            total: machines.length,
+                        })}
                     </Text>
                     <Text
                         style={{
@@ -287,44 +325,155 @@ export default function WorkoutScreen() {
                             marginTop: 4,
                         }}
                     >
-                        {completedCount}/{machines.length} completas
+                        {translate("workout.completedProgress", {
+                            completed: completedCount,
+                            total: machines.length,
+                        })}
                     </Text>
                 </View>
 
                 <View style={{ width: 34 }} />
             </LinearGradient>
 
-            <View
-                style={{ flexDirection: "row", gap: 4, paddingHorizontal: 20, paddingVertical: 8 }}
-            >
-                {machines.map((item, idx) => {
-                    const isCurrent = idx === currentIdx;
-                    const hasDraft = hasDraftValue(drafts[item.id]);
-                    const isComplete = isDraftComplete(drafts[item.id]);
+            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 10 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <TouchableOpacity
+                        activeOpacity={0.75}
+                        onPress={goToPreviousMachine}
+                        disabled={!canGoPrev}
+                        style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 14,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: t.inputBg,
+                            borderWidth: 0.5,
+                            borderColor: t.border,
+                            opacity: canGoPrev ? 1 : 0.4,
+                        }}
+                    >
+                        <Ionicons name="chevron-back" size={20} color={t.textPrimary} />
+                    </TouchableOpacity>
 
-                    return (
-                        <TouchableOpacity
-                            key={item.id}
-                            activeOpacity={0.8}
-                            onPress={() => goToMachine(idx)}
-                            style={{ flex: 1 }}
-                        >
-                            <View
-                                style={{
-                                    height: isCurrent ? 5 : 3,
-                                    borderRadius: 999,
-                                    backgroundColor: isCurrent
-                                        ? t.accent + "80"
-                                        : isComplete
-                                          ? t.accent
-                                          : hasDraft
-                                            ? t.accentDark + "70"
-                                            : t.inputBg,
-                                }}
-                            />
-                        </TouchableOpacity>
-                    );
-                })}
+                    <ScrollView
+                        ref={machineNavScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+                        style={{ flex: 1 }}
+                    >
+                        {machines.map((item, idx) => {
+                            const isCurrent = idx === currentIdx;
+                            const hasDraft = hasDraftValue(drafts[item.id]);
+                            const isComplete = isDraftComplete(drafts[item.id]);
+
+                            const chipBackgroundColor = isCurrent
+                                ? t.accent
+                                : isComplete
+                                  ? t.accent + "18"
+                                  : hasDraft
+                                    ? t.chipBg
+                                    : t.inputBg;
+                            const chipBorderColor = isCurrent
+                                ? t.accent
+                                : isComplete
+                                  ? t.accent + "70"
+                                  : hasDraft
+                                    ? t.accentDark + "70"
+                                    : t.border;
+                            const chipTextColor = isCurrent ? btnColor : t.textPrimary;
+                            const statusIconName = isComplete
+                                ? "checkmark-circle"
+                                : hasDraft
+                                  ? "ellipse"
+                                  : "ellipse-outline";
+                            const statusIconColor = isCurrent
+                                ? btnColor
+                                : isComplete
+                                  ? t.accent
+                                  : hasDraft
+                                    ? t.accentDark
+                                    : t.textDim;
+
+                            return (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    activeOpacity={0.8}
+                                    onPress={() => goToMachine(idx)}
+                                    style={{ minWidth: 60 }}
+                                >
+                                    <View
+                                        style={{
+                                            minHeight: 44,
+                                            borderRadius: 16,
+                                            paddingHorizontal: 12,
+                                            paddingVertical: 10,
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            backgroundColor: chipBackgroundColor,
+                                            borderWidth: 1,
+                                            borderColor: chipBorderColor,
+                                        }}
+                                    >
+                                        <View
+                                            style={{
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: 6,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: chipTextColor,
+                                                    fontSize: 14,
+                                                    fontWeight: "900",
+                                                }}
+                                            >
+                                                {idx + 1}
+                                            </Text>
+                                            <Ionicons
+                                                name={statusIconName}
+                                                size={14}
+                                                color={statusIconColor}
+                                            />
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+
+                    <TouchableOpacity
+                        activeOpacity={0.75}
+                        onPress={goToNextMachine}
+                        disabled={!canGoNext}
+                        style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 14,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: t.inputBg,
+                            borderWidth: 0.5,
+                            borderColor: t.border,
+                            opacity: canGoNext ? 1 : 0.4,
+                        }}
+                    >
+                        <Ionicons name="chevron-forward" size={20} color={t.textPrimary} />
+                    </TouchableOpacity>
+                </View>
+
+                <Text
+                    style={{
+                        color: t.textDim,
+                        fontSize: 12,
+                        lineHeight: 18,
+                    }}
+                >
+                    {translate("workout.swapHint")}
+                </Text>
             </View>
 
             <ScrollView
@@ -401,17 +550,17 @@ export default function WorkoutScreen() {
                             }}
                         >
                             {currentIsComplete
-                                ? "Exercício registrado"
+                                ? translate("workout.status.registeredTitle")
                                 : currentHasDraft
-                                  ? "Rascunho salvo"
-                                  : "Pode pular sem perder o fluxo"}
+                                  ? translate("workout.status.draftTitle")
+                                  : translate("workout.status.skipTitle")}
                         </Text>
                         <Text style={{ color: t.textDim, fontSize: 13, lineHeight: 18 }}>
                             {currentIsComplete
-                                ? "Você pode seguir adiante ou voltar depois para ajustar os pesos."
+                                ? translate("workout.status.registeredMessage")
                                 : currentHasDraft
-                                  ? "Os valores ficam guardados ao trocar de máquina. Complete quando ela estiver livre."
-                                  : "Se a máquina estiver ocupada, avance agora e volte quando quiser pela barra acima."}
+                                  ? translate("workout.status.draftMessage")
+                                  : translate("workout.status.skipMessage")}
                         </Text>
                     </View>
 
@@ -426,13 +575,13 @@ export default function WorkoutScreen() {
                             marginLeft: 4,
                         }}
                     >
-                        preencha as 3 séries
+                        {translate("workout.fillSeries")}
                     </Text>
 
                     <View style={{ gap: 10 }}>
                         {seriesFields.map((item) => (
                             <View
-                                key={item.key}
+                                key={`${machine.id}-${item.key}`}
                                 style={{
                                     flexDirection: "row",
                                     alignItems: "center",
@@ -470,8 +619,10 @@ export default function WorkoutScreen() {
                                     value={item.value}
                                     onChangeText={(value) => updateDraftField(item.key, value)}
                                 />
-                                <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>
-                                    kg
+                                <Text
+                                    style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}
+                                >
+                                    {translate("common.units.kg")}
                                 </Text>
                             </View>
                         ))}
@@ -503,8 +654,10 @@ export default function WorkoutScreen() {
                                     size={20}
                                     color={t.textMuted}
                                 />
-                                <Text style={{ color: t.textMuted, fontSize: 16, fontWeight: "800" }}>
-                                    Anterior
+                                <Text
+                                    style={{ color: t.textMuted, fontSize: 16, fontWeight: "800" }}
+                                >
+                                    {translate("common.actions.back")}
                                 </Text>
                             </TouchableOpacity>
 
@@ -525,30 +678,24 @@ export default function WorkoutScreen() {
                                     }}
                                 >
                                     <Ionicons
-                                        name={isLast ? "checkmark-done-circle" : "arrow-forward-circle"}
+                                        name={
+                                            isLast
+                                                ? "checkmark-done-circle"
+                                                : "arrow-forward-circle"
+                                        }
                                         size={22}
                                         color={btnColor}
                                     />
                                     <Text
                                         style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}
                                     >
-                                        {isLast ? "Finalizar treino" : "Próxima máquina"}
+                                        {isLast
+                                            ? translate("common.actions.finishWorkout")
+                                            : translate("workout.nextMachine")}
                                     </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
-
-                        <Text
-                            style={{
-                                color: t.textDim,
-                                fontSize: 12,
-                                textAlign: "center",
-                                marginTop: 14,
-                                lineHeight: 18,
-                            }}
-                        >
-                            Toque nas barras acima para ir direto a qualquer exercício.
-                        </Text>
                     </View>
                 </RNAnimated.View>
             </ScrollView>

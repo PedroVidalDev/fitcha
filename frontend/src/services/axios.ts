@@ -1,4 +1,5 @@
 import axios from "axios";
+import { translateRuntime } from "../translates/runtime";
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 const normalizedApiUrl = apiUrl ? apiUrl.replace(/\/+$/, "") : undefined;
@@ -13,7 +14,7 @@ export const axiosApp = axios.create({
 
 export function ensureApiUrlConfigured() {
     if (!normalizedApiUrl) {
-        throw new Error("Configure EXPO_PUBLIC_API_URL no arquivo frontend/.env");
+        throw new Error(translateRuntime("services.axios.missingApiUrl"));
     }
 }
 

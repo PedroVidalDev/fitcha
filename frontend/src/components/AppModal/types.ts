@@ -7,4 +7,5 @@ export type AppModalProps = {
     children: ReactNode;
     contentStyle?: StyleProp<ViewStyle>;
     overlayPadding?: number;
+    compact?: boolean;
 };

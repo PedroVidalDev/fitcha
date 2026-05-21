@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	dtos "fitcha/internal/dtos/aiWorkout"
@@ -11,8 +12,11 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -23,27 +27,29 @@ const (
 )
 
 type AIWorkoutService struct {
-	plans      repositories.IPlanRepository
+	db         *gorm.DB
+	users      repositories.IUserRepository
 	httpClient *http.Client
 	apiKey     string
 	model      string
 }
 
-func NewAIWorkoutService(planRepo repositories.IPlanRepository) *AIWorkoutService {
+func NewAIWorkoutService(db *gorm.DB, userRepo repositories.IUserRepository) *AIWorkoutService {
 	model := strings.TrimSpace(os.Getenv("OPENAI_MODEL"))
 	if model == "" {
 		model = defaultAIWorkoutModel
 	}
 
 	return &AIWorkoutService{
-		plans:      planRepo,
+		db:         db,
+		users:      userRepo,
 		httpClient: &http.Client{Timeout: 45 * time.Second},
 		apiKey:     strings.TrimSpace(os.Getenv("OPENAI_API_KEY")),
 		model:      model,
 	}
 }
 
-func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
+func (s *AIWorkoutService) Generate(ctx context.Context, userID uint, input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
 	if s.apiKey == "" {
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("configure OPENAI_API_KEY para gerar treinos com IA")
 	}
@@ -56,12 +62,21 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 	input.SelectedDays = selectedDays
 	input.DaysPerWeek = len(selectedDays)
 
-	if _, err := s.plans.FindActiveByUserID(userID, time.Now()); err != nil {
-		return dtos.GenerateAIWorkoutResponse{}, errors.New("seu plano com IA nao esta ativo no momento")
+	user, err := s.users.FindByID(userID)
+	if err != nil {
+		return dtos.GenerateAIWorkoutResponse{}, errors.New("usuario nao encontrado")
 	}
 
-	response, err := s.requestWorkoutPlan(input)
+	if user.Credits <= 0 {
+		return dtos.GenerateAIWorkoutResponse{}, errors.New("voce nao possui creditos suficientes para gerar um treino com IA")
+	}
+
+	response, err := s.requestWorkoutPlan(ctx, input)
 	if err != nil {
+		if requestErr := mapAIWorkoutRequestError(err); requestErr != nil {
+			return dtos.GenerateAIWorkoutResponse{}, requestErr
+		}
+
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
 
@@ -69,14 +84,56 @@ func (s *AIWorkoutService) Generate(userID uint, input dtos.GenerateAIWorkoutReq
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("a IA nao retornou categorias de treino validas")
 	}
 
+	weekInput := buildGeneratedWeekInputs(response)
+	remainingCredits := user.Credits
+
+	if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
+		return dtos.GenerateAIWorkoutResponse{}, err
+	}
+
+	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
+			return err
+		}
+
+		if _, _, err := replaceWeekInTx(tx, userID, weekInput); err != nil {
+			return err
+		}
+
+		if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
+			return err
+		}
+
+		updatedUser, err := repositories.NewUserRepository(tx).ConsumeCredit(userID)
+		if err != nil {
+			return err
+		}
+
+		remainingCredits = updatedUser.Credits
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, repositories.ErrInsufficientCredits) {
+			return dtos.GenerateAIWorkoutResponse{}, errors.New("voce nao possui creditos suficientes para concluir esta geracao")
+		}
+
+		return dtos.GenerateAIWorkoutResponse{}, err
+	}
+
+	response.RemainingCredits = remainingCredits
+
 	return response, nil
 }
 
-func (s *AIWorkoutService) requestWorkoutPlan(input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
+func (s *AIWorkoutService) requestWorkoutPlan(ctx context.Context, input dtos.GenerateAIWorkoutRequest) (dtos.GenerateAIWorkoutResponse, error) {
 	var lastErr error
 
 	for attempt := 0; attempt < aiWorkoutGenerationTries; attempt++ {
-		response, err := s.requestWorkoutPlanAttempt(input, lastErr)
+		if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
+			return dtos.GenerateAIWorkoutResponse{}, err
+		}
+
+		response, err := s.requestWorkoutPlanAttempt(ctx, input, lastErr)
 		if err == nil {
 			return response, nil
 		}
@@ -95,7 +152,7 @@ func (s *AIWorkoutService) requestWorkoutPlan(input dtos.GenerateAIWorkoutReques
 	return dtos.GenerateAIWorkoutResponse{}, errors.New("nao foi possivel gerar o treino automaticamente")
 }
 
-func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkoutRequest, previousErr error) (dtos.GenerateAIWorkoutResponse, error) {
+func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input dtos.GenerateAIWorkoutRequest, previousErr error) (dtos.GenerateAIWorkoutResponse, error) {
 	payload := openAIChatCompletionRequest{
 		Model:    s.model,
 		Messages: buildAIWorkoutMessages(input, previousErr),
@@ -115,7 +172,7 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkou
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, openAIChatCompletionsURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openAIChatCompletionsURL, bytes.NewReader(body))
 	if err != nil {
 		return dtos.GenerateAIWorkoutResponse{}, err
 	}
@@ -125,6 +182,10 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkou
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
+		if requestErr := mapAIWorkoutRequestError(err); requestErr != nil {
+			return dtos.GenerateAIWorkoutResponse{}, requestErr
+		}
+
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("falha ao conectar com a API da OpenAI")
 	}
 	defer resp.Body.Close()
@@ -166,6 +227,18 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(input dtos.GenerateAIWorkou
 	}
 
 	return parsed, nil
+}
+
+func mapAIWorkoutRequestError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return errors.New("a solicitacao foi cancelada antes de concluir a geracao")
+	}
+
+	return nil
 }
 
 func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
@@ -274,6 +347,100 @@ func buildSelectedDayIndexes(days []int) string {
 	return "[" + strings.Join(indexes, ", ") + "]"
 }
 
+func buildGeneratedWeekInputs(response dtos.GenerateAIWorkoutResponse) map[int][]CreateDayMachineInput {
+	generatedDays := make(map[int][]CreateDayMachineInput, 7)
+
+	for dayIndex := 0; dayIndex < 7; dayIndex++ {
+		generatedDays[dayIndex] = []CreateDayMachineInput{}
+	}
+
+	for _, category := range response.Categories {
+		for _, dayIndex := range category.Days {
+			if dayIndex < 0 || dayIndex > 6 {
+				continue
+			}
+
+			for _, machine := range category.Machines {
+				generatedDays[dayIndex] = append(generatedDays[dayIndex], CreateDayMachineInput{
+					Name:        strings.TrimSpace(machine.Name),
+					Description: buildGeneratedMachineDescription(category.Name, machine.Sets),
+					CategoryKey: inferGeneratedMachineCategoryKey(category.Name, machine.Name),
+				})
+			}
+		}
+	}
+
+	return generatedDays
+}
+
+func buildGeneratedMachineDescription(categoryName string, sets []float64) string {
+	formattedSets := make([]string, 0, len(sets))
+	for _, weight := range sets {
+		formattedSets = append(formattedSets, strconv.FormatFloat(weight, 'f', -1, 64))
+	}
+
+	return fmt.Sprintf(
+		"%s - Series sugeridas (kg): %s",
+		strings.TrimSpace(categoryName),
+		strings.Join(formattedSets, " / "),
+	)
+}
+
+func inferGeneratedMachineCategoryKey(categoryName, machineName string) string {
+	categoryAliases := map[string][]string{
+		"peito":   {"peito", "supino", "crucifixo", "chest", "peitoral"},
+		"costas":  {"costas", "remada", "puxada", "barra", "pulldown", "rowing", "back"},
+		"pernas":  {"perna", "pernas", "quadriceps", "posterior", "gluteo", "gluteos", "leg", "panturrilha", "agachamento", "cadeira", "mesa flexora"},
+		"ombros":  {"ombro", "ombros", "shoulder", "desenvolvimento", "elevacao lateral"},
+		"biceps":  {"biceps", "rosca", "curl"},
+		"triceps": {"triceps", "corda", "testa", "pulley"},
+		"core":    {"core", "abdomen", "abdominal", "prancha", "lombar"},
+		"cardio":  {"cardio", "esteira", "bike", "bicicleta", "eliptico", "corrida"},
+	}
+
+	haystack := normalizeGeneratedWorkoutText(categoryName + " " + machineName)
+
+	for categoryKey, aliases := range categoryAliases {
+		for _, alias := range aliases {
+			if strings.Contains(haystack, normalizeGeneratedWorkoutText(alias)) {
+				return categoryKey
+			}
+		}
+	}
+
+	return "peito"
+}
+
+func normalizeGeneratedWorkoutText(value string) string {
+	replacer := strings.NewReplacer(
+		"á", "a",
+		"à", "a",
+		"ã", "a",
+		"â", "a",
+		"ä", "a",
+		"é", "e",
+		"è", "e",
+		"ê", "e",
+		"ë", "e",
+		"í", "i",
+		"ì", "i",
+		"î", "i",
+		"ï", "i",
+		"ó", "o",
+		"ò", "o",
+		"õ", "o",
+		"ô", "o",
+		"ö", "o",
+		"ú", "u",
+		"ù", "u",
+		"û", "u",
+		"ü", "u",
+		"ç", "c",
+	)
+
+	return strings.ToLower(replacer.Replace(strings.TrimSpace(value)))
+}
+
 func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, allowedDays []int) error {
 	allowedDaySet := make(map[int]struct{}, len(allowedDays))
 	seenDaySet := make(map[int]struct{}, len(allowedDays))
@@ -290,6 +457,7 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, allowedDa
 			return errors.New("a IA retornou uma categoria sem dias de treino")
 		}
 
+		categoryDaySet := make(map[int]struct{}, len(category.Days))
 		for _, day := range category.Days {
 			if day < 0 || day > 6 {
 				return errors.New("a IA retornou um dia de treino fora do intervalo permitido")
@@ -303,6 +471,15 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, allowedDa
 				)
 			}
 
+			if _, ok := categoryDaySet[day]; ok {
+				return fmt.Errorf(
+					"a IA retornou dias duplicados na categoria %q: %s",
+					category.Name,
+					buildSelectedDayNames([]int{day}),
+				)
+			}
+
+			categoryDaySet[day] = struct{}{}
 			seenDaySet[day] = struct{}{}
 		}
 
@@ -398,10 +575,9 @@ func buildAIWorkoutResponseSchema(allowedDays []int) map[string]any {
 							"minLength": 1,
 						},
 						"days": map[string]any{
-							"type":        "array",
-							"minItems":    1,
-							"maxItems":    len(allowedDays),
-							"uniqueItems": true,
+							"type":     "array",
+							"minItems": 1,
+							"maxItems": len(allowedDays),
 							"items": map[string]any{
 								"type": "integer",
 								"enum": dayEnum,

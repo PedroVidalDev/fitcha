@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import { translateRuntime } from "../translates/runtime";
 import { axiosApp, ensureApiUrlConfigured } from "./axios";
 
 export type HistoryApiEntry = {
@@ -42,7 +43,7 @@ export async function getMyHistory() {
         const response = await axiosApp.get<HistoryApiEntry[]>("/me/history");
         return response.data;
     } catch (error) {
-        throw new Error(getHistoryErrorMessage(error, "Não foi possível carregar o histórico"));
+        throw new Error(getHistoryErrorMessage(error, translateRuntime("services.history.loadError")));
     }
 }
 
@@ -55,6 +56,6 @@ export async function createWorkoutHistory(results: WorkoutHistoryInput[]) {
         });
         return response.data;
     } catch (error) {
-        throw new Error(getHistoryErrorMessage(error, "Não foi possível salvar o treino"));
+        throw new Error(getHistoryErrorMessage(error, translateRuntime("services.history.saveError")));
     }
 }

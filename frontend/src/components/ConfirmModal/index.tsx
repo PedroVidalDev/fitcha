@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, TouchableOpacity, View } from "react-native";
 import { AppModal } from "../AppModal";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { ConfirmModalProps } from "./types";
 
@@ -9,8 +10,8 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
         visible,
         title,
         message,
-        confirmLabel = "Confirmar",
-        cancelLabel = "Cancelar",
+        confirmLabel,
+        cancelLabel,
         hideCancel = false,
         confirmVariant = "danger",
         onClose,
@@ -18,10 +19,13 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
     } = props;
 
     const { t } = useTheme();
+    const { t: translate } = useI18n();
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
+    const resolvedConfirmLabel = confirmLabel ?? translate("common.actions.confirm");
+    const resolvedCancelLabel = cancelLabel ?? translate("common.actions.cancel");
 
     return (
-        <AppModal visible={visible} onClose={onClose} contentStyle={{ padding: 24 }} overlayPadding={24}>
+        <AppModal visible={visible} onClose={onClose} overlayPadding={24} compact>
             <Text
                 style={{
                     color: t.accent,
@@ -52,7 +56,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                                 fontWeight: "600",
                             }}
                         >
-                            {cancelLabel}
+                            {resolvedCancelLabel}
                         </Text>
                     </TouchableOpacity>
                 )}
@@ -73,7 +77,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                                     fontWeight: "800",
                                 }}
                             >
-                                {confirmLabel}
+                                {resolvedConfirmLabel}
                             </Text>
                         </LinearGradient>
                     ) : (
@@ -92,7 +96,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                                     fontWeight: "800",
                                 }}
                             >
-                                {confirmLabel}
+                                {resolvedConfirmLabel}
                             </Text>
                         </View>
                     )}

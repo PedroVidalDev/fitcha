@@ -13,6 +13,7 @@ type IMachineRepository interface {
 	Update(machine models.Machine) (models.Machine, error)
 	DeleteByIDAndUserID(machineID string, userID uint) error
 	DeleteByIDsAndUserID(machineIDs []string, userID uint) error
+	DeleteUnassignedWithoutHistoryByUserID(userID uint) error
 }
 
 type machineRepository struct {
@@ -69,4 +70,21 @@ func (r *machineRepository) DeleteByIDsAndUserID(machineIDs []string, userID uin
 	}
 
 	return r.db.Where("user_id = ? AND id IN ?", userID, machineIDs).Delete(&models.Machine{}).Error
+}
+
+func (r *machineRepository) DeleteUnassignedWithoutHistoryByUserID(userID uint) error {
+	return r.db.Exec(`
+		DELETE FROM tb_machines
+		WHERE user_id = ?
+		  AND NOT EXISTS (
+			SELECT 1
+			FROM tb_day_machines
+			WHERE tb_day_machines.machine_id = tb_machines.id
+		  )
+		  AND NOT EXISTS (
+			SELECT 1
+			FROM tb_history_entries
+			WHERE tb_history_entries.machine_id = tb_machines.id
+		  )
+	`, userID).Error
 }

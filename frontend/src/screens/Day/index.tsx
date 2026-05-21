@@ -11,6 +11,7 @@ import { AnimatedCard } from "../../components/AnimatedCard";
 import { CategoryBadge } from "../../components/CategoryBadge";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { GradientCard } from "../../components/GradientCard";
+import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Day">;
@@ -18,6 +19,7 @@ type Route = RouteProp<RootStackParamList, "Day">;
 
 export default function DayScreen() {
     const { t } = useTheme();
+    const { t: translate } = useI18n();
 
     const navigation = useNavigation<Nav>();
     const route = useRoute<Route>();
@@ -28,22 +30,77 @@ export default function DayScreen() {
 
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
+    const totalMachines = machines.length;
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg, padding: 16 }}>
-            <Text
+            <LinearGradient
+                colors={t.gradientHero}
                 style={{
-                    color: t.textDim,
-                    fontSize: 11,
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                    letterSpacing: 2,
+                    borderRadius: 22,
+                    padding: 18,
                     marginBottom: 18,
-                    marginLeft: 2,
+                    borderWidth: 1,
+                    borderColor: t.border,
+                    overflow: "hidden",
                 }}
             >
-                {machines.length} máquina{machines.length !== 1 ? "s" : ""}
-            </Text>
+                <View
+                    style={{
+                        position: "absolute",
+                        right: -18,
+                        top: -26,
+                        width: 90,
+                        height: 90,
+                        borderRadius: 999,
+                        backgroundColor: t.chipBg,
+                    }}
+                />
+                <Text
+                    style={{
+                        color: t.textDim,
+                        fontSize: 11,
+                        fontWeight: "700",
+                        textTransform: "uppercase",
+                        letterSpacing: 2,
+                    }}
+                >
+                    {translate("day.machineCount", {
+                        count: totalMachines,
+                        pluralSuffix: totalMachines !== 1 ? "s" : "",
+                    })}
+                </Text>
+                <Text
+                    style={{
+                        color: t.textPrimary,
+                        fontSize: 24,
+                        fontWeight: "900",
+                        marginTop: 8,
+                    }}
+                >
+                    {totalMachines > 0
+                        ? translate("common.actions.startWorkout")
+                        : translate("day.machineCount", {
+                              count: 0,
+                              pluralSuffix: "s",
+                          })}
+                </Text>
+                <Text
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 13,
+                        lineHeight: 19,
+                        marginTop: 8,
+                    }}
+                >
+                    {totalMachines > 0
+                        ? translate("day.machineCount", {
+                              count: totalMachines,
+                              pluralSuffix: totalMachines !== 1 ? "s" : "",
+                          })
+                        : translate("week.emptyDay")}
+                </Text>
+            </LinearGradient>
 
             <FlatList
                 data={machines}
@@ -64,7 +121,13 @@ export default function DayScreen() {
                             {item.photo ? (
                                 <Image
                                     source={{ uri: item.photo }}
-                                    style={{ width: 50, height: 50, borderRadius: 12 }}
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 12,
+                                        borderWidth: 1,
+                                        borderColor: t.border,
+                                    }}
                                     resizeMode="cover"
                                 />
                             ) : (
@@ -74,6 +137,8 @@ export default function DayScreen() {
                                         height: 50,
                                         borderRadius: 12,
                                         backgroundColor: t.chipBg,
+                                        borderWidth: 1,
+                                        borderColor: t.border,
                                         justifyContent: "center",
                                         alignItems: "center",
                                     }}
@@ -101,8 +166,16 @@ export default function DayScreen() {
                                 >
                                     <CategoryBadge categoryKey={item.categoryKey} />
                                     {item.lastWeight && (
-                                        <Text style={{ color: t.textMuted, fontSize: 12 }}>
-                                            máx {item.lastWeight}kg
+                                        <Text
+                                            style={{
+                                                color: t.accent,
+                                                fontSize: 12,
+                                                fontWeight: "700",
+                                            }}
+                                        >
+                                            {translate("day.maxWeight", {
+                                                weight: item.lastWeight,
+                                            })}
                                         </Text>
                                     )}
                                 </View>
@@ -141,7 +214,7 @@ export default function DayScreen() {
                         >
                             <Ionicons name="play-circle" size={24} color={btnColor} />
                             <Text style={{ color: btnColor, fontSize: 18, fontWeight: "900" }}>
-                                Iniciar treino
+                                {translate("common.actions.startWorkout")}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -150,9 +223,9 @@ export default function DayScreen() {
 
             <ConfirmModal
                 visible={!!deleteTarget}
-                title="Remover máquina"
-                message={`Remover "${deleteTarget?.name}" deste dia? O histórico será mantido se estiver em outro dia.`}
-                confirmLabel="Remover"
+                title={translate("day.remove.title")}
+                message={translate("day.remove.message", { name: deleteTarget?.name ?? "" })}
+                confirmLabel={translate("common.actions.remove")}
                 onClose={() => setDeleteTarget(null)}
                 onConfirm={async () => {
                     if (deleteTarget) {

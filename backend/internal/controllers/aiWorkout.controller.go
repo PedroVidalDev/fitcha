@@ -30,7 +30,7 @@ func (c *AIWorkoutController) Generate(ctx *gin.Context) {
 		return
 	}
 
-	response, err := c.service.Generate(userID, input)
+	response, err := c.service.Generate(ctx.Request.Context(), userID, input)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

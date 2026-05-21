@@ -2,16 +2,16 @@ package models
 
 import "time"
 
-type PlanStatus string
+type PaymentStatus string
 
 const (
-	PlanStatusPending  PlanStatus = "pending"
-	PlanStatusApproved PlanStatus = "approved"
-	PlanStatusExpired  PlanStatus = "expired"
-	PlanStatusFailed   PlanStatus = "failed"
+	PaymentStatusPending  PaymentStatus = "pending"
+	PaymentStatusApproved PaymentStatus = "approved"
+	PaymentStatusExpired  PaymentStatus = "expired"
+	PaymentStatusFailed   PaymentStatus = "failed"
 )
 
-type Plan struct {
+type Payment struct {
 	ID                     uint       `gorm:"primaryKey" json:"id"`
 	CreatedAt              time.Time  `json:"createdAt"`
 	UpdatedAt              time.Time  `json:"updatedAt"`
@@ -20,7 +20,9 @@ type Plan struct {
 	Status                 string     `gorm:"size:30;index;not null" json:"status"`
 	ExternalReference      string     `gorm:"size:120;uniqueIndex;not null" json:"externalReference"`
 	ProviderPaymentID      string     `gorm:"size:120;index" json:"providerPaymentId"`
-	TransactionAmountCents int64      `json:"transactionAmountCents"`
+	CreditQuantity         int        `gorm:"not null" json:"creditQuantity"`
+	UnitAmountCents        int64      `gorm:"not null" json:"unitAmountCents"`
+	TransactionAmountCents int64      `gorm:"not null" json:"transactionAmountCents"`
 	Currency               string     `gorm:"size:10;not null" json:"currency"`
 	Title                  string     `gorm:"size:120;not null" json:"title"`
 	Description            string     `gorm:"size:255" json:"description"`
@@ -30,11 +32,10 @@ type Plan struct {
 	TicketURL              string     `gorm:"type:text" json:"ticketUrl"`
 	PaymentExpiresAt       *time.Time `json:"paymentExpiresAt,omitempty"`
 	PaidAt                 *time.Time `json:"paidAt,omitempty"`
-	AccessStartsAt         *time.Time `json:"accessStartsAt,omitempty"`
-	AccessExpiresAt        *time.Time `json:"accessExpiresAt,omitempty"`
+	CreditsAppliedAt       *time.Time `json:"creditsAppliedAt,omitempty"`
 	LastWebhookAt          *time.Time `json:"lastWebhookAt,omitempty"`
 }
 
-func (Plan) TableName() string {
-	return "tb_plans"
+func (Payment) TableName() string {
+	return "tb_payments"
 }

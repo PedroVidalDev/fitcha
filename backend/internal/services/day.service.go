@@ -195,88 +195,90 @@ func (s *DayService) ReplaceWeek(userID uint, inputDays []ReplaceWeekDayInput) (
 	var machines []models.Machine
 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
-		dayRepo := repositories.NewDayRepository(tx)
-		machineRepo := repositories.NewMachineRepository(tx)
-
-		if err := dayRepo.EnsureWeek(userID); err != nil {
-			return err
-		}
-
-		existingMachines, err := machineRepo.FindByUserID(userID)
-		if err != nil {
-			return err
-		}
-
-		machineIDs := make([]string, 0, len(existingMachines))
-		for _, machine := range existingMachines {
-			machineIDs = append(machineIDs, machine.ID)
-		}
-
-		if err := machineRepo.DeleteByIDsAndUserID(machineIDs, userID); err != nil {
-			return err
-		}
-
-		currentDays, err := dayRepo.FindByUserID(userID)
-		if err != nil {
-			return err
-		}
-
-		dayByIndex := make(map[int]models.Day, len(currentDays))
-		for _, day := range currentDays {
-			dayByIndex[day.DayIndex] = day
-		}
-
-		createdMachines := make([]models.Machine, 0)
-		for dayIndex := 0; dayIndex < 7; dayIndex++ {
-			currentDay, exists := dayByIndex[dayIndex]
-			if !exists {
-				return errors.New("dia de treino nao encontrado")
-			}
-
-			for position, machineInput := range normalizedDays[dayIndex] {
-				machineID, err := generateID()
-				if err != nil {
-					return err
-				}
-
-				createdMachine, err := machineRepo.Create(models.Machine{
-					ID:          machineID,
-					UserID:      userID,
-					Name:        machineInput.Name,
-					Description: machineInput.Description,
-					Photo:       machineInput.Photo,
-					CategoryKey: machineInput.CategoryKey,
-				})
-				if err != nil {
-					return err
-				}
-
-				if _, err := dayRepo.CreateAssignment(models.DayMachine{
-					DayID:     currentDay.ID,
-					MachineID: createdMachine.ID,
-					Position:  position,
-				}); err != nil {
-					return err
-				}
-
-				createdMachines = append(createdMachines, createdMachine)
-			}
-		}
-
-		updatedDays, err := dayRepo.FindByUserID(userID)
-		if err != nil {
-			return err
-		}
-
-		days = updatedDays
-		machines = createdMachines
-		return nil
+		var replaceErr error
+		days, machines, replaceErr = replaceWeekInTx(tx, userID, normalizedDays)
+		return replaceErr
 	})
 	if err != nil {
 		return []models.Day{}, []models.Machine{}, err
 	}
 
 	return days, machines, nil
+}
+
+func replaceWeekInTx(tx *gorm.DB, userID uint, normalizedDays map[int][]CreateDayMachineInput) ([]models.Day, []models.Machine, error) {
+	dayRepo := repositories.NewDayRepository(tx)
+	machineRepo := repositories.NewMachineRepository(tx)
+
+	if err := dayRepo.EnsureWeek(userID); err != nil {
+		return []models.Day{}, []models.Machine{}, err
+	}
+
+	currentDays, err := dayRepo.FindByUserID(userID)
+	if err != nil {
+		return []models.Day{}, []models.Machine{}, err
+	}
+
+	dayByIndex := make(map[int]models.Day, len(currentDays))
+	for _, day := range currentDays {
+		dayByIndex[day.DayIndex] = day
+	}
+
+	for _, day := range currentDays {
+		for _, assignment := range day.MachineAssignments {
+			if err := dayRepo.DeleteAssignment(day.ID, assignment.MachineID); err != nil {
+				return []models.Day{}, []models.Machine{}, err
+			}
+		}
+	}
+
+	if err := machineRepo.DeleteUnassignedWithoutHistoryByUserID(userID); err != nil {
+		return []models.Day{}, []models.Machine{}, err
+	}
+
+	createdMachines := make([]models.Machine, 0)
+	for dayIndex := 0; dayIndex < 7; dayIndex++ {
+		currentDay, exists := dayByIndex[dayIndex]
+		if !exists {
+			return []models.Day{}, []models.Machine{}, errors.New("dia de treino nao encontrado")
+		}
+
+		for position, machineInput := range normalizedDays[dayIndex] {
+			machineID, err := generateID()
+			if err != nil {
+				return []models.Day{}, []models.Machine{}, err
+			}
+
+			createdMachine, err := machineRepo.Create(models.Machine{
+				ID:          machineID,
+				UserID:      userID,
+				Name:        machineInput.Name,
+				Description: machineInput.Description,
+				Photo:       machineInput.Photo,
+				CategoryKey: machineInput.CategoryKey,
+			})
+			if err != nil {
+				return []models.Day{}, []models.Machine{}, err
+			}
+
+			if _, err := dayRepo.CreateAssignment(models.DayMachine{
+				DayID:     currentDay.ID,
+				MachineID: createdMachine.ID,
+				Position:  position,
+			}); err != nil {
+				return []models.Day{}, []models.Machine{}, err
+			}
+
+			createdMachines = append(createdMachines, createdMachine)
+		}
+	}
+
+	updatedDays, err := dayRepo.FindByUserID(userID)
+	if err != nil {
+		return []models.Day{}, []models.Machine{}, err
+	}
+
+	return updatedDays, createdMachines, nil
 }
 
 func validateDayIndex(dayIndex int) error {

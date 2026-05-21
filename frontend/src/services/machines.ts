@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import { Machine } from "../dtos/Machine";
+import { translateRuntime } from "../translates/runtime";
 import { axiosApp, ensureApiUrlConfigured } from "./axios";
 
 type UpdateMachineInput = Partial<Pick<Machine, "name" | "description" | "photo" | "categoryKey">>;
@@ -33,7 +34,7 @@ export async function getMyMachines() {
         const response = await axiosApp.get<Machine[]>("/me/machines");
         return response.data;
     } catch (error) {
-        throw new Error(getMachineErrorMessage(error, "Não foi possível carregar as máquinas"));
+        throw new Error(getMachineErrorMessage(error, translateRuntime("services.machines.loadError")));
     }
 }
 
@@ -44,6 +45,8 @@ export async function updateMachine(machineId: string, input: UpdateMachineInput
         const response = await axiosApp.patch<Machine>(`/me/machines/${machineId}`, input);
         return response.data;
     } catch (error) {
-        throw new Error(getMachineErrorMessage(error, "Não foi possível atualizar a máquina"));
+        throw new Error(
+            getMachineErrorMessage(error, translateRuntime("services.machines.updateError")),
+        );
     }
 }

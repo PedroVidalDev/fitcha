@@ -1,12 +1,14 @@
-export type UserPlanStatus = "pending" | "approved" | "expired" | "failed";
+export type UserPaymentStatus = "pending" | "approved" | "expired" | "failed";
 
-export type UserPlan = {
+export type UserPayment = {
     id: number;
     userId: number;
     provider: string;
-    status: UserPlanStatus;
+    status: UserPaymentStatus;
     externalReference: string;
     providerPaymentId: string;
+    creditQuantity: number;
+    unitAmountCents: number;
     transactionAmountCents: number;
     currency: string;
     title: string;
@@ -17,18 +19,18 @@ export type UserPlan = {
     ticketUrl: string;
     paymentExpiresAt?: string | null;
     paidAt?: string | null;
-    accessStartsAt?: string | null;
-    accessExpiresAt?: string | null;
+    creditsAppliedAt?: string | null;
     createdAt: string;
     updatedAt: string;
 };
 
-export type PlanCheckoutResponse = {
-    plan: UserPlan;
+export type CreditCheckoutResponse = {
+    payment: UserPayment;
+    credits: number;
     isNew: boolean;
 };
 
-export type PlanStatusResponse = {
-    plan: UserPlan | null;
-    planActive: boolean;
+export type CreditSummaryResponse = {
+    payment: UserPayment | null;
+    credits: number;
 };

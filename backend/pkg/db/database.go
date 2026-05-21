@@ -33,9 +33,17 @@ func InitDB() (*gorm.DB, error) {
 		}
 	}
 
+	if err := db.Exec("DROP TABLE IF EXISTS tb_plans").Error; err != nil {
+		return nil, fmt.Errorf("erro ao remover tabela legada de assinaturas")
+	}
+
+	if err := db.Exec("ALTER TABLE IF EXISTS tb_users DROP COLUMN IF EXISTS plan_active").Error; err != nil {
+		return nil, fmt.Errorf("erro ao remover coluna legada plan_active")
+	}
+
 	err = db.AutoMigrate(
 		&models.User{},
-		&models.Plan{},
+		&models.Payment{},
 		&models.Machine{},
 		&models.Day{},
 		&models.DayMachine{},

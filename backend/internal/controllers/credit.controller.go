@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	dtos "fitcha/internal/dtos/plan"
+	dtos "fitcha/internal/dtos/credit"
 	"fitcha/internal/services"
 	"net/http"
 	"strings"
@@ -9,16 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type PlanController struct {
-	service *services.PlanService
+type CreditController struct {
+	service *services.CreditService
 }
 
-func NewPlanController(s *services.PlanService) *PlanController {
-	return &PlanController{service: s}
+func NewCreditController(s *services.CreditService) *CreditController {
+	return &CreditController{service: s}
 }
 
-func (c *PlanController) CreateCheckout(ctx *gin.Context) {
-	var input dtos.CreatePlanCheckoutType
+func (c *CreditController) CreateCheckout(ctx *gin.Context) {
+	var input dtos.CreateCreditCheckoutType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -31,38 +31,39 @@ func (c *PlanController) CreateCheckout(ctx *gin.Context) {
 		return
 	}
 
-	plan, isNew, err := c.service.CreateCheckout(userID, input.DocumentNumber)
+	payment, credits, isNew, err := c.service.CreateCheckout(userID, input.CreditQuantity, input.DocumentNumber)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, dtos.PlanCheckoutResponseType{
-		Plan:  plan,
-		IsNew: isNew,
+	ctx.JSON(http.StatusCreated, dtos.CreditCheckoutResponseType{
+		Payment: payment,
+		Credits: credits,
+		IsNew:   isNew,
 	})
 }
 
-func (c *PlanController) GetMyPlan(ctx *gin.Context) {
+func (c *CreditController) GetMySummary(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	plan, planActive, err := c.service.GetMyPlan(userID)
+	payment, credits, err := c.service.GetMySummary(userID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dtos.PlanStatusResponseType{
-		Plan:       plan,
-		PlanActive: planActive,
+	ctx.JSON(http.StatusOK, dtos.CreditSummaryResponseType{
+		Payment: payment,
+		Credits: credits,
 	})
 }
 
-func (c *PlanController) MercadoPagoWebhook(ctx *gin.Context) {
+func (c *CreditController) MercadoPagoWebhook(ctx *gin.Context) {
 	resourceID := strings.TrimSpace(ctx.Query("data.id"))
 	requestID := strings.TrimSpace(ctx.GetHeader("X-Request-Id"))
 	signature := strings.TrimSpace(ctx.GetHeader("X-Signature"))
