@@ -31,7 +31,7 @@ type ApiErrorResponse = {
 
 const TEST_USER: User = {
     id: 0,
-    name: "Usuario Teste",
+    name: "Usuário Teste",
     email: "teste@fitcha.app",
     credits: 3,
 };
@@ -299,7 +299,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw buildAuthRequestError(error, "Nao foi possivel entrar");
+                throw buildAuthRequestError(error, "Não foi possível entrar");
             }
         },
         [persistSession],
@@ -320,7 +320,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw buildAuthRequestError(error, "Nao foi possivel criar a conta");
+                throw buildAuthRequestError(error, "Não foi possível criar a conta");
             }
         },
         [persistSession],
