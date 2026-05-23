@@ -19,6 +19,13 @@ export function getAuthErrorPresentation(code: string | null, screen: AuthScreen
                       translationKey: "auth.errors.emailAlreadyExists" as TranslationKey,
                   }
                 : null;
+        case "AUTH_EMAIL_NOT_VERIFIED":
+            return screen === "login"
+                ? {
+                      field: "email" as AuthField,
+                      translationKey: "auth.errors.emailNotVerified" as TranslationKey,
+                  }
+                : null;
         default:
             return null;
     }

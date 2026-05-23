@@ -12,8 +12,8 @@ type IDayRepository interface {
 	FindByUserID(userID uint) ([]models.Day, error)
 	FindByUserIDAndDayIndex(userID uint, dayIndex int) (models.Day, error)
 	CreateAssignment(assignment models.DayMachine) (models.DayMachine, error)
-	DeleteAssignment(dayID uint, machineID string) error
-	CountAssignmentsByMachineID(machineID string) (int64, error)
+	DeleteAssignment(dayID uint, userMachineID string) error
+	CountAssignmentsByUserMachineID(userMachineID string) (int64, error)
 }
 
 type dayRepository struct {
@@ -80,14 +80,14 @@ func (r *dayRepository) CreateAssignment(assignment models.DayMachine) (models.D
 	return assignment, nil
 }
 
-func (r *dayRepository) DeleteAssignment(dayID uint, machineID string) error {
-	return r.db.Where("day_id = ? AND machine_id = ?", dayID, machineID).Delete(&models.DayMachine{}).Error
+func (r *dayRepository) DeleteAssignment(dayID uint, userMachineID string) error {
+	return r.db.Where("day_id = ? AND user_machine_id = ?", dayID, userMachineID).Delete(&models.DayMachine{}).Error
 }
 
-func (r *dayRepository) CountAssignmentsByMachineID(machineID string) (int64, error) {
+func (r *dayRepository) CountAssignmentsByUserMachineID(userMachineID string) (int64, error) {
 	var count int64
 
-	if err := r.db.Model(&models.DayMachine{}).Where("machine_id = ?", machineID).Count(&count).Error; err != nil {
+	if err := r.db.Model(&models.DayMachine{}).Where("user_machine_id = ?", userMachineID).Count(&count).Error; err != nil {
 		return 0, err
 	}
 

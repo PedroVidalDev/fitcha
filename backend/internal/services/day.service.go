@@ -10,10 +10,11 @@ import (
 )
 
 type CreateDayMachineInput struct {
-	Name        string
-	Description string
-	Photo       string
-	CategoryKey string
+	CatalogMachineID string
+	Name             string
+	Description      string
+	Photo            string
+	CategoryKey      string
 }
 
 type ReplaceWeekDayInput struct {
@@ -41,22 +42,21 @@ func (s *DayService) ListByUserID(userID uint) ([]models.Day, error) {
 	return s.days.FindByUserID(userID)
 }
 
-func (s *DayService) AddMachine(userID uint, dayIndex int, input CreateDayMachineInput) (models.Day, models.Machine, error) {
+func (s *DayService) AddMachine(userID uint, dayIndex int, input CreateDayMachineInput) (models.Day, models.UserMachine, error) {
 	if err := validateDayIndex(dayIndex); err != nil {
-		return models.Day{}, models.Machine{}, err
+		return models.Day{}, models.UserMachine{}, err
 	}
 
 	normalizedInput, err := normalizeCreateDayMachineInput(input)
 	if err != nil {
-		return models.Day{}, models.Machine{}, err
+		return models.Day{}, models.UserMachine{}, err
 	}
 
 	var day models.Day
-	var machine models.Machine
+	var machine models.UserMachine
 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		dayRepo := repositories.NewDayRepository(tx)
-		machineRepo := repositories.NewMachineRepository(tx)
 
 		if err := dayRepo.EnsureWeek(userID); err != nil {
 			return err
@@ -67,27 +67,21 @@ func (s *DayService) AddMachine(userID uint, dayIndex int, input CreateDayMachin
 			return errors.New("dia de treino nao encontrado")
 		}
 
-		machineID, err := generateID()
+		resolvedMachine, err := resolveUserMachineForInput(tx, userID, normalizedInput)
 		if err != nil {
 			return err
 		}
 
-		createdMachine, err := machineRepo.Create(models.Machine{
-			ID:          machineID,
-			UserID:      userID,
-			Name:        normalizedInput.Name,
-			Description: normalizedInput.Description,
-			Photo:       normalizedInput.Photo,
-			CategoryKey: normalizedInput.CategoryKey,
-		})
-		if err != nil {
-			return err
+		for _, assignment := range currentDay.MachineAssignments {
+			if assignment.UserMachineID == resolvedMachine.ID {
+				return errors.New("maquina ja vinculada a este dia")
+			}
 		}
 
 		if _, err := dayRepo.CreateAssignment(models.DayMachine{
-			DayID:     currentDay.ID,
-			MachineID: createdMachine.ID,
-			Position:  len(currentDay.MachineAssignments),
+			DayID:         currentDay.ID,
+			UserMachineID: resolvedMachine.ID,
+			Position:      len(currentDay.MachineAssignments),
 		}); err != nil {
 			return err
 		}
@@ -98,11 +92,11 @@ func (s *DayService) AddMachine(userID uint, dayIndex int, input CreateDayMachin
 		}
 
 		day = updatedDay
-		machine = createdMachine
+		machine = resolvedMachine
 		return nil
 	})
 	if err != nil {
-		return models.Day{}, models.Machine{}, err
+		return models.Day{}, models.UserMachine{}, err
 	}
 
 	return day, machine, nil
@@ -123,7 +117,7 @@ func (s *DayService) RemoveMachine(userID uint, dayIndex int, machineID string) 
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		dayRepo := repositories.NewDayRepository(tx)
-		machineRepo := repositories.NewMachineRepository(tx)
+		userMachineRepo := repositories.NewUserMachineRepository(tx)
 
 		if err := dayRepo.EnsureWeek(userID); err != nil {
 			return err
@@ -134,7 +128,7 @@ func (s *DayService) RemoveMachine(userID uint, dayIndex int, machineID string) 
 			return errors.New("dia de treino nao encontrado")
 		}
 
-		if _, err := machineRepo.FindByIDAndUserID(machineID, userID); err != nil {
+		if _, err := userMachineRepo.FindByIDAndUserID(machineID, userID); err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errors.New("maquina nao encontrada")
 			}
@@ -144,7 +138,7 @@ func (s *DayService) RemoveMachine(userID uint, dayIndex int, machineID string) 
 
 		isAssignedToDay := false
 		for _, assignment := range currentDay.MachineAssignments {
-			if assignment.MachineID == machineID {
+			if assignment.UserMachineID == machineID {
 				isAssignedToDay = true
 				break
 			}
@@ -158,16 +152,23 @@ func (s *DayService) RemoveMachine(userID uint, dayIndex int, machineID string) 
 			return err
 		}
 
-		assignmentsCount, err := dayRepo.CountAssignmentsByMachineID(machineID)
+		assignmentsCount, err := dayRepo.CountAssignmentsByUserMachineID(machineID)
 		if err != nil {
 			return err
 		}
 
 		if assignmentsCount == 0 {
-			if err := machineRepo.DeleteByIDAndUserID(machineID, userID); err != nil {
+			hasHistory, err := hasHistoryForUserMachine(tx, machineID)
+			if err != nil {
 				return err
 			}
-			removedMachine = true
+
+			if !hasHistory {
+				if err := userMachineRepo.DeleteByIDAndUserID(machineID, userID); err != nil {
+					return err
+				}
+				removedMachine = true
+			}
 		}
 
 		updatedDay, err := dayRepo.FindByUserIDAndDayIndex(userID, dayIndex)
@@ -185,14 +186,14 @@ func (s *DayService) RemoveMachine(userID uint, dayIndex int, machineID string) 
 	return day, removedMachine, nil
 }
 
-func (s *DayService) ReplaceWeek(userID uint, inputDays []ReplaceWeekDayInput) ([]models.Day, []models.Machine, error) {
+func (s *DayService) ReplaceWeek(userID uint, inputDays []ReplaceWeekDayInput) ([]models.Day, []models.UserMachine, error) {
 	normalizedDays, err := normalizeReplaceWeekDays(inputDays)
 	if err != nil {
-		return []models.Day{}, []models.Machine{}, err
+		return []models.Day{}, []models.UserMachine{}, err
 	}
 
 	var days []models.Day
-	var machines []models.Machine
+	var machines []models.UserMachine
 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		var replaceErr error
@@ -200,23 +201,23 @@ func (s *DayService) ReplaceWeek(userID uint, inputDays []ReplaceWeekDayInput) (
 		return replaceErr
 	})
 	if err != nil {
-		return []models.Day{}, []models.Machine{}, err
+		return []models.Day{}, []models.UserMachine{}, err
 	}
 
 	return days, machines, nil
 }
 
-func replaceWeekInTx(tx *gorm.DB, userID uint, normalizedDays map[int][]CreateDayMachineInput) ([]models.Day, []models.Machine, error) {
+func replaceWeekInTx(tx *gorm.DB, userID uint, normalizedDays map[int][]CreateDayMachineInput) ([]models.Day, []models.UserMachine, error) {
 	dayRepo := repositories.NewDayRepository(tx)
-	machineRepo := repositories.NewMachineRepository(tx)
+	userMachineRepo := repositories.NewUserMachineRepository(tx)
 
 	if err := dayRepo.EnsureWeek(userID); err != nil {
-		return []models.Day{}, []models.Machine{}, err
+		return []models.Day{}, []models.UserMachine{}, err
 	}
 
 	currentDays, err := dayRepo.FindByUserID(userID)
 	if err != nil {
-		return []models.Day{}, []models.Machine{}, err
+		return []models.Day{}, []models.UserMachine{}, err
 	}
 
 	dayByIndex := make(map[int]models.Day, len(currentDays))
@@ -226,59 +227,55 @@ func replaceWeekInTx(tx *gorm.DB, userID uint, normalizedDays map[int][]CreateDa
 
 	for _, day := range currentDays {
 		for _, assignment := range day.MachineAssignments {
-			if err := dayRepo.DeleteAssignment(day.ID, assignment.MachineID); err != nil {
-				return []models.Day{}, []models.Machine{}, err
+			if err := dayRepo.DeleteAssignment(day.ID, assignment.UserMachineID); err != nil {
+				return []models.Day{}, []models.UserMachine{}, err
 			}
 		}
 	}
 
-	if err := machineRepo.DeleteUnassignedWithoutHistoryByUserID(userID); err != nil {
-		return []models.Day{}, []models.Machine{}, err
+	if err := userMachineRepo.DeleteUnassignedWithoutHistoryByUserID(userID); err != nil {
+		return []models.Day{}, []models.UserMachine{}, err
 	}
 
-	createdMachines := make([]models.Machine, 0)
 	for dayIndex := 0; dayIndex < 7; dayIndex++ {
 		currentDay, exists := dayByIndex[dayIndex]
 		if !exists {
-			return []models.Day{}, []models.Machine{}, errors.New("dia de treino nao encontrado")
+			return []models.Day{}, []models.UserMachine{}, errors.New("dia de treino nao encontrado")
 		}
 
+		assignedMachines := make(map[string]struct{}, len(normalizedDays[dayIndex]))
 		for position, machineInput := range normalizedDays[dayIndex] {
-			machineID, err := generateID()
+			resolvedMachine, err := resolveUserMachineForInput(tx, userID, machineInput)
 			if err != nil {
-				return []models.Day{}, []models.Machine{}, err
+				return []models.Day{}, []models.UserMachine{}, err
 			}
 
-			createdMachine, err := machineRepo.Create(models.Machine{
-				ID:          machineID,
-				UserID:      userID,
-				Name:        machineInput.Name,
-				Description: machineInput.Description,
-				Photo:       machineInput.Photo,
-				CategoryKey: machineInput.CategoryKey,
-			})
-			if err != nil {
-				return []models.Day{}, []models.Machine{}, err
+			if _, exists := assignedMachines[resolvedMachine.ID]; exists {
+				return []models.Day{}, []models.UserMachine{}, errors.New("maquinas duplicadas no mesmo dia nao sao permitidas")
 			}
+			assignedMachines[resolvedMachine.ID] = struct{}{}
 
 			if _, err := dayRepo.CreateAssignment(models.DayMachine{
-				DayID:     currentDay.ID,
-				MachineID: createdMachine.ID,
-				Position:  position,
+				DayID:         currentDay.ID,
+				UserMachineID: resolvedMachine.ID,
+				Position:      position,
 			}); err != nil {
-				return []models.Day{}, []models.Machine{}, err
+				return []models.Day{}, []models.UserMachine{}, err
 			}
-
-			createdMachines = append(createdMachines, createdMachine)
 		}
 	}
 
 	updatedDays, err := dayRepo.FindByUserID(userID)
 	if err != nil {
-		return []models.Day{}, []models.Machine{}, err
+		return []models.Day{}, []models.UserMachine{}, err
 	}
 
-	return updatedDays, createdMachines, nil
+	userMachines, err := userMachineRepo.FindByUserID(userID)
+	if err != nil {
+		return []models.Day{}, []models.UserMachine{}, err
+	}
+
+	return updatedDays, userMachines, nil
 }
 
 func validateDayIndex(dayIndex int) error {
@@ -290,6 +287,14 @@ func validateDayIndex(dayIndex int) error {
 }
 
 func normalizeCreateDayMachineInput(input CreateDayMachineInput) (CreateDayMachineInput, error) {
+	catalogMachineID := strings.TrimSpace(input.CatalogMachineID)
+	if catalogMachineID != "" {
+		return CreateDayMachineInput{
+			CatalogMachineID: catalogMachineID,
+			Photo:            strings.TrimSpace(input.Photo),
+		}, nil
+	}
+
 	name := strings.TrimSpace(input.Name)
 	if name == "" {
 		return CreateDayMachineInput{}, errors.New("informe o nome da maquina")
@@ -340,4 +345,74 @@ func normalizeReplaceWeekDays(inputDays []ReplaceWeekDayInput) (map[int][]Create
 	}
 
 	return normalizedDays, nil
+}
+
+func resolveUserMachineForInput(tx *gorm.DB, userID uint, input CreateDayMachineInput) (models.UserMachine, error) {
+	userMachineRepo := repositories.NewUserMachineRepository(tx)
+	machineRepo := repositories.NewMachineRepository(tx)
+
+	if input.CatalogMachineID != "" {
+		catalogMachine, err := machineRepo.FindByID(input.CatalogMachineID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return models.UserMachine{}, errors.New("maquina de catalogo nao encontrada")
+			}
+
+			return models.UserMachine{}, err
+		}
+
+		existing, err := userMachineRepo.FindByMachineIDAndUserID(catalogMachine.ID, userID)
+		if err == nil {
+			if input.Photo != "" && existing.Photo != input.Photo {
+				existing.Photo = input.Photo
+				return userMachineRepo.Update(existing)
+			}
+
+			return existing, nil
+		}
+
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return models.UserMachine{}, err
+		}
+
+		userMachineID, err := generateID()
+		if err != nil {
+			return models.UserMachine{}, err
+		}
+
+		machineID := catalogMachine.ID
+		return userMachineRepo.Create(models.UserMachine{
+			ID:        userMachineID,
+			UserID:    userID,
+			MachineID: &machineID,
+			Photo:     input.Photo,
+		})
+	}
+
+	userMachineID, err := generateID()
+	if err != nil {
+		return models.UserMachine{}, err
+	}
+
+	return userMachineRepo.Create(models.UserMachine{
+		ID:          userMachineID,
+		UserID:      userID,
+		Name:        input.Name,
+		Description: input.Description,
+		Photo:       input.Photo,
+		CategoryKey: input.CategoryKey,
+	})
+}
+
+func hasHistoryForUserMachine(tx *gorm.DB, userMachineID string) (bool, error) {
+	var count int64
+	err := tx.Model(&models.HistoryEntry{}).
+		Where("user_machine_id = ?", userMachineID).
+		Count(&count).
+		Error
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }

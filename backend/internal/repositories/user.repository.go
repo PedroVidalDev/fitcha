@@ -13,6 +13,7 @@ type IUserRepository interface {
 	FindByEmail(email string) (models.User, error)
 	FindByID(userID uint) (models.User, error)
 	CreateUser(p models.User) (models.User, error)
+	VerifyUser(userID uint) (models.User, error)
 	UpdatePassword(userID uint, password string) (models.User, error)
 	AddCredits(userID uint, amount int) (models.User, error)
 	ConsumeCredit(userID uint) (models.User, error)
@@ -60,6 +61,14 @@ func (r *userRepository) CreateUser(p models.User) (models.User, error) {
 	}
 
 	return p, nil
+}
+
+func (r *userRepository) VerifyUser(userID uint) (models.User, error) {
+	if err := r.db.Model(&models.User{}).Where("id = ?", userID).Update("verified", true).Error; err != nil {
+		return models.User{}, err
+	}
+
+	return r.FindByID(userID)
 }
 
 func (r *userRepository) UpdatePassword(userID uint, password string) (models.User, error) {

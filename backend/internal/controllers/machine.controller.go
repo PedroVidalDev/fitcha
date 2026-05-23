@@ -32,6 +32,16 @@ func (c *MachineController) List(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dtos.FromMachineModels(machines))
 }
 
+func (c *MachineController) ListCatalog(ctx *gin.Context) {
+	machines, err := c.service.ListCatalog()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dtos.FromCatalogMachineModels(machines))
+}
+
 func (c *MachineController) Update(ctx *gin.Context) {
 	var input dtos.UpdateMachineType
 

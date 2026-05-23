@@ -13,7 +13,7 @@ const (
 )
 
 type EmailJobEnqueuer interface {
-	EnqueueWelcomeEmail(name, email string) error
+	EnqueueWelcomeEmail(name, email, verificationURL string) error
 	EnqueueCreditsPurchasedEmail(name, email string, quantity int, totalAmountCents int64, balance int) error
 }
 
@@ -22,8 +22,9 @@ type AsynqEmailJobs struct {
 }
 
 type WelcomeEmailPayload struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	VerificationURL string `json:"verificationUrl"`
 }
 
 type CreditsPurchasedEmailPayload struct {
@@ -38,10 +39,11 @@ func NewEmailJobs(client *asynq.Client) *AsynqEmailJobs {
 	return &AsynqEmailJobs{client: client}
 }
 
-func (j *AsynqEmailJobs) EnqueueWelcomeEmail(name, email string) error {
+func (j *AsynqEmailJobs) EnqueueWelcomeEmail(name, email, verificationURL string) error {
 	return j.enqueue(TaskSendWelcomeEmail, WelcomeEmailPayload{
-		Name:  name,
-		Email: email,
+		Name:            name,
+		Email:           email,
+		VerificationURL: verificationURL,
 	})
 }
 

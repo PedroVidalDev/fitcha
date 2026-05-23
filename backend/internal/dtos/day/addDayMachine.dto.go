@@ -3,10 +3,11 @@ package dtos
 import machineDtos "fitcha/internal/dtos/machine"
 
 type AddDayMachineType struct {
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description"`
-	Photo       string `json:"photo"`
-	CategoryKey string `json:"categoryKey" binding:"required"`
+	CatalogMachineID string `json:"catalogMachineId"`
+	Name             string `json:"name"`
+	Description      string `json:"description"`
+	Photo            string `json:"photo"`
+	CategoryKey      string `json:"categoryKey"`
 }
 
 type AddDayMachineResponseType struct {

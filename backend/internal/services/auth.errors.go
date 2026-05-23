@@ -7,6 +7,8 @@ type AuthErrorCode string
 const (
 	AuthErrorInvalidCredentials     AuthErrorCode = "AUTH_INVALID_CREDENTIALS"
 	AuthErrorEmailAlreadyExists     AuthErrorCode = "AUTH_EMAIL_ALREADY_EXISTS"
+	AuthErrorEmailNotVerified       AuthErrorCode = "AUTH_EMAIL_NOT_VERIFIED"
+	AuthErrorInvalidVerification    AuthErrorCode = "AUTH_INVALID_VERIFICATION_TOKEN"
 	AuthErrorUserNotFound           AuthErrorCode = "AUTH_USER_NOT_FOUND"
 	AuthErrorCurrentPasswordInvalid AuthErrorCode = "AUTH_CURRENT_PASSWORD_INVALID"
 )

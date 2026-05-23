@@ -8,7 +8,13 @@ export type DayResponse = {
     machineIds: string[];
 };
 
-export type DayMachineInput = Omit<Machine, "id">;
+export type DayMachineInput = {
+    catalogMachineId?: string;
+    name?: string;
+    description?: string;
+    photo?: string;
+    categoryKey?: Machine["categoryKey"];
+};
 
 export type AddDayMachineResponse = {
     day: DayResponse;

@@ -192,6 +192,11 @@ func (r *stubUserRepository) CreateUser(user models.User) (models.User, error) {
 	return user, nil
 }
 
+func (r *stubUserRepository) VerifyUser(userID uint) (models.User, error) {
+	r.user.Verified = true
+	return r.user, nil
+}
+
 func (r *stubUserRepository) UpdatePassword(userID uint, password string) (models.User, error) {
 	return r.user, nil
 }

@@ -34,6 +34,7 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isServiceErrorModalVisible, setIsServiceErrorModalVisible] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const { errors, setError, clearError, clearAll } = useFormErrors();
 
@@ -82,14 +83,22 @@ export default function Register() {
         setIsSubmitting(true);
 
         try {
-            await register(name.trim(), email.trim(), password);
+            const response = await register(name.trim(), email.trim(), password);
+            setSuccessMessage(
+                t("auth.register.successMessage", {
+                    email: response.email,
+                }),
+            );
         } catch (error) {
             if (isServiceUnavailableAuthError(error)) {
                 setIsServiceErrorModalVisible(true);
                 return;
             }
 
-            const presentation = getAuthErrorPresentation(getAuthRequestErrorCode(error), "register");
+            const presentation = getAuthErrorPresentation(
+                getAuthRequestErrorCode(error),
+                "register",
+            );
             if (presentation) {
                 setError(presentation.field, t(presentation.translationKey));
                 return;
@@ -97,7 +106,6 @@ export default function Register() {
 
             const message =
                 error instanceof Error ? error.message : t("auth.errors.genericRegister");
-
             setError("email", message);
         } finally {
             setIsSubmitting(false);
@@ -119,6 +127,10 @@ export default function Register() {
     }, [fade, slide]);
 
     const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false);
+    const closeSuccessModal = () => {
+        setSuccessMessage(null);
+        navigation.goBack();
+    };
 
     return (
         <LinearGradient
@@ -260,7 +272,9 @@ export default function Register() {
                             onPress={() => navigation.goBack()}
                             style={{ marginTop: 20, alignItems: "center", padding: 8 }}
                         >
-                            <Text style={{ color: theme.textMuted, fontSize: 14, fontWeight: "500" }}>
+                            <Text
+                                style={{ color: theme.textMuted, fontSize: 14, fontWeight: "500" }}
+                            >
                                 {t("auth.register.hasAccountPrefix")}{" "}
                                 <Text style={{ color: theme.accent, fontWeight: "800" }}>
                                     {t("common.actions.enter")}
@@ -280,6 +294,17 @@ export default function Register() {
                 confirmVariant="accent"
                 onClose={closeServiceErrorModal}
                 onConfirm={closeServiceErrorModal}
+            />
+
+            <ConfirmModal
+                visible={!!successMessage}
+                title={t("auth.register.successTitle")}
+                message={successMessage ?? ""}
+                confirmLabel={t("common.actions.enter")}
+                hideCancel
+                confirmVariant="accent"
+                onClose={closeSuccessModal}
+                onConfirm={closeSuccessModal}
             />
         </LinearGradient>
     );

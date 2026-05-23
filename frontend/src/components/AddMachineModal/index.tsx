@@ -1,11 +1,23 @@
+import { CatalogMachine } from "@/src/dtos/CatalogMachine";
+import { getCatalogMachines } from "@/src/services/catalogMachines";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import {
+    ActivityIndicator,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { MACHINE_CATEGORIES, MachineCategoryKey } from "../../constants/categories";
 import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { AppModal } from "../AppModal";
 import { AddMachineModalProps } from "./types";
+
+type CategoryFilter = MachineCategoryKey | "all";
 
 export function AddMachineModal(props: AddMachineModalProps) {
     const { visible, onClose, onAdd } = props;
@@ -13,32 +25,68 @@ export function AddMachineModal(props: AddMachineModalProps) {
     const { t } = useTheme();
     const { t: translate } = useI18n();
 
-    const [name, setName] = useState("");
-    const [desc, setDesc] = useState("");
-    const [catKey, setCatKey] = useState<MachineCategoryKey>("peito");
+    const [machines, setMachines] = useState<CatalogMachine[]>([]);
+    const [query, setQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+    const [selectedMachineId, setSelectedMachineId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleAdd = () => {
-        if (!name.trim()) return;
-        onAdd(name.trim(), catKey, desc.trim() || undefined);
-        setName("");
-        setDesc("");
-        setCatKey("peito");
-    };
+    useEffect(() => {
+        if (!visible) return;
+
+        let mounted = true;
+        setIsLoading(true);
+
+        void getCatalogMachines()
+            .then((response) => {
+                if (!mounted) return;
+                setMachines(response);
+            })
+            .finally(() => {
+                if (!mounted) return;
+                setIsLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, [visible]);
+
+    const filteredMachines = useMemo(() => {
+        const normalizedQuery = query.trim().toLowerCase();
+
+        return machines.filter((machine) => {
+            if (categoryFilter !== "all" && machine.categoryKey !== categoryFilter) {
+                return false;
+            }
+
+            if (!normalizedQuery) return true;
+
+            const haystack = [machine.name, machine.slug, ...(machine.aliases ?? [])]
+                .join(" ")
+                .toLowerCase();
+
+            return haystack.includes(normalizedQuery);
+        });
+    }, [categoryFilter, machines, query]);
 
     const handleClose = () => {
-        setName("");
-        setDesc("");
-        setCatKey("peito");
+        setQuery("");
+        setCategoryFilter("all");
+        setSelectedMachineId(null);
         onClose();
+    };
+
+    const handleAdd = () => {
+        if (!selectedMachineId) return;
+        onAdd(selectedMachineId);
+        handleClose();
     };
 
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     return (
-        <AppModal
-            visible={visible}
-            onClose={handleClose}
-        >
+        <AppModal visible={visible} onClose={handleClose}>
             <ScrollView
                 contentContainerStyle={{ paddingBottom: 8 }}
                 showsVerticalScrollIndicator={false}
@@ -63,68 +111,6 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         fontWeight: "700",
                         textTransform: "uppercase",
                         letterSpacing: 1,
-                        marginBottom: 6,
-                    }}
-                >
-                    {translate("addMachine.nameLabel")}
-                </Text>
-                <TextInput
-                    style={{
-                        backgroundColor: t.inputBg,
-                        borderRadius: 12,
-                        padding: 14,
-                        color: t.textPrimary,
-                        fontSize: 16,
-                        borderWidth: 0.5,
-                        borderColor: t.border,
-                        marginBottom: 14,
-                    }}
-                    placeholder={translate("addMachine.namePlaceholder")}
-                    placeholderTextColor={t.textDim}
-                    value={name}
-                    onChangeText={setName}
-                    autoFocus
-                />
-
-                <Text
-                    style={{
-                        color: t.textDim,
-                        fontSize: 11,
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                        letterSpacing: 1,
-                        marginBottom: 6,
-                    }}
-                >
-                    {translate("addMachine.descriptionLabel")}
-                </Text>
-                <TextInput
-                    style={{
-                        backgroundColor: t.inputBg,
-                        borderRadius: 12,
-                        padding: 14,
-                        color: t.textPrimary,
-                        fontSize: 14,
-                        borderWidth: 0.5,
-                        borderColor: t.border,
-                        marginBottom: 14,
-                        minHeight: 60,
-                        textAlignVertical: "top",
-                    }}
-                    placeholder={translate("addMachine.descriptionPlaceholder")}
-                    placeholderTextColor={t.textDim}
-                    value={desc}
-                    onChangeText={setDesc}
-                    multiline
-                />
-
-                <Text
-                    style={{
-                        color: t.textDim,
-                        fontSize: 11,
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                        letterSpacing: 1,
                         marginBottom: 8,
                     }}
                 >
@@ -135,15 +121,38 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         flexDirection: "row",
                         flexWrap: "wrap",
                         gap: 8,
-                        marginBottom: 8,
+                        marginBottom: 16,
                     }}
                 >
+                    <TouchableOpacity
+                        onPress={() => setCategoryFilter("all")}
+                        activeOpacity={0.7}
+                        style={{
+                            paddingHorizontal: 14,
+                            paddingVertical: 8,
+                            borderRadius: 10,
+                            backgroundColor: categoryFilter === "all" ? t.accent : t.inputBg,
+                            borderWidth: 0.5,
+                            borderColor: categoryFilter === "all" ? t.accent : t.border,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                fontSize: 13,
+                                fontWeight: "700",
+                                color: categoryFilter === "all" ? "#FFF" : t.textMuted,
+                            }}
+                        >
+                            {translate("addMachine.allCategories")}
+                        </Text>
+                    </TouchableOpacity>
+
                     {MACHINE_CATEGORIES.map((cat) => {
-                        const active = catKey === cat.key;
+                        const active = categoryFilter === cat.key;
                         return (
                             <TouchableOpacity
                                 key={cat.key}
-                        onPress={() => setCatKey(cat.key)}
+                                onPress={() => setCategoryFilter(cat.key)}
                                 activeOpacity={0.7}
                                 style={{
                                     paddingHorizontal: 14,
@@ -167,6 +176,151 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         );
                     })}
                 </View>
+
+                <Text
+                    style={{
+                        color: t.textDim,
+                        fontSize: 11,
+                        fontWeight: "700",
+                        textTransform: "uppercase",
+                        letterSpacing: 1,
+                        marginBottom: 6,
+                    }}
+                >
+                    {translate("addMachine.searchLabel")}
+                </Text>
+                <TextInput
+                    style={{
+                        backgroundColor: t.inputBg,
+                        borderRadius: 12,
+                        padding: 14,
+                        color: t.textPrimary,
+                        fontSize: 16,
+                        borderWidth: 0.5,
+                        borderColor: t.border,
+                        marginBottom: 16,
+                    }}
+                    placeholder={translate("addMachine.searchPlaceholder")}
+                    placeholderTextColor={t.textDim}
+                    value={query}
+                    onChangeText={setQuery}
+                    autoFocus
+                />
+
+                {isLoading ? (
+                    <View style={{ paddingVertical: 32, alignItems: "center", gap: 12 }}>
+                        <ActivityIndicator size="small" color={t.accent} />
+                        <Text style={{ color: t.textMuted, fontSize: 13 }}>
+                            {translate("addMachine.loading")}
+                        </Text>
+                    </View>
+                ) : filteredMachines.length === 0 ? (
+                    <View
+                        style={{
+                            borderRadius: 14,
+                            borderWidth: 0.5,
+                            borderColor: t.border,
+                            backgroundColor: t.inputBg,
+                            padding: 18,
+                        }}
+                    >
+                        <Text style={{ color: t.textPrimary, fontSize: 15, fontWeight: "700" }}>
+                            {translate("addMachine.emptyTitle")}
+                        </Text>
+                        <Text
+                            style={{
+                                color: t.textMuted,
+                                fontSize: 13,
+                                lineHeight: 19,
+                                marginTop: 6,
+                            }}
+                        >
+                            {translate("addMachine.emptyMessage")}
+                        </Text>
+                    </View>
+                ) : (
+                    <View style={{ gap: 10 }}>
+                        {filteredMachines.map((machine) => {
+                            const isSelected = selectedMachineId === machine.id;
+
+                            return (
+                                <TouchableOpacity
+                                    key={machine.id}
+                                    activeOpacity={0.78}
+                                    onPress={() => setSelectedMachineId(machine.id)}
+                                    style={{
+                                        flexDirection: "row",
+                                        gap: 12,
+                                        borderRadius: 14,
+                                        borderWidth: 1,
+                                        borderColor: isSelected ? t.accent : t.border,
+                                        backgroundColor: isSelected ? t.chipBg : t.inputBg,
+                                        padding: 12,
+                                    }}
+                                >
+                                    {machine.photo ? (
+                                        <Image
+                                            source={{ uri: machine.photo }}
+                                            style={{ width: 56, height: 56, borderRadius: 12 }}
+                                            resizeMode="cover"
+                                        />
+                                    ) : (
+                                        <View
+                                            style={{
+                                                width: 56,
+                                                height: 56,
+                                                borderRadius: 12,
+                                                backgroundColor: t.card,
+                                                borderWidth: 0.5,
+                                                borderColor: t.border,
+                                            }}
+                                        />
+                                    )}
+
+                                    <View style={{ flex: 1 }}>
+                                        <Text
+                                            style={{
+                                                color: t.textPrimary,
+                                                fontSize: 15,
+                                                fontWeight: "800",
+                                            }}
+                                        >
+                                            {machine.name}
+                                        </Text>
+                                        <Text
+                                            style={{
+                                                color: isSelected ? t.accent : t.textDim,
+                                                fontSize: 12,
+                                                fontWeight: "700",
+                                                marginTop: 4,
+                                                textTransform: "uppercase",
+                                            }}
+                                        >
+                                            {translate(
+                                                MACHINE_CATEGORIES.find(
+                                                    (item) => item.key === machine.categoryKey,
+                                                )?.labelKey ?? "categories.peito",
+                                            )}
+                                        </Text>
+                                        {!!machine.description && (
+                                            <Text
+                                                style={{
+                                                    color: t.textMuted,
+                                                    fontSize: 12,
+                                                    lineHeight: 18,
+                                                    marginTop: 6,
+                                                }}
+                                                numberOfLines={2}
+                                            >
+                                                {machine.description}
+                                            </Text>
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                )}
             </ScrollView>
 
             <View
@@ -182,7 +336,12 @@ export function AddMachineModal(props: AddMachineModalProps) {
                         {translate("common.actions.cancel")}
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleAdd} activeOpacity={0.75}>
+                <TouchableOpacity
+                    onPress={handleAdd}
+                    activeOpacity={0.75}
+                    disabled={!selectedMachineId}
+                    style={{ opacity: selectedMachineId ? 1 : 0.5 }}
+                >
                     <LinearGradient
                         colors={t.gradientAccent}
                         style={{

@@ -15,7 +15,7 @@ type HistoryEntryResponseType struct {
 func FromHistoryEntryModel(entry models.HistoryEntry) HistoryEntryResponseType {
 	return HistoryEntryResponseType{
 		ID:        entry.ID,
-		MachineID: entry.MachineID,
+		MachineID: entry.UserMachineID,
 		Sets:      [3]float64{entry.Set1, entry.Set2, entry.Set3},
 		Date:      entry.PerformedAt.UTC().Format(time.RFC3339Nano),
 	}

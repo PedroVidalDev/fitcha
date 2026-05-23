@@ -7,6 +7,7 @@ import {
     AuthResponse,
     LegacyStoredAuthSession,
     MockProfile,
+    RegisterResponse,
     StoredAuthSession,
     UpdateProfileInput,
     User,
@@ -31,9 +32,10 @@ type ApiErrorResponse = {
 
 const TEST_USER: User = {
     id: 0,
-    name: "Usuário Teste",
+    name: "Usuario Teste",
     email: "teste@fitcha.app",
     credits: 3,
+    verified: true,
 };
 
 const TEST_PROFILE: MockProfile = {
@@ -46,7 +48,7 @@ const AuthContext = createContext<AuthContextValue>({
     user: null,
     isLoading: true,
     login: async () => {},
-    register: async () => {},
+    register: async () => ({ message: "", email: "" }),
     logout: async () => {},
     updateProfile: async () => {},
     setCredits: async () => {},
@@ -71,6 +73,7 @@ function normalizeUser(user: ApiUser): User {
         createdAt: user.CreatedAt,
         updatedAt: user.UpdatedAt,
         credits: typeof user.credits === "number" ? user.credits : 0,
+        verified: user.verified !== false,
         name: user.name,
         email: user.email,
     };
@@ -135,6 +138,10 @@ function parseStoredSession(raw: string): StoredAuthSession | null {
                     typeof (parsed.user as User).credits === "number"
                         ? (parsed.user as User).credits
                         : 0,
+                verified:
+                    typeof (parsed.user as User).verified === "boolean"
+                        ? (parsed.user as User).verified
+                        : true,
                 name: parsed.user.name,
                 email: parsed.user.email,
             },
@@ -299,32 +306,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     buildSession(response.data.token, normalizeUser(response.data.user)),
                 );
             } catch (error) {
-                throw buildAuthRequestError(error, "Não foi possível entrar");
+                throw buildAuthRequestError(error, "Nao foi possivel entrar");
             }
         },
         [persistSession],
     );
 
-    const register = useCallback(
-        async (name: string, email: string, password: string) => {
-            try {
-                ensureApiUrlConfigured();
+    const register = useCallback(async (name: string, email: string, password: string) => {
+        try {
+            ensureApiUrlConfigured();
 
-                const response = await axiosApp.post<AuthResponse>("/register", {
-                    name,
-                    email,
-                    password,
-                });
+            const response = await axiosApp.post<RegisterResponse>("/register", {
+                name,
+                email,
+                password,
+            });
 
-                await persistSession(
-                    buildSession(response.data.token, normalizeUser(response.data.user)),
-                );
-            } catch (error) {
-                throw buildAuthRequestError(error, "Não foi possível criar a conta");
-            }
-        },
-        [persistSession],
-    );
+            return response.data;
+        } catch (error) {
+            throw buildAuthRequestError(error, "Nao foi possivel criar a conta");
+        }
+    }, []);
 
     const updateProfile = useCallback(
         async ({ name, email, password }: UpdateProfileInput) => {

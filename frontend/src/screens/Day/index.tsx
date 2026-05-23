@@ -1,3 +1,4 @@
+import { AddMachineModal } from "@/src/components/AddMachineModal";
 import { useDayMachines } from "@/src/hooks/useDayMachines";
 import { useWeek } from "@/src/hooks/useWeek";
 import { RootStackParamList } from "@/src/router/types";
@@ -25,10 +26,11 @@ export default function DayScreen() {
     const route = useRoute<Route>();
     const day = route.params.dayIndex;
 
-    const { removeMachineFromDay } = useWeek();
+    const { addMachineToDay, removeMachineFromDay } = useWeek();
     const { machines, refresh } = useDayMachines(day);
 
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
     const totalMachines = machines.length;
 
@@ -80,10 +82,7 @@ export default function DayScreen() {
                 >
                     {totalMachines > 0
                         ? translate("common.actions.startWorkout")
-                        : translate("day.machineCount", {
-                              count: 0,
-                              pluralSuffix: "s",
-                          })}
+                        : translate("day.addButton")}
                 </Text>
                 <Text
                     style={{
@@ -101,6 +100,27 @@ export default function DayScreen() {
                         : translate("week.emptyDay")}
                 </Text>
             </LinearGradient>
+
+            <TouchableOpacity activeOpacity={0.8} onPress={() => setIsAddModalVisible(true)}>
+                <LinearGradient
+                    colors={t.gradientAccent}
+                    style={{
+                        borderRadius: 16,
+                        paddingVertical: 14,
+                        paddingHorizontal: 16,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 10,
+                        marginBottom: 16,
+                    }}
+                >
+                    <Ionicons name="add-circle" size={22} color={btnColor} />
+                    <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
+                        {translate("day.addButton")}
+                    </Text>
+                </LinearGradient>
+            </TouchableOpacity>
 
             <FlatList
                 data={machines}
@@ -194,7 +214,6 @@ export default function DayScreen() {
                 )}
             />
 
-            {/* Botão iniciar treino */}
             {machines.length > 0 && (
                 <View style={{ position: "absolute", bottom: 24, left: 16, right: 16 }}>
                     <TouchableOpacity
@@ -220,6 +239,15 @@ export default function DayScreen() {
                     </TouchableOpacity>
                 </View>
             )}
+
+            <AddMachineModal
+                visible={isAddModalVisible}
+                onClose={() => setIsAddModalVisible(false)}
+                onAdd={async (catalogMachineId) => {
+                    await addMachineToDay(day, catalogMachineId);
+                    await refresh();
+                }}
+            />
 
             <ConfirmModal
                 visible={!!deleteTarget}

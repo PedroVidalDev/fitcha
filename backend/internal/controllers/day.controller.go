@@ -54,10 +54,11 @@ func (c *DayController) AddMachine(ctx *gin.Context) {
 	}
 
 	day, machine, err := c.service.AddMachine(userID, dayIndex, services.CreateDayMachineInput{
-		Name:        input.Name,
-		Description: input.Description,
-		Photo:       input.Photo,
-		CategoryKey: input.CategoryKey,
+		CatalogMachineID: input.CatalogMachineID,
+		Name:             input.Name,
+		Description:      input.Description,
+		Photo:            input.Photo,
+		CategoryKey:      input.CategoryKey,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -114,10 +115,11 @@ func (c *DayController) ReplaceWeek(ctx *gin.Context) {
 		machines := make([]services.CreateDayMachineInput, 0, len(inputDay.Machines))
 		for _, machine := range inputDay.Machines {
 			machines = append(machines, services.CreateDayMachineInput{
-				Name:        machine.Name,
-				Description: machine.Description,
-				Photo:       machine.Photo,
-				CategoryKey: machine.CategoryKey,
+				CatalogMachineID: machine.CatalogMachineID,
+				Name:             machine.Name,
+				Description:      machine.Description,
+				Photo:            machine.Photo,
+				CategoryKey:      machine.CategoryKey,
 			})
 		}
 
