@@ -86,7 +86,12 @@ export function AddMachineModal(props: AddMachineModalProps) {
     const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
 
     return (
-        <AppModal visible={visible} onClose={handleClose}>
+        <AppModal
+            visible={visible}
+            onClose={handleClose}
+            overlayPadding={10}
+            contentStyle={{ minHeight: "88%", maxHeight: "96%" }}
+        >
             <ScrollView
                 contentContainerStyle={{ paddingBottom: 8 }}
                 showsVerticalScrollIndicator={false}
