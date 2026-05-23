@@ -23,8 +23,17 @@ import {
     getWorkoutDraft,
     hasDraftValue,
     isDraftComplete,
+    parseWeight,
 } from "./helpers";
-import { Route, WorkoutDraft, WorkoutDraftMap, WorkoutModalConfig, WorkoutResult } from "./types";
+import {
+    Route,
+    WorkoutDraft,
+    WorkoutDraftMap,
+    WorkoutModalConfig,
+    WorkoutResult,
+    WorkoutSetKey,
+    WORKOUT_SET_KEYS,
+} from "./types";
 
 export default function WorkoutScreen() {
     const { t } = useTheme();
@@ -40,6 +49,8 @@ export default function WorkoutScreen() {
     const [currentIdx, setCurrentIdx] = useState(0);
     const [drafts, setDrafts] = useState<WorkoutDraftMap>({});
     const [elapsed, setElapsed] = useState(0);
+    const [restStartedAt, setRestStartedAt] = useState<number | null>(null);
+    const [restElapsed, setRestElapsed] = useState(0);
     const [modal, setModal] = useState<WorkoutModalConfig | null>(null);
     const startTime = useRef(Date.now()).current;
     const machineNavScrollRef = useRef<ScrollView>(null);
@@ -70,7 +81,12 @@ export default function WorkoutScreen() {
         action?.();
     };
 
-    const updateDraftField = (field: keyof WorkoutDraft, value: string) => {
+    const isValidSetValue = (value: string) => {
+        const parsed = parseWeight(value);
+        return !Number.isNaN(parsed) && parsed > 0;
+    };
+
+    const updateDraftField = (field: WorkoutSetKey, value: string) => {
         if (!machine) return;
 
         setDrafts((prev) => ({
@@ -78,8 +94,44 @@ export default function WorkoutScreen() {
             [machine.id]: {
                 ...getWorkoutDraft(prev[machine.id]),
                 [field]: value,
+                confirmed: {
+                    ...getWorkoutDraft(prev[machine.id]).confirmed,
+                    ...Object.fromEntries(
+                        WORKOUT_SET_KEYS.slice(WORKOUT_SET_KEYS.indexOf(field)).map((key) => [
+                            key,
+                            false,
+                        ]),
+                    ),
+                },
             },
         }));
+    };
+
+    const confirmDraftField = (field: WorkoutSetKey) => {
+        if (!machine || !isValidSetValue(currentDraft[field])) return;
+
+        const fieldIndex = WORKOUT_SET_KEYS.indexOf(field);
+        const previousFields = WORKOUT_SET_KEYS.slice(0, fieldIndex);
+        const canConfirm = previousFields.every((key) => currentDraft.confirmed[key]);
+
+        if (!canConfirm) return;
+
+        const normalizedValue = currentDraft[field].trim();
+
+        setDrafts((prev) => ({
+            ...prev,
+            [machine.id]: {
+                ...getWorkoutDraft(prev[machine.id]),
+                [field]: normalizedValue,
+                confirmed: {
+                    ...getWorkoutDraft(prev[machine.id]).confirmed,
+                    [field]: true,
+                },
+            },
+        }));
+
+        setRestStartedAt(Date.now());
+        setRestElapsed(0);
     };
 
     const goToMachine = (idx: number) => {
@@ -208,12 +260,22 @@ export default function WorkoutScreen() {
     };
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        const syncTimers = () => {
             setElapsed(Math.floor((Date.now() - startTime) / 1000));
-        }, 1000);
+
+            if (!restStartedAt) {
+                setRestElapsed(0);
+                return;
+            }
+
+            setRestElapsed(Math.floor((Date.now() - restStartedAt) / 1000));
+        };
+
+        syncTimers();
+        const interval = setInterval(syncTimers, 1000);
 
         return () => clearInterval(interval);
-    }, [startTime]);
+    }, [restStartedAt, startTime]);
 
     const slideAnim = useRef(new RNAnimated.Value(30)).current;
     const fadeAnim = useRef(new RNAnimated.Value(0)).current;
@@ -273,7 +335,23 @@ export default function WorkoutScreen() {
             value: currentDraft.set3,
             placeholder: machine.recordSets?.[2]?.toString() ?? "",
         },
-    ];
+    ].map((item, idx, allFields) => {
+        const previousSetsComplete =
+            idx === 0 ||
+            allFields.slice(0, idx).every((field) => currentDraft.confirmed[field.key]);
+        const isConfirmed = currentDraft.confirmed[item.key];
+        const isValid = isValidSetValue(item.value);
+
+        return {
+            ...item,
+            isConfirmed,
+            isValid,
+            isLocked: !previousSetsComplete,
+            canConfirm: previousSetsComplete && isValid && !isConfirmed,
+        };
+    });
+
+    const hasLockedSeries = seriesFields.slice(1).some((item) => item.isLocked);
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -564,6 +642,53 @@ export default function WorkoutScreen() {
                         </Text>
                     </View>
 
+                    <View
+                        style={{
+                            backgroundColor: restStartedAt ? t.chipBg : t.inputBg,
+                            borderRadius: 14,
+                            paddingHorizontal: 14,
+                            paddingVertical: 12,
+                            borderWidth: 0.5,
+                            borderColor: restStartedAt ? t.accent + "55" : t.border,
+                            marginBottom: 18,
+                            gap: 6,
+                        }}
+                    >
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 12,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: t.textMuted,
+                                    fontSize: 12,
+                                    fontWeight: "800",
+                                    textTransform: "uppercase",
+                                    letterSpacing: 1.4,
+                                }}
+                            >
+                                {translate("workout.rest.title")}
+                            </Text>
+                            <Text
+                                style={{
+                                    color: restStartedAt ? t.accent : t.textPrimary,
+                                    fontSize: 24,
+                                    fontWeight: "900",
+                                    fontVariant: ["tabular-nums"],
+                                }}
+                            >
+                                {restStartedAt ? formatTime(restElapsed) : "--:--"}
+                            </Text>
+                        </View>
+                        <Text style={{ color: t.textDim, fontSize: 13, lineHeight: 18 }}>
+                            {translate(restStartedAt ? "workout.rest.active" : "workout.rest.idle")}
+                        </Text>
+                    </View>
+
                     <Text
                         style={{
                             color: t.textDim,
@@ -583,50 +708,199 @@ export default function WorkoutScreen() {
                             <View
                                 key={`${machine.id}-${item.key}`}
                                 style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
                                     gap: 12,
-                                    backgroundColor: t.inputBg,
+                                    backgroundColor: item.isLocked ? t.card : t.inputBg,
                                     borderRadius: 14,
                                     paddingHorizontal: 16,
-                                    paddingVertical: 4,
+                                    paddingVertical: 14,
                                     borderWidth: 0.5,
                                     borderColor: t.border,
+                                    opacity: item.isLocked ? 0.55 : 1,
                                 }}
                             >
-                                <Text
+                                <View
                                     style={{
-                                        color: t.textDim,
-                                        fontSize: 13,
-                                        fontWeight: "700",
-                                        width: 55,
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        gap: 12,
                                     }}
                                 >
-                                    {item.label}
-                                </Text>
-                                <TextInput
+                                    <Text
+                                        style={{
+                                            color: t.textDim,
+                                            fontSize: 13,
+                                            fontWeight: "700",
+                                        }}
+                                    >
+                                        {item.label}
+                                    </Text>
+
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            gap: 6,
+                                        }}
+                                    >
+                                        <Ionicons
+                                            name={
+                                                item.isConfirmed
+                                                    ? "checkmark-circle"
+                                                    : item.isLocked
+                                                      ? "lock-closed"
+                                                      : "ellipse-outline"
+                                            }
+                                            size={14}
+                                            color={
+                                                item.isConfirmed
+                                                    ? t.accent
+                                                    : item.isLocked
+                                                      ? t.textDim
+                                                      : t.textMuted
+                                            }
+                                        />
+                                        <Text
+                                            style={{
+                                                color: item.isConfirmed ? t.accent : t.textMuted,
+                                                fontSize: 12,
+                                                fontWeight: "700",
+                                            }}
+                                        >
+                                            {translate(
+                                                item.isConfirmed
+                                                    ? "workout.series.confirmedState"
+                                                    : item.isLocked
+                                                      ? "workout.series.lockedState"
+                                                      : "workout.series.readyState",
+                                            )}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                <View
                                     style={{
-                                        flex: 1,
-                                        padding: 14,
-                                        color: t.textPrimary,
-                                        fontSize: 20,
-                                        fontWeight: "800",
-                                        textAlign: "center",
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 10,
                                     }}
-                                    placeholder={item.placeholder}
-                                    placeholderTextColor={t.textDim}
-                                    keyboardType="numeric"
-                                    value={item.value}
-                                    onChangeText={(value) => updateDraftField(item.key, value)}
-                                />
-                                <Text
-                                    style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}
                                 >
-                                    {translate("common.units.kg")}
-                                </Text>
+                                    <TextInput
+                                        style={{
+                                            flex: 1,
+                                            paddingHorizontal: 14,
+                                            paddingVertical: 14,
+                                            borderRadius: 12,
+                                            backgroundColor: t.bg,
+                                            color: t.textPrimary,
+                                            fontSize: 20,
+                                            fontWeight: "800",
+                                            textAlign: "center",
+                                            borderWidth: 0.5,
+                                            borderColor: item.isConfirmed
+                                                ? t.accent + "55"
+                                                : t.border,
+                                        }}
+                                        placeholder={item.placeholder}
+                                        placeholderTextColor={t.textDim}
+                                        keyboardType="numeric"
+                                        value={item.value}
+                                        editable={!item.isLocked}
+                                        onChangeText={(value) => updateDraftField(item.key, value)}
+                                    />
+                                    <Text
+                                        style={{
+                                            color: t.textMuted,
+                                            fontSize: 14,
+                                            fontWeight: "600",
+                                        }}
+                                    >
+                                        {translate("common.units.kg")}
+                                    </Text>
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        disabled={!item.canConfirm}
+                                        onPress={() => confirmDraftField(item.key)}
+                                        style={{
+                                            borderRadius: 12,
+                                            opacity: item.canConfirm || item.isConfirmed ? 1 : 0.45,
+                                        }}
+                                    >
+                                        <LinearGradient
+                                            colors={
+                                                item.isConfirmed
+                                                    ? [t.accent + "26", t.accent + "12"]
+                                                    : item.canConfirm
+                                                      ? t.gradientAccent
+                                                      : [t.card, t.card]
+                                            }
+                                            style={{
+                                                minWidth: 106,
+                                                paddingHorizontal: 14,
+                                                paddingVertical: 12,
+                                                borderRadius: 12,
+                                                borderWidth: item.isConfirmed ? 0.5 : 0,
+                                                borderColor: item.isConfirmed
+                                                    ? t.accent + "55"
+                                                    : "transparent",
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: 8,
+                                            }}
+                                        >
+                                            <Ionicons
+                                                name={
+                                                    item.isConfirmed
+                                                        ? "checkmark-circle"
+                                                        : "checkmark-outline"
+                                                }
+                                                size={16}
+                                                color={
+                                                    item.isConfirmed
+                                                        ? t.accent
+                                                        : item.canConfirm
+                                                          ? btnColor
+                                                          : t.textDim
+                                                }
+                                            />
+                                            <Text
+                                                style={{
+                                                    color: item.isConfirmed
+                                                        ? t.accent
+                                                        : item.canConfirm
+                                                          ? btnColor
+                                                          : t.textDim,
+                                                    fontSize: 13,
+                                                    fontWeight: "800",
+                                                }}
+                                            >
+                                                {translate(
+                                                    item.isConfirmed
+                                                        ? "workout.series.confirmedCta"
+                                                        : "workout.series.confirmCta",
+                                                )}
+                                            </Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         ))}
                     </View>
+
+                    {hasLockedSeries ? (
+                        <Text
+                            style={{
+                                color: t.textDim,
+                                fontSize: 12,
+                                lineHeight: 18,
+                                marginTop: 10,
+                                marginLeft: 4,
+                            }}
+                        >
+                            {translate("workout.series.lockedHint")}
+                        </Text>
+                    ) : null}
 
                     <View style={{ paddingTop: 28, paddingBottom: 20 }}>
                         <View style={{ flexDirection: "row", gap: 12 }}>
