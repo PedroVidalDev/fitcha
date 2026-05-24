@@ -1,10 +1,11 @@
 import { MachineCategoryKey } from "../constants/categories";
 
-export type Machine = {
+export type CatalogMachine = {
     id: string;
-    catalogMachineId?: string;
+    slug: string;
     name: string;
     description?: string;
     photo?: string;
     categoryKey: MachineCategoryKey;
+    aliases: string[];
 };

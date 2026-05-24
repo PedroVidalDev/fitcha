@@ -8,6 +8,8 @@ import (
 )
 
 func RegisterMachineRoutes(r *gin.Engine, controller *controllers.MachineController) {
+	r.GET("/machines/catalog", controller.ListCatalog)
+
 	authenticated := r.Group("/me/machines")
 	authenticated.Use(middlewares.AuthMiddleware())
 	authenticated.GET("", controller.List)

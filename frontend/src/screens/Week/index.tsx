@@ -6,7 +6,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useLayoutEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
-import { AddMachineModal } from "../../components/AddMachineModal";
 import { AIWizard } from "../../components/AIWizard";
 import { WizardData } from "../../components/AIWizard/types";
 import { AnimatedCard } from "../../components/AnimatedCard";
@@ -29,7 +28,7 @@ export default function WeekScreen() {
     const { t: translate } = useI18n();
     const { user, setCredits } = useAuth();
     const navigation = useNavigation<Nav>();
-    const { days, addMachineToDay, refresh } = useWeek();
+    const { days, refresh } = useWeek();
     const {
         payment,
         creditQuantity,
@@ -50,13 +49,10 @@ export default function WeekScreen() {
         refreshStatus,
     } = useCreditCheckout();
 
-    const [addTarget, setAddTarget] = useState<number | null>(null);
     const [wizardVisible, setWizardVisible] = useState(false);
     const [successVisible, setSuccessVisible] = useState(false);
 
     const today = new Date().getDay();
-    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
-
     useLayoutEffect(() => {
         navigation.setOptions({
             headerLeft: user
@@ -166,11 +162,8 @@ export default function WeekScreen() {
                         <AnimatedCard index={index}>
                             <GradientCard
                                 onPress={() => {
-                                    if (!isEmpty) {
-                                        navigation.navigate("Day", { dayIndex });
-                                    }
+                                    navigation.navigate("Day", { dayIndex });
                                 }}
-                                onLongPress={() => setAddTarget(dayIndex)}
                             >
                                 <View style={{ flex: 1 }}>
                                     <View
@@ -256,25 +249,11 @@ export default function WeekScreen() {
                                         </View>
                                     )}
                                 </View>
-                                {!isEmpty ? (
-                                    <Ionicons
-                                        name="chevron-forward"
-                                        size={18}
-                                        color={t.textMuted}
-                                    />
-                                ) : null}
+
+                                <Ionicons name="chevron-forward" size={18} color={t.textMuted} />
                             </GradientCard>
                         </AnimatedCard>
                     );
-                }}
-            />
-
-            <AddMachineModal
-                visible={addTarget !== null}
-                onClose={() => setAddTarget(null)}
-                onAdd={(name, catKey, desc) => {
-                    if (addTarget !== null) addMachineToDay(addTarget, name, catKey, desc);
-                    setAddTarget(null);
                 }}
             />
 

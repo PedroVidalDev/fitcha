@@ -16,14 +16,14 @@ func (Day) TableName() string {
 }
 
 type DayMachine struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	DayID     uint      `gorm:"not null;uniqueIndex:idx_day_machine,priority:1" json:"dayId"`
-	MachineID string    `gorm:"size:16;not null;uniqueIndex:idx_day_machine,priority:2;index" json:"machineId"`
-	Position  int       `gorm:"not null" json:"position"`
-	Day       Day       `gorm:"constraint:OnDelete:CASCADE;" json:"-"`
-	Machine   Machine   `gorm:"foreignKey:MachineID;references:ID;constraint:OnDelete:CASCADE;" json:"-"`
+	ID            uint        `gorm:"primaryKey" json:"id"`
+	CreatedAt     time.Time   `json:"createdAt"`
+	UpdatedAt     time.Time   `json:"updatedAt"`
+	DayID         uint        `gorm:"not null;uniqueIndex:idx_day_machine,priority:1" json:"dayId"`
+	UserMachineID string      `gorm:"size:16;not null;uniqueIndex:idx_day_machine,priority:2;index" json:"machineId"`
+	Position      int         `gorm:"not null" json:"position"`
+	Day           Day         `gorm:"constraint:OnDelete:CASCADE;" json:"-"`
+	UserMachine   UserMachine `gorm:"foreignKey:UserMachineID;references:ID;constraint:OnDelete:CASCADE;" json:"-"`
 }
 
 func (DayMachine) TableName() string {

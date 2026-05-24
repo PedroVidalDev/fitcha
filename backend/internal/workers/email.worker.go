@@ -26,8 +26,9 @@ func handleWelcomeEmail(mailer email.Mailer) func(context.Context, *asynq.Task) 
 
 		subject := "Bem-vindo ao Fitcha"
 		body := fmt.Sprintf(
-			"Oi, %s!\n\nSua conta no Fitcha foi criada com sucesso.\n\nAgora voce pode montar sua semana, acompanhar treinos e comprar creditos para gerar treinos customizados com IA.\n\nBom treino!\nEquipe Fitcha",
+			"Oi, %s!\n\nSua conta no Fitcha foi criada com sucesso.\n\nAntes de entrar, confirme seu e-mail clicando neste link:\n%s\n\nDepois disso, voce ja podera fazer login no app.\n\nBom treino!\nEquipe Fitcha",
 			payload.Name,
+			payload.VerificationURL,
 		)
 
 		return mailer.Send(payload.Email, subject, body)

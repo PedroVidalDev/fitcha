@@ -15,17 +15,30 @@
             "package": "com.pedrovidaldev.fitcha",
             "softwareKeyboardLayoutMode": "pan",
             "edgeToEdgeEnabled": true,
-            "predictiveBackGestureEnabled": false
+            "predictiveBackGestureEnabled": false,
+            "adaptiveIcon": {
+                "foregroundImage": "./src/assets/images/icon.png",
+                "backgroundColor": "#F06B2A"
+            }
         },
         "web": {
             "output": "static"
         },
         "plugins": [
             [
+                "expo-splash-screen",
+                {
+                    "image": "./src/assets/images/splash-icon.png",
+                    "imageWidth": 160,
+                    "resizeMode": "contain",
+                    "backgroundColor": "#F06B2A"
+                }
+            ],
+            [
                 "expo-notifications",
                 {
                     "icon": "./src/assets/images/icon.png",
-                    "color": "#F4A261",
+                    "color": "#F06B2A",
                     "defaultChannel": "treino"
                 }
             ]

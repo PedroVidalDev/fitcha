@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { MachineCategoryKey } from "../constants/categories";
 import { Machine } from "../dtos/Machine";
 import {
     addMachineToDay as addMachineToDayRequest,
@@ -34,16 +33,9 @@ export function useWeek() {
     }, [setDaysFromData]);
 
     const addMachineToDay = useCallback(
-        async (
-            dayIndex: number,
-            name: string,
-            categoryKey: MachineCategoryKey,
-            description?: string,
-        ) => {
+        async (dayIndex: number, catalogMachineId: string) => {
             await addMachineToDayRequest(dayIndex, {
-                name,
-                categoryKey,
-                description,
+                catalogMachineId,
             });
             await refresh();
         },

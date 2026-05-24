@@ -4,16 +4,15 @@ import (
 	"fitcha/internal/models"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type IMachineRepository interface {
-	FindByUserID(userID uint) ([]models.Machine, error)
-	FindByIDAndUserID(machineID string, userID uint) (models.Machine, error)
+	FindAll() ([]models.Machine, error)
+	FindByID(machineID string) (models.Machine, error)
 	Create(machine models.Machine) (models.Machine, error)
 	Update(machine models.Machine) (models.Machine, error)
-	DeleteByIDAndUserID(machineID string, userID uint) error
-	DeleteByIDsAndUserID(machineIDs []string, userID uint) error
-	DeleteUnassignedWithoutHistoryByUserID(userID uint) error
+	UpsertMany(machines []models.Machine) error
 }
 
 type machineRepository struct {
@@ -24,20 +23,20 @@ func NewMachineRepository(db *gorm.DB) IMachineRepository {
 	return &machineRepository{db: db}
 }
 
-func (r *machineRepository) FindByUserID(userID uint) ([]models.Machine, error) {
+func (r *machineRepository) FindAll() ([]models.Machine, error) {
 	var machines []models.Machine
 
-	if err := r.db.Where("user_id = ?", userID).Order("created_at asc").Find(&machines).Error; err != nil {
+	if err := r.db.Order("category_key asc, name asc").Find(&machines).Error; err != nil {
 		return []models.Machine{}, err
 	}
 
 	return machines, nil
 }
 
-func (r *machineRepository) FindByIDAndUserID(machineID string, userID uint) (models.Machine, error) {
+func (r *machineRepository) FindByID(machineID string) (models.Machine, error) {
 	var machine models.Machine
 
-	if err := r.db.Where("id = ? AND user_id = ?", machineID, userID).First(&machine).Error; err != nil {
+	if err := r.db.Where("id = ?", machineID).First(&machine).Error; err != nil {
 		return models.Machine{}, err
 	}
 
@@ -60,31 +59,13 @@ func (r *machineRepository) Update(machine models.Machine) (models.Machine, erro
 	return machine, nil
 }
 
-func (r *machineRepository) DeleteByIDAndUserID(machineID string, userID uint) error {
-	return r.db.Where("id = ? AND user_id = ?", machineID, userID).Delete(&models.Machine{}).Error
-}
-
-func (r *machineRepository) DeleteByIDsAndUserID(machineIDs []string, userID uint) error {
-	if len(machineIDs) == 0 {
+func (r *machineRepository) UpsertMany(machines []models.Machine) error {
+	if len(machines) == 0 {
 		return nil
 	}
 
-	return r.db.Where("user_id = ? AND id IN ?", userID, machineIDs).Delete(&models.Machine{}).Error
-}
-
-func (r *machineRepository) DeleteUnassignedWithoutHistoryByUserID(userID uint) error {
-	return r.db.Exec(`
-		DELETE FROM tb_machines
-		WHERE user_id = ?
-		  AND NOT EXISTS (
-			SELECT 1
-			FROM tb_day_machines
-			WHERE tb_day_machines.machine_id = tb_machines.id
-		  )
-		  AND NOT EXISTS (
-			SELECT 1
-			FROM tb_history_entries
-			WHERE tb_history_entries.machine_id = tb_machines.id
-		  )
-	`, userID).Error
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "slug"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "description", "photo", "category_key", "aliases", "updated_at"}),
+	}).Create(&machines).Error
 }

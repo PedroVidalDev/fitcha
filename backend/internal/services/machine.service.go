@@ -17,37 +17,55 @@ type UpdateMachineInput struct {
 }
 
 type MachineService struct {
-	repo repositories.IMachineRepository
+	userMachines repositories.IUserMachineRepository
+	catalog      repositories.IMachineRepository
 }
 
-func NewMachineService(repo repositories.IMachineRepository) *MachineService {
-	return &MachineService{repo: repo}
+func NewMachineService(userMachines repositories.IUserMachineRepository, catalog repositories.IMachineRepository) *MachineService {
+	return &MachineService{
+		userMachines: userMachines,
+		catalog:      catalog,
+	}
 }
 
-func (s *MachineService) ListByUserID(userID uint) ([]models.Machine, error) {
-	return s.repo.FindByUserID(userID)
+func (s *MachineService) ListByUserID(userID uint) ([]models.UserMachine, error) {
+	return s.userMachines.FindByUserID(userID)
 }
 
-func (s *MachineService) Update(userID uint, machineID string, input UpdateMachineInput) (models.Machine, error) {
-	machine, err := s.repo.FindByIDAndUserID(strings.TrimSpace(machineID), userID)
+func (s *MachineService) ListCatalog() ([]models.Machine, error) {
+	return s.catalog.FindAll()
+}
+
+func (s *MachineService) Update(userID uint, machineID string, input UpdateMachineInput) (models.UserMachine, error) {
+	machine, err := s.userMachines.FindByIDAndUserID(strings.TrimSpace(machineID), userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return models.Machine{}, errors.New("maquina nao encontrada")
+			return models.UserMachine{}, errors.New("maquina nao encontrada")
 		}
 
-		return models.Machine{}, err
+		return models.UserMachine{}, err
 	}
 
+	isCatalogLinked := machine.MachineID != nil
+
 	if input.Name != nil {
+		if isCatalogLinked {
+			return models.UserMachine{}, errors.New("o nome de uma maquina de catalogo nao pode ser alterado")
+		}
+
 		name := strings.TrimSpace(*input.Name)
 		if name == "" {
-			return models.Machine{}, errors.New("informe o nome da maquina")
+			return models.UserMachine{}, errors.New("informe o nome da maquina")
 		}
 
 		machine.Name = name
 	}
 
 	if input.Description != nil {
+		if isCatalogLinked {
+			return models.UserMachine{}, errors.New("a descricao de uma maquina de catalogo nao pode ser alterada")
+		}
+
 		machine.Description = strings.TrimSpace(*input.Description)
 	}
 
@@ -56,13 +74,17 @@ func (s *MachineService) Update(userID uint, machineID string, input UpdateMachi
 	}
 
 	if input.CategoryKey != nil {
+		if isCatalogLinked {
+			return models.UserMachine{}, errors.New("a categoria de uma maquina de catalogo nao pode ser alterada")
+		}
+
 		categoryKey := strings.TrimSpace(*input.CategoryKey)
 		if !models.IsValidMachineCategoryKey(categoryKey) {
-			return models.Machine{}, errors.New("categoria da maquina invalida")
+			return models.UserMachine{}, errors.New("categoria da maquina invalida")
 		}
 
 		machine.CategoryKey = categoryKey
 	}
 
-	return s.repo.Update(machine)
+	return s.userMachines.Update(machine)
 }

@@ -53,12 +53,12 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		historyRepo := repositories.NewHistoryRepository(tx)
-		machineRepo := repositories.NewMachineRepository(tx)
+		userMachineRepo := repositories.NewUserMachineRepository(tx)
 		performedAt := time.Now().UTC()
 		entries := make([]models.HistoryEntry, 0, len(normalizedResults))
 
 		for _, result := range normalizedResults {
-			if _, err := machineRepo.FindByIDAndUserID(result.MachineID, userID); err != nil {
+			if _, err := userMachineRepo.FindByIDAndUserID(result.MachineID, userID); err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errors.New("maquina nao encontrada")
 				}
@@ -72,12 +72,12 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 			}
 
 			entries = append(entries, models.HistoryEntry{
-				ID:          entryID,
-				MachineID:   result.MachineID,
-				PerformedAt: performedAt,
-				Set1:        result.Sets[0],
-				Set2:        result.Sets[1],
-				Set3:        result.Sets[2],
+				ID:            entryID,
+				UserMachineID: result.MachineID,
+				PerformedAt:   performedAt,
+				Set1:          result.Sets[0],
+				Set2:          result.Sets[1],
+				Set3:          result.Sets[2],
 			})
 		}
 

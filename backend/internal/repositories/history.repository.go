@@ -24,8 +24,8 @@ func (r *historyRepository) FindByUserID(userID uint) ([]models.HistoryEntry, er
 
 	err := r.db.
 		Model(&models.HistoryEntry{}).
-		Joins("JOIN tb_machines ON tb_machines.id = tb_history_entries.machine_id").
-		Where("tb_machines.user_id = ?", userID).
+		Joins("JOIN tb_user_machines ON tb_user_machines.id = tb_history_entries.user_machine_id").
+		Where("tb_user_machines.user_id = ?", userID).
 		Order("tb_history_entries.performed_at desc").
 		Find(&entries).
 		Error

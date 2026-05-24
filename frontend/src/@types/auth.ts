@@ -3,6 +3,7 @@ export type ApiUser = {
     CreatedAt?: string;
     UpdatedAt?: string;
     credits?: number;
+    verified?: boolean;
     name: string;
     email: string;
 };
@@ -12,6 +13,7 @@ export type User = {
     createdAt?: string;
     updatedAt?: string;
     credits: number;
+    verified: boolean;
     name: string;
     email: string;
 };
@@ -41,6 +43,11 @@ export type AuthResponse = {
     user: ApiUser;
 };
 
+export type RegisterResponse = {
+    message: string;
+    email: string;
+};
+
 export type UpdateProfileInput = {
     name: string;
     email: string;
@@ -51,7 +58,7 @@ export type AuthContextValue = {
     user: AuthenticatedUser | null;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    register: (name: string, email: string, password: string) => Promise<void>;
+    register: (name: string, email: string, password: string) => Promise<RegisterResponse>;
     logout: () => Promise<void>;
     updateProfile: (input: UpdateProfileInput) => Promise<void>;
     setCredits: (credits: number) => Promise<void>;

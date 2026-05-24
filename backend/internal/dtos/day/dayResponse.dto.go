@@ -11,7 +11,7 @@ func FromDayModel(day models.Day) DayResponseType {
 	machineIDs := make([]string, 0, len(day.MachineAssignments))
 
 	for _, assignment := range day.MachineAssignments {
-		machineIDs = append(machineIDs, assignment.MachineID)
+		machineIDs = append(machineIDs, assignment.UserMachineID)
 	}
 
 	return DayResponseType{

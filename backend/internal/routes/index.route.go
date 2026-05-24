@@ -17,11 +17,13 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	emailJobs := jobs.NewEmailJobs(queueClient)
 
 	authRepo := repositories.NewUserRepository(db)
-	authService := services.NewAuthService(authRepo, emailJobs)
+	verificationTokenRepo := repositories.NewEmailVerificationTokenRepository(db)
+	authService := services.NewAuthService(authRepo, verificationTokenRepo, emailJobs)
 	authController := controllers.NewAuthController(authService)
 
 	paymentRepo := repositories.NewPaymentRepository(db)
 	machineRepo := repositories.NewMachineRepository(db)
+	userMachineRepo := repositories.NewUserMachineRepository(db)
 	dayRepo := repositories.NewDayRepository(db)
 	historyRepo := repositories.NewHistoryRepository(db)
 
@@ -32,7 +34,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	creditService := services.NewCreditService(db, paymentRepo, authRepo, mpClient, mpErr, emailJobs)
 	creditController := controllers.NewCreditController(creditService)
-	machineService := services.NewMachineService(machineRepo)
+	machineService := services.NewMachineService(userMachineRepo, machineRepo)
 	machineController := controllers.NewMachineController(machineService)
 	dayService := services.NewDayService(db, dayRepo)
 	dayController := controllers.NewDayController(dayService)
