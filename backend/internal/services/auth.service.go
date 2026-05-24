@@ -1,6 +1,10 @@
 package services
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	dtos "fitcha/internal/dtos/user"
 	"fitcha/internal/jobs"
@@ -11,20 +15,31 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type AuthService struct {
-	repo   repositories.IUserRepository
-	emails jobs.EmailJobEnqueuer
+	repo               repositories.IUserRepository
+	verificationTokens repositories.IEmailVerificationTokenRepository
+	emails             jobs.EmailJobEnqueuer
+	now                func() time.Time
+	generateTokenPair  func() (string, string, error)
 }
 
-func NewAuthService(repo repositories.IUserRepository, emailJobs jobs.EmailJobEnqueuer) *AuthService {
+func NewAuthService(
+	repo repositories.IUserRepository,
+	verificationTokens repositories.IEmailVerificationTokenRepository,
+	emailJobs jobs.EmailJobEnqueuer,
+) *AuthService {
 	return &AuthService{
-		repo:   repo,
-		emails: emailJobs,
+		repo:               repo,
+		verificationTokens: verificationTokens,
+		emails:             emailJobs,
+		now:                time.Now,
+		generateTokenPair:  generateVerificationTokenPair,
 	}
 }
 
@@ -88,19 +103,8 @@ func (s *AuthService) Register(name, email, password string) (dtos.RegisterRespo
 		return dtos.RegisterResponseType{}, err
 	}
 
-	if s.emails != nil {
-		verificationToken, tokenErr := auth.GenerateEmailVerificationToken(createdUser.ID)
-		if tokenErr != nil {
-			return dtos.RegisterResponseType{}, tokenErr
-		}
-
-		if err := s.emails.EnqueueWelcomeEmail(
-			createdUser.Name,
-			createdUser.Email,
-			buildVerificationURL(verificationToken),
-		); err != nil {
-			log.Printf("falha ao enfileirar email de boas-vindas: %v", err)
-		}
+	if err := s.issueVerificationEmail(createdUser); err != nil {
+		log.Printf("falha ao preparar email de verificacao: %v", err)
 	}
 
 	return dtos.RegisterResponseType{
@@ -109,8 +113,39 @@ func (s *AuthService) Register(name, email, password string) (dtos.RegisterRespo
 	}, nil
 }
 
+func (s *AuthService) ResendVerificationEmail(email string) error {
+	user, err := s.repo.FindByEmail(strings.TrimSpace(email))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+
+		return err
+	}
+
+	if user.Verified {
+		return nil
+	}
+
+	return s.issueVerificationEmail(user)
+}
+
 func (s *AuthService) VerifyEmail(token string) error {
-	userID, err := auth.ValidateEmailVerificationToken(strings.TrimSpace(token))
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return newAuthError(AuthErrorInvalidVerification, "link de verificacao invalido ou expirado")
+	}
+
+	handled, err := s.verifyStoredVerificationToken(token)
+	if err != nil {
+		return err
+	}
+
+	if handled {
+		return nil
+	}
+
+	userID, err := auth.ValidateEmailVerificationToken(token)
 	if err != nil {
 		return newAuthError(AuthErrorInvalidVerification, "link de verificacao invalido ou expirado")
 	}
@@ -159,6 +194,68 @@ func (s *AuthService) ChangePassword(userID uint, currentPassword, newPassword s
 	return nil
 }
 
+func (s *AuthService) issueVerificationEmail(user models.User) error {
+	if s.verificationTokens == nil {
+		return errors.New("repositorio de tokens de verificacao nao configurado")
+	}
+
+	plainToken, tokenHash, err := s.generateTokenPair()
+	if err != nil {
+		return err
+	}
+
+	expiresAt := s.now().Add(72 * time.Hour)
+	if err := s.verificationTokens.SaveActiveToken(user.ID, tokenHash, expiresAt); err != nil {
+		return err
+	}
+
+	if s.emails == nil {
+		return errors.New("cliente da fila de emails nao configurado")
+	}
+
+	return s.emails.EnqueueWelcomeEmail(
+		user.Name,
+		user.Email,
+		buildVerificationURL(plainToken),
+	)
+}
+
+func (s *AuthService) verifyStoredVerificationToken(token string) (bool, error) {
+	if s.verificationTokens == nil {
+		return false, nil
+	}
+
+	record, err := s.verificationTokens.FindValidByTokenHash(hashVerificationToken(token), s.now())
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	user, err := s.repo.FindByID(record.UserID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, newAuthError(AuthErrorUserNotFound, "usuario nao encontrado")
+		}
+
+		return false, err
+	}
+
+	if !user.Verified {
+		if _, err := s.repo.VerifyUser(user.ID); err != nil {
+			return false, err
+		}
+	}
+
+	if err := s.verificationTokens.MarkUsed(record.ID, s.now()); err != nil {
+		log.Printf("falha ao marcar token de verificacao como usado: %v", err)
+	}
+
+	return true, nil
+}
+
 func buildVerificationURL(token string) string {
 	baseURL := strings.TrimSpace(os.Getenv("API_BASE_URL"))
 	if baseURL == "" {
@@ -171,4 +268,19 @@ func buildVerificationURL(token string) string {
 	}
 
 	return strings.TrimRight(baseURL, "/") + "/verify-email?token=" + url.QueryEscape(token)
+}
+
+func generateVerificationTokenPair() (string, string, error) {
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err != nil {
+		return "", "", err
+	}
+
+	plainToken := base64.RawURLEncoding.EncodeToString(raw)
+	return plainToken, hashVerificationToken(plainToken), nil
+}
+
+func hashVerificationToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
 }

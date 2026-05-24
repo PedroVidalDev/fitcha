@@ -17,7 +17,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	emailJobs := jobs.NewEmailJobs(queueClient)
 
 	authRepo := repositories.NewUserRepository(db)
-	authService := services.NewAuthService(authRepo, emailJobs)
+	verificationTokenRepo := repositories.NewEmailVerificationTokenRepository(db)
+	authService := services.NewAuthService(authRepo, verificationTokenRepo, emailJobs)
 	authController := controllers.NewAuthController(authService)
 
 	paymentRepo := repositories.NewPaymentRepository(db)

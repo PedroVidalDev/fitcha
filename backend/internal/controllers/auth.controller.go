@@ -77,6 +77,26 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, authResponse)
 }
 
+func (c *AuthController) ResendVerificationEmail(ctx *gin.Context) {
+	var input dtos.ResendVerificationEmailType
+
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := c.service.ResendVerificationEmail(input.Email); err != nil {
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "nao foi possivel reenviar o e-mail de verificacao",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"message": "se existir uma conta pendente para este e-mail, enviaremos um novo link de verificacao",
+	})
+}
+
 func (c *AuthController) VerifyEmail(ctx *gin.Context) {
 	err := c.service.VerifyEmail(ctx.Query("token"))
 	if err != nil {
