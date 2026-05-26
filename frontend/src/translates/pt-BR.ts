@@ -42,6 +42,7 @@ export const ptBR = {
     "auth.login.passwordPlaceholder": "********",
     "auth.login.submit": "Entrar",
     "auth.login.submitting": "Entrando...",
+    "auth.login.forgotPasswordCta": "Esqueci minha senha",
     "auth.login.createAccountCta": "Criar conta",
     "auth.register.title": "Criar conta",
     "auth.register.subtitle": "Preencha seus dados para começar",
@@ -72,6 +73,18 @@ export const ptBR = {
     "auth.errors.serviceUnavailableTitle": "Serviço indisponível",
     "auth.errors.serviceUnavailableMessage":
         "O serviço pode estar indisponível no momento. Tente novamente em instantes.",
+    "auth.sessionExpired.title": "Sessão expirada",
+    "auth.sessionExpired.message":
+        "Seu acesso expirou enquanto o app estava fechado. Entre novamente para continuar.",
+    "auth.resetPassword.title": "Recuperar acesso",
+    "auth.resetPassword.description":
+        "Informe seu e-mail e enviaremos um link para redefinir sua senha.",
+    "auth.resetPassword.submit": "Enviar link",
+    "auth.resetPassword.submitting": "Enviando...",
+    "auth.resetPassword.successTitle": "Verifique seu e-mail",
+    "auth.resetPassword.successMessage":
+        "Se existir uma conta para {email}, enviaremos um link para redefinir sua senha.",
+    "auth.resetPassword.error": "Não foi possível enviar o link de redefinição",
     "auth.register.successTitle": "Verifique seu e-mail",
     "auth.register.successMessage":
         "Sua conta foi criada. Enviamos um link de verificação para {email}. Depois disso, volte ao app para entrar.",

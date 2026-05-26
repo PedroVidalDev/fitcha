@@ -44,6 +44,7 @@ export const esES: TranslationDictionary = {
     "auth.login.passwordPlaceholder": "********",
     "auth.login.submit": "Entrar",
     "auth.login.submitting": "Entrando...",
+    "auth.login.forgotPasswordCta": "Olvide mi contrasena",
     "auth.login.createAccountCta": "Crear cuenta",
     "auth.register.title": "Crear cuenta",
     "auth.register.subtitle": "Completa tus datos para empezar",
@@ -74,6 +75,18 @@ export const esES: TranslationDictionary = {
     "auth.errors.serviceUnavailableTitle": "Servicio no disponible",
     "auth.errors.serviceUnavailableMessage":
         "El servicio puede no estar disponible en este momento. Intentalo de nuevo en unos instantes.",
+    "auth.sessionExpired.title": "Sesion expirada",
+    "auth.sessionExpired.message":
+        "Tu acceso expiro mientras la app estaba cerrada. Inicia sesion otra vez para continuar.",
+    "auth.resetPassword.title": "Recuperar acceso",
+    "auth.resetPassword.description":
+        "Ingresa tu correo y enviaremos un enlace para restablecer tu contrasena.",
+    "auth.resetPassword.submit": "Enviar enlace",
+    "auth.resetPassword.submitting": "Enviando...",
+    "auth.resetPassword.successTitle": "Revisa tu correo",
+    "auth.resetPassword.successMessage":
+        "Si existe una cuenta para {email}, enviaremos un enlace para restablecer tu contrasena.",
+    "auth.resetPassword.error": "No fue posible enviar el enlace de restablecimiento",
     "auth.register.successTitle": "Revisa tu correo",
     "auth.register.successMessage":
         "Tu cuenta fue creada. Enviamos un enlace de verificacion a {email}. Despues de eso, vuelve a la app para entrar.",

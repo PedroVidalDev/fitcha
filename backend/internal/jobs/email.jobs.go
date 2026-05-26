@@ -9,11 +9,13 @@ import (
 
 const (
 	TaskSendWelcomeEmail          = "email:welcome"
+	TaskSendPasswordResetEmail    = "email:password_reset"
 	TaskSendCreditsPurchasedEmail = "email:credits_purchased"
 )
 
 type EmailJobEnqueuer interface {
 	EnqueueWelcomeEmail(name, email, verificationURL string) error
+	EnqueuePasswordResetEmail(name, email, resetURL string) error
 	EnqueueCreditsPurchasedEmail(name, email string, quantity int, totalAmountCents int64, balance int) error
 }
 
@@ -35,6 +37,12 @@ type CreditsPurchasedEmailPayload struct {
 	Balance          int    `json:"balance"`
 }
 
+type PasswordResetEmailPayload struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	ResetURL string `json:"resetUrl"`
+}
+
 func NewEmailJobs(client *asynq.Client) *AsynqEmailJobs {
 	return &AsynqEmailJobs{client: client}
 }
@@ -44,6 +52,14 @@ func (j *AsynqEmailJobs) EnqueueWelcomeEmail(name, email, verificationURL string
 		Name:            name,
 		Email:           email,
 		VerificationURL: verificationURL,
+	})
+}
+
+func (j *AsynqEmailJobs) EnqueuePasswordResetEmail(name, email, resetURL string) error {
+	return j.enqueue(TaskSendPasswordResetEmail, PasswordResetEmailPayload{
+		Name:     name,
+		Email:    email,
+		ResetURL: resetURL,
 	})
 }
 

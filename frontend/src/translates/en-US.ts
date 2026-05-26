@@ -44,6 +44,7 @@ export const enUS: TranslationDictionary = {
     "auth.login.passwordPlaceholder": "********",
     "auth.login.submit": "Sign in",
     "auth.login.submitting": "Signing in...",
+    "auth.login.forgotPasswordCta": "Forgot password?",
     "auth.login.createAccountCta": "Create account",
     "auth.register.title": "Create account",
     "auth.register.subtitle": "Fill in your details to get started",
@@ -74,6 +75,18 @@ export const enUS: TranslationDictionary = {
     "auth.errors.serviceUnavailableTitle": "Service unavailable",
     "auth.errors.serviceUnavailableMessage":
         "The service may be unavailable right now. Please try again in a moment.",
+    "auth.sessionExpired.title": "Session expired",
+    "auth.sessionExpired.message":
+        "Your access expired while the app was closed. Sign in again to continue.",
+    "auth.resetPassword.title": "Recover access",
+    "auth.resetPassword.description":
+        "Enter your email and we will send a link so you can reset your password.",
+    "auth.resetPassword.submit": "Send link",
+    "auth.resetPassword.submitting": "Sending...",
+    "auth.resetPassword.successTitle": "Check your email",
+    "auth.resetPassword.successMessage":
+        "If an account exists for {email}, we will send a link so you can reset your password.",
+    "auth.resetPassword.error": "Unable to send the reset link",
     "auth.register.successTitle": "Check your email",
     "auth.register.successMessage":
         "Your account has been created. We sent a verification link to {email}. After that, come back to the app and sign in.",

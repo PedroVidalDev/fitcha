@@ -18,7 +18,13 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	authRepo := repositories.NewUserRepository(db)
 	verificationTokenRepo := repositories.NewEmailVerificationTokenRepository(db)
-	authService := services.NewAuthService(authRepo, verificationTokenRepo, emailJobs)
+	passwordResetTokenRepo := repositories.NewPasswordResetTokenRepository(db)
+	authService := services.NewAuthService(
+		authRepo,
+		verificationTokenRepo,
+		passwordResetTokenRepo,
+		emailJobs,
+	)
 	authController := controllers.NewAuthController(authService)
 
 	paymentRepo := repositories.NewPaymentRepository(db)

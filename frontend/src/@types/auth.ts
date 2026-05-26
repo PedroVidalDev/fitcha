@@ -48,6 +48,10 @@ export type RegisterResponse = {
     email: string;
 };
 
+export type PasswordResetRequestResponse = {
+    message: string;
+};
+
 export type UpdateProfileInput = {
     name: string;
     email: string;
@@ -57,8 +61,11 @@ export type UpdateProfileInput = {
 export type AuthContextValue = {
     user: AuthenticatedUser | null;
     isLoading: boolean;
+    isSessionExpiredNoticeVisible: boolean;
     login: (email: string, password: string) => Promise<void>;
     register: (name: string, email: string, password: string) => Promise<RegisterResponse>;
+    requestPasswordReset: (email: string) => Promise<PasswordResetRequestResponse>;
+    dismissSessionExpiredNotice: () => void;
     logout: () => Promise<void>;
     updateProfile: (input: UpdateProfileInput) => Promise<void>;
     setCredits: (credits: number) => Promise<void>;
