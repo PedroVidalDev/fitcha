@@ -1,9 +1,11 @@
 import { WorkoutDraft, WorkoutDraftMap, WorkoutResult, WORKOUT_SET_KEYS } from "./types";
 
 export const EMPTY_WORKOUT_DRAFT: WorkoutDraft = {
-    set1: "",
-    set2: "",
-    set3: "",
+    sets: {
+        set1: { weight: "", reps: "" },
+        set2: { weight: "", reps: "" },
+        set3: { weight: "", reps: "" },
+    },
     confirmed: {
         set1: false,
         set2: false,
@@ -20,7 +22,12 @@ export function formatTime(seconds: number): string {
 }
 
 export function parseWeight(value: string): number {
-    return parseFloat(value.replace(",", "."));
+    return Number(value.trim().replace(",", "."));
+}
+
+export function parseReps(value: string): number {
+    const parsed = Number(value.trim().replace(",", "."));
+    return Number.isInteger(parsed) ? parsed : Number.NaN;
 }
 
 export function getWorkoutDraft(draft?: WorkoutDraft): WorkoutDraft {
@@ -29,25 +36,40 @@ export function getWorkoutDraft(draft?: WorkoutDraft): WorkoutDraft {
 
 export function hasDraftValue(draft?: WorkoutDraft): boolean {
     const normalizedDraft = getWorkoutDraft(draft);
-    return WORKOUT_SET_KEYS.some((key) => normalizedDraft[key].trim().length > 0);
+    return WORKOUT_SET_KEYS.some((key) => {
+        const set = normalizedDraft.sets[key];
+        return set.weight.trim().length > 0 || set.reps.trim().length > 0;
+    });
 }
 
 export function isDraftComplete(draft?: WorkoutDraft): boolean {
     const normalizedDraft = getWorkoutDraft(draft);
 
     return WORKOUT_SET_KEYS.every((key) => {
-        const value = parseWeight(normalizedDraft[key]);
-        return normalizedDraft.confirmed[key] && !Number.isNaN(value) && value > 0;
+        const set = normalizedDraft.sets[key];
+        const weight = parseWeight(set.weight);
+        const reps = parseReps(set.reps);
+
+        return (
+            normalizedDraft.confirmed[key] &&
+            !Number.isNaN(weight) &&
+            weight > 0 &&
+            !Number.isNaN(reps) &&
+            reps > 0
+        );
     });
 }
 
 export function draftToResult(machineId: string, draft?: WorkoutDraft): WorkoutResult | null {
     if (!isDraftComplete(draft)) return null;
 
-    const { set1, set2, set3 } = getWorkoutDraft(draft);
+    const { sets } = getWorkoutDraft(draft);
     return {
         machineId,
-        sets: [parseWeight(set1), parseWeight(set2), parseWeight(set3)],
+        sets: WORKOUT_SET_KEYS.map((key) => ({
+            weight: parseWeight(sets[key].weight),
+            reps: parseReps(sets[key].reps),
+        })),
     };
 }
 

@@ -1,17 +1,18 @@
 import { isAxiosError } from "axios";
+import { HistorySet } from "../dtos/HistoryEntry";
 import { translateRuntime } from "../translates/runtime";
 import { axiosApp, ensureApiUrlConfigured } from "./axios";
 
 export type HistoryApiEntry = {
     id: string;
     machineId: string;
-    sets: [number, number, number];
+    sets: HistorySet[];
     date: string;
 };
 
 export type WorkoutHistoryInput = {
     machineId: string;
-    sets: [number, number, number];
+    sets: HistorySet[];
 };
 
 function getHistoryErrorMessage(error: unknown, fallback: string) {
@@ -43,7 +44,9 @@ export async function getMyHistory() {
         const response = await axiosApp.get<HistoryApiEntry[]>("/me/history");
         return response.data;
     } catch (error) {
-        throw new Error(getHistoryErrorMessage(error, translateRuntime("services.history.loadError")));
+        throw new Error(
+            getHistoryErrorMessage(error, translateRuntime("services.history.loadError")),
+        );
     }
 }
 
@@ -56,6 +59,8 @@ export async function createWorkoutHistory(results: WorkoutHistoryInput[]) {
         });
         return response.data;
     } catch (error) {
-        throw new Error(getHistoryErrorMessage(error, translateRuntime("services.history.saveError")));
+        throw new Error(
+            getHistoryErrorMessage(error, translateRuntime("services.history.saveError")),
+        );
     }
 }

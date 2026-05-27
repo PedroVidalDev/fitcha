@@ -23,6 +23,7 @@ import { CategoryBadge } from "../../components/CategoryBadge";
 import { useAuth } from "../../contexts/AuthContext";
 import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { HistorySet } from "../../dtos/HistoryEntry";
 import { formatSetSequence } from "../../utils/workoutRecords";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, "Home">;
@@ -36,7 +37,7 @@ function formatWeight(value: number | null) {
     return value === null ? "--" : `${value}kg`;
 }
 
-function formatRecord(value: [number, number, number] | null) {
+function formatRecord(value: HistorySet[] | null) {
     return value === null ? "--" : formatSetSequence(value);
 }
 
@@ -491,7 +492,7 @@ function MachineProgressCard(props: { item: DashboardMachineProgress; width: num
                         {item.bestVolume === null
                             ? translate("home.machine.previous.noHistory")
                             : translate("home.machine.recordVolume", {
-                                  volume: `${item.bestVolume} ${translate("common.units.kg")}`,
+                                  volume: `${item.bestVolume}`,
                               })}
                     </Text>
                     <View

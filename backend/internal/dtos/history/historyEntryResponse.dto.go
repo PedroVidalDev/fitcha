@@ -6,17 +6,30 @@ import (
 )
 
 type HistoryEntryResponseType struct {
-	ID        string     `json:"id"`
-	MachineID string     `json:"machineId"`
-	Sets      [3]float64 `json:"sets"`
-	Date      string     `json:"date"`
+	ID        string                        `json:"id"`
+	MachineID string                        `json:"machineId"`
+	Sets      []HistoryEntrySetResponseType `json:"sets"`
+	Date      string                        `json:"date"`
+}
+
+type HistoryEntrySetResponseType struct {
+	Weight float64 `json:"weight"`
+	Reps   int     `json:"reps"`
 }
 
 func FromHistoryEntryModel(entry models.HistoryEntry) HistoryEntryResponseType {
+	sets := make([]HistoryEntrySetResponseType, 0, len(entry.Sets))
+	for _, set := range entry.Sets {
+		sets = append(sets, HistoryEntrySetResponseType{
+			Weight: set.Weight,
+			Reps:   set.Reps,
+		})
+	}
+
 	return HistoryEntryResponseType{
 		ID:        entry.ID,
 		MachineID: entry.UserMachineID,
-		Sets:      [3]float64{entry.Set1, entry.Set2, entry.Set3},
+		Sets:      sets,
 		Date:      entry.PerformedAt.UTC().Format(time.RFC3339Nano),
 	}
 }

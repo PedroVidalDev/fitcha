@@ -1,6 +1,11 @@
+export type HistorySet = {
+    weight: number;
+    reps: number;
+};
+
 export type HistoryEntry = {
     id: string;
-    sets: [number, number, number];
+    sets: HistorySet[];
     date: string;
     label: string;
 };

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getDayLabelKey, getDayShortLabelKey, MachineCategoryKey } from "../constants/categories";
 import { useI18n } from "../contexts/I18nContext";
 import { AppData } from "../dtos/AppData";
-import { HistoryEntry } from "../dtos/HistoryEntry";
+import { HistoryEntry, HistorySet } from "../dtos/HistoryEntry";
 import { getCachedWorkoutData, loadWorkoutData } from "../services/workoutData";
 import { TranslationKey } from "../translates";
 import {
@@ -42,7 +42,7 @@ export type DashboardMachineProgress = {
     previousWeight: number | null;
     firstWeight: number | null;
     bestWeight: number | null;
-    bestRecordSets: [number, number, number] | null;
+    bestRecordSets: HistorySet[] | null;
     bestVolume: number | null;
     deltaFromStart: number | null;
     deltaFromPrevious: number | null;

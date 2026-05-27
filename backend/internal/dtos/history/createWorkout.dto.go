@@ -5,6 +5,11 @@ type CreateWorkoutType struct {
 }
 
 type CreateWorkoutResultType struct {
-	MachineID string     `json:"machineId" binding:"required"`
-	Sets      [3]float64 `json:"sets" binding:"required"`
+	MachineID string                 `json:"machineId" binding:"required"`
+	Sets      []CreateWorkoutSetType `json:"sets" binding:"required"`
+}
+
+type CreateWorkoutSetType struct {
+	Weight float64 `json:"weight" binding:"required"`
+	Reps   int     `json:"reps" binding:"required"`
 }
