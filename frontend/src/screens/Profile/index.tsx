@@ -36,14 +36,57 @@ function formatDate(value: string | null | undefined, locale: string) {
     }).format(date);
 }
 
+function AccountInfoField(props: {
+    label: string;
+    value: string;
+    theme: ReturnType<typeof useTheme>["t"];
+}) {
+    const { label, value, theme } = props;
+
+    return (
+        <View
+            style={{
+                backgroundColor: theme.card,
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderWidth: 0.5,
+                borderColor: theme.border,
+            }}
+        >
+            <Text
+                style={{
+                    color: theme.textDim,
+                    fontSize: 11,
+                    fontWeight: "800",
+                    textTransform: "uppercase",
+                    letterSpacing: 1.1,
+                    marginBottom: 6,
+                }}
+            >
+                {label}
+            </Text>
+            <Text
+                style={{
+                    color: theme.textPrimary,
+                    fontSize: 15,
+                    fontWeight: "700",
+                }}
+            >
+                {value}
+            </Text>
+        </View>
+    );
+}
+
 export default function ProfileScreen() {
     const { t: theme } = useTheme();
-    const { user, updateProfile } = useAuth();
+    const { user, changePassword } = useAuth();
     const { locale, setLocale, t } = useI18n();
 
     const { values, errors, isSubmitting, setField, handleSubmit } = useProfileForm({
         user,
-        onSubmitProfile: updateProfile,
+        onSubmitPasswordChange: changePassword,
     });
 
     const {
@@ -172,6 +215,51 @@ export default function ProfileScreen() {
                                 marginBottom: 6,
                             }}
                         >
+                            {t("profile.account.title")}
+                        </Text>
+                        <Text
+                            style={{
+                                color: theme.textMuted,
+                                fontSize: 13,
+                                lineHeight: 20,
+                                marginBottom: 18,
+                            }}
+                        >
+                            {t("profile.account.description")}
+                        </Text>
+
+                        <View style={{ gap: 10 }}>
+                            <AccountInfoField
+                                label={t("auth.register.nameLabel")}
+                                value={user.name}
+                                theme={theme}
+                            />
+                            <AccountInfoField
+                                label={t("auth.register.emailLabel")}
+                                value={user.email}
+                                theme={theme}
+                            />
+                        </View>
+                    </View>
+
+                    <View
+                        style={{
+                            backgroundColor: theme.inputBg,
+                            borderRadius: 24,
+                            padding: 20,
+                            borderWidth: 0.5,
+                            borderColor: theme.border,
+                            marginBottom: 18,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: theme.textPrimary,
+                                fontSize: 20,
+                                fontWeight: "900",
+                                marginBottom: 6,
+                            }}
+                        >
                             {t("profile.language.title")}
                         </Text>
                         <Text
@@ -200,7 +288,9 @@ export default function ProfileScreen() {
                                                 flexDirection: "row",
                                                 alignItems: "center",
                                                 justifyContent: "space-between",
-                                                backgroundColor: isActive ? theme.chipBg : theme.card,
+                                                backgroundColor: isActive
+                                                    ? theme.chipBg
+                                                    : theme.card,
                                                 borderRadius: 16,
                                                 paddingHorizontal: 16,
                                                 paddingVertical: 14,
@@ -211,7 +301,9 @@ export default function ProfileScreen() {
                                             <View>
                                                 <Text
                                                     style={{
-                                                        color: isActive ? theme.textPrimary : theme.textMuted,
+                                                        color: isActive
+                                                            ? theme.textPrimary
+                                                            : theme.textMuted,
                                                         fontSize: 15,
                                                         fontWeight: "800",
                                                     }}
@@ -230,7 +322,11 @@ export default function ProfileScreen() {
                                             </View>
 
                                             <Ionicons
-                                                name={isActive ? "checkmark-circle" : "ellipse-outline"}
+                                                name={
+                                                    isActive
+                                                        ? "checkmark-circle"
+                                                        : "ellipse-outline"
+                                                }
                                                 size={20}
                                                 color={isActive ? theme.accent : theme.textDim}
                                             />
@@ -489,33 +585,23 @@ export default function ProfileScreen() {
                         </Text>
 
                         <Input
-                            label={t("auth.register.nameLabel")}
-                            icon="person-outline"
-                            value={values.name}
-                            onChangeText={(value) => setField("name", value)}
-                            placeholder={t("auth.register.namePlaceholder")}
-                            autoCapitalize="words"
-                            error={errors.name}
-                        />
-
-                        <Input
-                            label={t("auth.register.emailLabel")}
-                            icon="mail-outline"
-                            value={values.email}
-                            onChangeText={(value) => setField("email", value)}
-                            placeholder={t("auth.register.emailPlaceholder")}
-                            keyboardType="email-address"
-                            error={errors.email}
+                            label={t("profile.form.currentPasswordLabel")}
+                            icon="key-outline"
+                            value={values.currentPassword}
+                            onChangeText={(value) => setField("currentPassword", value)}
+                            placeholder={t("profile.form.currentPasswordPlaceholder")}
+                            secure
+                            error={errors.currentPassword}
                         />
 
                         <Input
                             label={t("profile.form.newPasswordLabel")}
                             icon="lock-closed-outline"
-                            value={values.password}
-                            onChangeText={(value) => setField("password", value)}
+                            value={values.newPassword}
+                            onChangeText={(value) => setField("newPassword", value)}
                             placeholder={t("profile.form.newPasswordPlaceholder")}
                             secure
-                            error={errors.password}
+                            error={errors.newPassword}
                         />
 
                         <Input
@@ -543,7 +629,9 @@ export default function ProfileScreen() {
                                 }}
                             >
                                 <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
-                                    {isSubmitting ? t("profile.form.saving") : t("profile.form.save")}
+                                    {isSubmitting
+                                        ? t("profile.form.saving")
+                                        : t("profile.form.save")}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>

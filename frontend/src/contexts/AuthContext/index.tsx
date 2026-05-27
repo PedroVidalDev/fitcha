@@ -5,12 +5,11 @@ import {
     ApiUser,
     AuthContextValue,
     AuthResponse,
+    ChangePasswordInput,
     LegacyStoredAuthSession,
-    MockProfile,
     PasswordResetRequestResponse,
     RegisterResponse,
     StoredAuthSession,
-    UpdateProfileInput,
     User,
 } from "../../@types/auth";
 import {
@@ -46,12 +45,6 @@ const TEST_USER: User = {
     verified: true,
 };
 
-const TEST_PROFILE: MockProfile = {
-    name: TEST_USER.name,
-    email: TEST_USER.email,
-    mockPassword: "123456",
-};
-
 const AuthContext = createContext<AuthContextValue>({
     user: null,
     isLoading: true,
@@ -61,7 +54,7 @@ const AuthContext = createContext<AuthContextValue>({
     requestPasswordReset: async () => ({ message: "" }),
     dismissSessionExpiredNotice: () => {},
     logout: async () => {},
-    updateProfile: async () => {},
+    changePassword: async () => {},
     setCredits: async () => {},
 });
 
@@ -90,37 +83,15 @@ function normalizeUser(user: ApiUser): User {
     };
 }
 
-function buildProfile(user: User, profile?: Partial<MockProfile> | null): MockProfile {
-    return {
-        name: typeof profile?.name === "string" && profile.name.trim() ? profile.name : user.name,
-        email:
-            typeof profile?.email === "string" && profile.email.trim() ? profile.email : user.email,
-        mockPassword: typeof profile?.mockPassword === "string" ? profile.mockPassword : "",
-    };
-}
-
-function buildSession(
-    token: string,
-    user: User,
-    profile?: Partial<MockProfile> | null,
-): StoredAuthSession {
+function buildSession(token: string, user: User): StoredAuthSession {
     return {
         token,
         user,
-        profile: buildProfile(user, profile),
     };
 }
 
 function buildTestSession() {
-    return buildSession("test-session-token", TEST_USER, TEST_PROFILE);
-}
-
-function buildViewerUser(session: StoredAuthSession) {
-    return {
-        ...session.user,
-        name: session.profile.name,
-        email: session.profile.email,
-    };
+    return buildSession("test-session-token", TEST_USER);
 }
 
 function parseStoredSession(raw: string): StoredAuthSession | null {
@@ -139,27 +110,32 @@ function parseStoredSession(raw: string): StoredAuthSession | null {
             return null;
         }
 
-        return buildSession(
-            parsed.token,
-            {
-                id: parsed.user.id,
-                createdAt: parsed.user.createdAt,
-                updatedAt: parsed.user.updatedAt,
-                credits:
-                    typeof (parsed.user as User).credits === "number"
-                        ? (parsed.user as User).credits
-                        : 0,
-                verified:
-                    typeof (parsed.user as User).verified === "boolean"
-                        ? (parsed.user as User).verified
-                        : true,
-                name: parsed.user.name,
-                email: parsed.user.email,
-            },
-            parsed.profile,
-        );
+        return buildSession(parsed.token, {
+            id: parsed.user.id,
+            createdAt: parsed.user.createdAt,
+            updatedAt: parsed.user.updatedAt,
+            credits:
+                typeof (parsed.user as User).credits === "number"
+                    ? (parsed.user as User).credits
+                    : 0,
+            verified:
+                typeof (parsed.user as User).verified === "boolean"
+                    ? (parsed.user as User).verified
+                    : true,
+            name: parsed.user.name,
+            email: parsed.user.email,
+        });
     } catch {
         return null;
+    }
+}
+
+function storedSessionNeedsRewrite(raw: string) {
+    try {
+        const parsed = JSON.parse(raw) as { profile?: unknown } | null;
+        return !!parsed && typeof parsed === "object" && "profile" in parsed;
+    } catch {
+        return false;
     }
 }
 
@@ -368,6 +344,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 setAxiosAuthToken(storedSession.token);
+                if (storedSessionNeedsRewrite(raw)) {
+                    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(storedSession));
+                }
                 setSession(storedSession);
             } finally {
                 setIsLoading(false);
@@ -427,34 +406,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const updateProfile = useCallback(
-        async ({ name, email, password }: UpdateProfileInput) => {
-            if (!session) return;
+    const changePassword = useCallback(async (input: ChangePasswordInput) => {
+        try {
+            ensureApiUrlConfigured();
 
-            const nextSession = buildSession(session.token, session.user, {
-                ...session.profile,
-                name: name.trim(),
-                email: email.trim(),
-                mockPassword: password?.trim() ? password : session.profile.mockPassword,
+            await axiosApp.patch("/me/password", {
+                currentPassword: input.currentPassword,
+                newPassword: input.newPassword,
             });
-
-            await persistSession(nextSession);
-        },
-        [persistSession, session],
-    );
+        } catch (error) {
+            throw buildAuthRequestError(error, "Nao foi possivel atualizar a senha");
+        }
+    }, []);
 
     const setCredits = useCallback(
         async (credits: number) => {
             if (!session || session.user.credits === credits) return;
 
-            const nextSession = buildSession(
-                session.token,
-                {
-                    ...session.user,
-                    credits,
-                },
-                session.profile,
-            );
+            const nextSession = buildSession(session.token, {
+                ...session.user,
+                credits,
+            });
 
             await persistSession(nextSession);
         },
@@ -490,7 +462,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return (
         <AuthContext.Provider
             value={{
-                user: session ? buildViewerUser(session) : null,
+                user: session?.user ?? null,
                 isLoading,
                 isSessionExpiredNoticeVisible,
                 login,
@@ -498,7 +470,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 requestPasswordReset,
                 dismissSessionExpiredNotice,
                 logout,
-                updateProfile,
+                changePassword,
                 setCredits,
             }}
         >

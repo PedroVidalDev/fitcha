@@ -18,24 +18,17 @@ export type User = {
     email: string;
 };
 
-export type MockProfile = {
-    name: string;
-    email: string;
-    mockPassword: string;
-};
-
 export type AuthenticatedUser = User;
 
 export type StoredAuthSession = {
     token: string;
     user: User;
-    profile: MockProfile;
 };
 
 export type LegacyStoredAuthSession = {
     token: string;
     user: User;
-    profile?: Partial<MockProfile> | null;
+    profile?: Record<string, unknown> | null;
 };
 
 export type AuthResponse = {
@@ -52,10 +45,9 @@ export type PasswordResetRequestResponse = {
     message: string;
 };
 
-export type UpdateProfileInput = {
-    name: string;
-    email: string;
-    password?: string;
+export type ChangePasswordInput = {
+    currentPassword: string;
+    newPassword: string;
 };
 
 export type AuthContextValue = {
@@ -67,6 +59,6 @@ export type AuthContextValue = {
     requestPasswordReset: (email: string) => Promise<PasswordResetRequestResponse>;
     dismissSessionExpiredNotice: () => void;
     logout: () => Promise<void>;
-    updateProfile: (input: UpdateProfileInput) => Promise<void>;
+    changePassword: (input: ChangePasswordInput) => Promise<void>;
     setCredits: (credits: number) => Promise<void>;
 };
