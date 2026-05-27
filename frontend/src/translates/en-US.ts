@@ -385,6 +385,11 @@ export const enUS: TranslationDictionary = {
     "workout.series.lockedHint": "Confirm the previous set to unlock the next one.",
     "workout.series.weightLabel": "Weight",
     "workout.series.repsLabel": "Reps",
+    "workout.resume.title": "Workout in progress",
+    "workout.resume.message":
+        "We found a workout in progress saved on this device. You can resume where you left off or discard this draft.",
+    "workout.resume.confirm": "Resume workout",
+    "workout.resume.cancel": "Discard",
     "workout.nextMachine": "Next machine",
     "services.aiWorkout.generateError": "Unable to generate the workout automatically",
     "services.days.loadError": "Unable to load the days",

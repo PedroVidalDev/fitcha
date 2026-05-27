@@ -16,23 +16,27 @@ export function createEmptyAppData(): AppData {
     };
 }
 
-async function resolveStorageKey() {
+export async function getScopedStorageKey(baseKey: string) {
     const rawSession = await AsyncStorage.getItem(AUTH_SESSION_KEY);
 
-    if (!rawSession) return STORAGE_KEY;
+    if (!rawSession) return baseKey;
 
     try {
         const session = JSON.parse(rawSession) as { user?: { id?: number | string } } | null;
         const userId = session?.user?.id;
 
         if (typeof userId === "number" || typeof userId === "string") {
-            return `${STORAGE_KEY}:${userId}`;
+            return `${baseKey}:${userId}`;
         }
     } catch {
-        return STORAGE_KEY;
+        return baseKey;
     }
 
-    return STORAGE_KEY;
+    return baseKey;
+}
+
+async function resolveStorageKey() {
+    return getScopedStorageKey(STORAGE_KEY);
 }
 
 async function loadState(): Promise<{ data: AppData; hasPersistedValue: boolean }> {

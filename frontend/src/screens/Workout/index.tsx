@@ -5,6 +5,7 @@ import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/nativ
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
     Image,
     Animated as RNAnimated,
     ScrollView,
@@ -17,6 +18,11 @@ import { CategoryBadge } from "../../components/CategoryBadge";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import {
+    clearActiveWorkoutSession,
+    getActiveWorkoutSession,
+    saveActiveWorkoutSession,
+} from "../../services/activeWorkout";
 import {
     buildWorkoutResults,
     formatTime,
@@ -50,11 +56,12 @@ export default function WorkoutScreen() {
 
     const [currentIdx, setCurrentIdx] = useState(0);
     const [drafts, setDrafts] = useState<WorkoutDraftMap>({});
+    const [startedAt, setStartedAt] = useState(() => Date.now());
     const [elapsed, setElapsed] = useState(0);
     const [restStartedAt, setRestStartedAt] = useState<number | null>(null);
     const [restElapsed, setRestElapsed] = useState(0);
     const [modal, setModal] = useState<WorkoutModalConfig | null>(null);
-    const startTime = useRef(Date.now()).current;
+    const [isSessionReady, setIsSessionReady] = useState(!route.params.resume);
     const machineNavScrollRef = useRef<ScrollView>(null);
 
     const machine = machines[currentIdx];
@@ -82,6 +89,11 @@ export default function WorkoutScreen() {
         closeModal();
         action?.();
     };
+
+    const clearAndExitWorkout = useCallback(async () => {
+        await clearActiveWorkoutSession();
+        navigation.goBack();
+    }, [navigation]);
 
     const isValidWeightValue = (value: string) => {
         const parsed = parseWeight(value);
@@ -205,7 +217,9 @@ export default function WorkoutScreen() {
             confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
-            onConfirm: () => navigation.goBack(),
+            onConfirm: () => {
+                void clearAndExitWorkout();
+            },
         });
     };
 
@@ -228,6 +242,7 @@ export default function WorkoutScreen() {
 
         try {
             await saveWorkout(finalResults);
+            await clearActiveWorkoutSession();
             showSavedWorkoutModal(finalResults);
         } catch {
             showSaveErrorModal();
@@ -243,7 +258,9 @@ export default function WorkoutScreen() {
                 message: translate("workout.incomplete.message"),
                 confirmLabel: translate("workout.incomplete.confirm"),
                 confirmVariant: "danger",
-                onConfirm: () => navigation.goBack(),
+                onConfirm: () => {
+                    void clearAndExitWorkout();
+                },
             });
             return;
         }
@@ -282,13 +299,68 @@ export default function WorkoutScreen() {
             message: translate("workout.quit.message"),
             confirmLabel: translate("workout.quit.confirm"),
             confirmVariant: "danger",
-            onConfirm: () => navigation.goBack(),
+            onConfirm: () => {
+                void clearAndExitWorkout();
+            },
         });
     };
 
     useEffect(() => {
+        let isCancelled = false;
+
+        const hydrateSession = async () => {
+            if (!route.params.resume) {
+                setCurrentIdx(0);
+                setDrafts({});
+                setStartedAt(Date.now());
+                setRestStartedAt(null);
+                setRestElapsed(0);
+                setIsSessionReady(true);
+                return;
+            }
+
+            const session = await getActiveWorkoutSession();
+            if (isCancelled) return;
+
+            if (session && session.dayIndex === day) {
+                setCurrentIdx(session.currentIdx);
+                setDrafts(session.drafts);
+                setStartedAt(session.startedAt);
+                setRestStartedAt(session.restStartedAt);
+                setRestElapsed(0);
+            } else {
+                setCurrentIdx(0);
+                setDrafts({});
+                setStartedAt(Date.now());
+                setRestStartedAt(null);
+                setRestElapsed(0);
+            }
+
+            setIsSessionReady(true);
+        };
+
+        void hydrateSession();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [day, route.params.resume]);
+
+    useEffect(() => {
+        if (!isSessionReady) return;
+
+        void saveActiveWorkoutSession({
+            dayIndex: day,
+            currentIdx,
+            drafts,
+            startedAt,
+            restStartedAt,
+        });
+    }, [currentIdx, day, drafts, isSessionReady, restStartedAt, startedAt]);
+
+    useEffect(() => {
         const syncTimers = () => {
-            setElapsed(Math.floor((Date.now() - startTime) / 1000));
+            setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
 
             if (!restStartedAt) {
                 setRestElapsed(0);
@@ -302,7 +374,7 @@ export default function WorkoutScreen() {
         const interval = setInterval(syncTimers, 1000);
 
         return () => clearInterval(interval);
-    }, [restStartedAt, startTime]);
+    }, [restStartedAt, startedAt]);
 
     const slideAnim = useRef(new RNAnimated.Value(30)).current;
     const fadeAnim = useRef(new RNAnimated.Value(0)).current;
@@ -340,6 +412,21 @@ export default function WorkoutScreen() {
             void refresh();
         }, [refresh]),
     );
+
+    if (!isSessionReady) {
+        return (
+            <View
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: t.bg,
+                }}
+            >
+                <ActivityIndicator size="large" color={t.accent} />
+            </View>
+        );
+    }
 
     if (!machine) return null;
 

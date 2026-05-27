@@ -392,6 +392,11 @@ export const esES: TranslationDictionary = {
     "workout.series.lockedHint": "Confirma la serie anterior para desbloquear la siguiente.",
     "workout.series.weightLabel": "Carga",
     "workout.series.repsLabel": "Repeticiones",
+    "workout.resume.title": "Entrenamiento en curso",
+    "workout.resume.message":
+        "Encontramos un entrenamiento en curso guardado en este dispositivo. Puedes retomarlo desde donde quedaste o descartar este borrador.",
+    "workout.resume.confirm": "Retomar entrenamiento",
+    "workout.resume.cancel": "Descartar",
     "workout.nextMachine": "Siguiente maquina",
     "services.aiWorkout.generateError": "No fue posible generar el entrenamiento automaticamente",
     "services.days.loadError": "No fue posible cargar los dias",

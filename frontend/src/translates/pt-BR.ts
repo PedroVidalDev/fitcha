@@ -388,6 +388,11 @@ export const ptBR = {
     "workout.series.lockedHint": "Confirme a série anterior para liberar a próxima.",
     "workout.series.weightLabel": "Carga",
     "workout.series.repsLabel": "Repetições",
+    "workout.resume.title": "Treino em andamento",
+    "workout.resume.message":
+        "Encontramos um treino em andamento salvo neste dispositivo. Você pode retomar de onde parou ou descartar esse rascunho.",
+    "workout.resume.confirm": "Retomar treino",
+    "workout.resume.cancel": "Descartar",
     "workout.nextMachine": "Próxima máquina",
     "services.aiWorkout.generateError": "Não foi possível gerar o treino automaticamente",
     "services.days.loadError": "Não foi possível carregar os dias",
