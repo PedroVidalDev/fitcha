@@ -226,6 +226,9 @@ CREATE TABLE IF NOT EXISTS tb_user_machines (
     category_key VARCHAR(30)
 );
 
+ALTER TABLE IF EXISTS tb_user_machines
+    ADD COLUMN IF NOT EXISTS machine_id VARCHAR(16);
+
 CREATE INDEX IF NOT EXISTS idx_tb_user_machines_user_id
     ON tb_user_machines (user_id);
 
