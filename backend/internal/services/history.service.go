@@ -12,7 +12,12 @@ import (
 
 type CreateWorkoutResultInput struct {
 	MachineID string
-	Sets      [3]float64
+	Sets      []CreateWorkoutSetInput
+}
+
+type CreateWorkoutSetInput struct {
+	Weight float64
+	Reps   int
 }
 
 type HistoryService struct {
@@ -43,9 +48,29 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 			return []models.HistoryEntry{}, errors.New("maquina nao informada")
 		}
 
+		if len(result.Sets) == 0 {
+			return []models.HistoryEntry{}, errors.New("informe ao menos uma serie por maquina")
+		}
+
+		normalizedSets := make([]CreateWorkoutSetInput, 0, len(result.Sets))
+		for _, set := range result.Sets {
+			if set.Weight <= 0 {
+				return []models.HistoryEntry{}, errors.New("informe um peso valido para todas as series")
+			}
+
+			if set.Reps <= 0 {
+				return []models.HistoryEntry{}, errors.New("informe repeticoes validas para todas as series")
+			}
+
+			normalizedSets = append(normalizedSets, CreateWorkoutSetInput{
+				Weight: set.Weight,
+				Reps:   set.Reps,
+			})
+		}
+
 		normalizedResults = append(normalizedResults, CreateWorkoutResultInput{
 			MachineID: machineID,
-			Sets:      result.Sets,
+			Sets:      normalizedSets,
 		})
 	}
 
@@ -71,13 +96,21 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 				return err
 			}
 
+			sets := make([]models.HistorySet, 0, len(result.Sets))
+			for index, set := range result.Sets {
+				sets = append(sets, models.HistorySet{
+					HistoryEntryID: entryID,
+					Position:       index + 1,
+					Weight:         set.Weight,
+					Reps:           set.Reps,
+				})
+			}
+
 			entries = append(entries, models.HistoryEntry{
 				ID:            entryID,
 				UserMachineID: result.MachineID,
 				PerformedAt:   performedAt,
-				Set1:          result.Sets[0],
-				Set2:          result.Sets[1],
-				Set3:          result.Sets[2],
+				Sets:          sets,
 			})
 		}
 

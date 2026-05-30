@@ -415,10 +415,6 @@ export default function MachineDetailScreen() {
                                 }}
                             >
                                 {formatSetSequence(recordEntry.sets, " / ")}
-                                <Text style={{ color: t.textMuted, fontSize: 13 }}>
-                                    {" "}
-                                    {translate("common.units.kg")}
-                                </Text>
                             </Text>
                             <Text
                                 style={{
@@ -474,23 +470,15 @@ export default function MachineDetailScreen() {
                                     >
                                         {item.label}
                                     </Text>
-                                    <View style={{ flexDirection: "row", gap: 14 }}>
-                                        {item.sets.map((w, i) => (
-                                            <Text
-                                                key={i}
-                                                style={{
-                                                    color: t.accent,
-                                                    fontSize: 14,
-                                                    fontWeight: "700",
-                                                }}
-                                            >
-                                                {w}
-                                                <Text style={{ color: t.textMuted, fontSize: 11 }}>
-                                                    kg
-                                                </Text>
-                                            </Text>
-                                        ))}
-                                    </View>
+                                    <Text
+                                        style={{
+                                            color: t.accent,
+                                            fontSize: 14,
+                                            fontWeight: "700",
+                                        }}
+                                    >
+                                        {formatSetSequence(item.sets, " / ")}
+                                    </Text>
                                 </View>
                             </AnimatedCard>
                         ))}

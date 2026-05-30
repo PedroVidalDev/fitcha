@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { AppModal } from "../../components/AppModal";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { Input } from "../../components/Input";
 import {
@@ -25,13 +26,20 @@ import { getAuthErrorPresentation } from "../../utils/authErrors";
 export default function Login() {
     const { t: theme } = useTheme();
     const { t } = useI18n();
-    const { login } = useAuth();
+    const { login, requestPasswordReset } = useAuth();
     const navigation = useNavigation();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isServiceErrorModalVisible, setIsServiceErrorModalVisible] = useState(false);
+    const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+    const [forgotPasswordError, setForgotPasswordError] = useState<string | undefined>();
+    const [isRequestingPasswordReset, setIsRequestingPasswordReset] = useState(false);
+    const [passwordResetSuccessMessage, setPasswordResetSuccessMessage] = useState<string | null>(
+        null,
+    );
 
     const { errors, setError, clearError, clearAll } = useFormErrors();
 
@@ -114,6 +122,61 @@ export default function Login() {
     }, [formFade, formSlide, logoFade, logoSlide]);
 
     const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false);
+    const closePasswordResetSuccessModal = () => setPasswordResetSuccessMessage(null);
+
+    const openForgotPasswordModal = () => {
+        setForgotPasswordEmail((current) => {
+            const nextEmail = email.trim();
+            return nextEmail || current;
+        });
+        setForgotPasswordError(undefined);
+        setIsForgotPasswordModalVisible(true);
+    };
+
+    const closeForgotPasswordModal = () => {
+        if (isRequestingPasswordReset) return;
+        setForgotPasswordError(undefined);
+        setIsForgotPasswordModalVisible(false);
+    };
+
+    const handleForgotPassword = async () => {
+        const normalizedEmail = forgotPasswordEmail.trim();
+
+        if (!normalizedEmail) {
+            setForgotPasswordError(t("auth.validation.emailRequired"));
+            return;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
+            setForgotPasswordError(t("auth.validation.emailInvalid"));
+            return;
+        }
+
+        if (isRequestingPasswordReset) return;
+
+        setIsRequestingPasswordReset(true);
+
+        try {
+            await requestPasswordReset(normalizedEmail);
+            setIsForgotPasswordModalVisible(false);
+            setForgotPasswordError(undefined);
+            setPasswordResetSuccessMessage(
+                t("auth.resetPassword.successMessage", {
+                    email: normalizedEmail,
+                }),
+            );
+        } catch (error) {
+            if (isServiceUnavailableAuthError(error)) {
+                setIsServiceErrorModalVisible(true);
+                return;
+            }
+
+            const message = error instanceof Error ? error.message : t("auth.resetPassword.error");
+            setForgotPasswordError(message);
+        } finally {
+            setIsRequestingPasswordReset(false);
+        }
+    };
 
     return (
         <LinearGradient
@@ -199,6 +262,22 @@ export default function Login() {
                     />
 
                     <TouchableOpacity
+                        onPress={openForgotPasswordModal}
+                        activeOpacity={0.7}
+                        style={{ alignSelf: "flex-end", marginTop: -4, marginBottom: 8, padding: 6 }}
+                    >
+                        <Text
+                            style={{
+                                color: theme.accent,
+                                fontSize: 13,
+                                fontWeight: "700",
+                            }}
+                        >
+                            {t("auth.login.forgotPasswordCta")}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
                         activeOpacity={0.8}
                         disabled={isSubmitting}
                         onPress={handleLogin}
@@ -260,6 +339,99 @@ export default function Login() {
                 confirmVariant="accent"
                 onClose={closeServiceErrorModal}
                 onConfirm={closeServiceErrorModal}
+            />
+
+            <AppModal visible={isForgotPasswordModalVisible} onClose={closeForgotPasswordModal} compact>
+                <Text
+                    style={{
+                        color: theme.accent,
+                        fontSize: 20,
+                        fontWeight: "800",
+                        marginBottom: 10,
+                    }}
+                >
+                    {t("auth.resetPassword.title")}
+                </Text>
+                <Text
+                    style={{
+                        color: theme.textMuted,
+                        fontSize: 14,
+                        lineHeight: 20,
+                        marginBottom: 18,
+                    }}
+                >
+                    {t("auth.resetPassword.description")}
+                </Text>
+
+                <Input
+                    label={t("auth.login.emailLabel")}
+                    icon="mail-outline"
+                    value={forgotPasswordEmail}
+                    onChangeText={(value) => {
+                        setForgotPasswordEmail(value);
+                        setForgotPasswordError(undefined);
+                    }}
+                    placeholder={t("auth.login.emailPlaceholder")}
+                    keyboardType="email-address"
+                    error={forgotPasswordError}
+                />
+
+                <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
+                    <TouchableOpacity
+                        onPress={closeForgotPasswordModal}
+                        disabled={isRequestingPasswordReset}
+                        style={{ padding: 12, justifyContent: "center", opacity: isRequestingPasswordReset ? 0.7 : 1 }}
+                    >
+                        <Text
+                            style={{
+                                color: theme.textMuted,
+                                fontSize: 15,
+                                fontWeight: "600",
+                            }}
+                        >
+                            {t("common.actions.cancel")}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={handleForgotPassword}
+                        activeOpacity={0.75}
+                        disabled={isRequestingPasswordReset}
+                        style={{ opacity: isRequestingPasswordReset ? 0.8 : 1 }}
+                    >
+                        <LinearGradient
+                            colors={theme.gradientAccent}
+                            style={{
+                                paddingHorizontal: 24,
+                                paddingVertical: 12,
+                                borderRadius: 12,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: btnColor,
+                                    fontSize: 15,
+                                    fontWeight: "800",
+                                }}
+                            >
+                                {isRequestingPasswordReset
+                                    ? t("auth.resetPassword.submitting")
+                                    : t("auth.resetPassword.submit")}
+                            </Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            </AppModal>
+
+            <ConfirmModal
+                visible={!!passwordResetSuccessMessage}
+                title={t("auth.resetPassword.successTitle")}
+                message={passwordResetSuccessMessage ?? ""}
+                confirmLabel={t("common.actions.understand")}
+                hideCancel
+                confirmVariant="accent"
+                onClose={closePasswordResetSuccessModal}
+                onConfirm={closePasswordResetSuccessModal}
             />
         </LinearGradient>
     );

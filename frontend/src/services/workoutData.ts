@@ -1,6 +1,6 @@
 import { getCategoryByKey } from "../constants/categories";
 import { AppData } from "../dtos/AppData";
-import { HistoryEntry } from "../dtos/HistoryEntry";
+import { HistoryEntry, HistorySet } from "../dtos/HistoryEntry";
 import { Machine } from "../dtos/Machine";
 import { translateRuntime } from "../translates/runtime";
 import {
@@ -59,10 +59,140 @@ function buildAppData(
 function toHistoryEntry(entry: HistoryApiEntry): HistoryEntry {
     return {
         id: entry.id,
-        sets: entry.sets,
+        sets: entry.sets.map((set) => ({
+            weight: set.weight,
+            reps: set.reps,
+        })),
         date: entry.date,
         label: "",
     };
+}
+
+function normalizeHistorySet(value: unknown): HistorySet | null {
+    if (typeof value === "number") {
+        if (!Number.isFinite(value) || value <= 0) return null;
+
+        return {
+            weight: value,
+            reps: 0,
+        };
+    }
+
+    if (!value || typeof value !== "object") {
+        return null;
+    }
+
+    const rawWeight = "weight" in value ? (value as { weight?: unknown }).weight : undefined;
+    const rawReps = "reps" in value ? (value as { reps?: unknown }).reps : undefined;
+    const weight =
+        typeof rawWeight === "number"
+            ? rawWeight
+            : typeof rawWeight === "string"
+              ? Number(rawWeight)
+              : Number.NaN;
+    const reps =
+        typeof rawReps === "number" ? rawReps : typeof rawReps === "string" ? Number(rawReps) : 0;
+
+    if (!Number.isFinite(weight) || weight <= 0) {
+        return null;
+    }
+
+    return {
+        weight,
+        reps: Number.isFinite(reps) && reps > 0 ? Math.trunc(reps) : 0,
+    };
+}
+
+function normalizeHistoryEntry(entry: unknown): { entry: HistoryEntry | null; changed: boolean } {
+    if (!entry || typeof entry !== "object") {
+        return { entry: null, changed: false };
+    }
+
+    const candidate = entry as Partial<HistoryEntry> & {
+        sets?: unknown;
+        label?: unknown;
+    };
+
+    if (typeof candidate.id !== "string" || typeof candidate.date !== "string") {
+        return { entry: null, changed: false };
+    }
+
+    const rawSets = Array.isArray(candidate.sets) ? candidate.sets : [];
+    const sets = rawSets.map(normalizeHistorySet).filter((set): set is HistorySet => set !== null);
+    const normalizedEntry: HistoryEntry = {
+        id: candidate.id,
+        sets,
+        date: candidate.date,
+        label: typeof candidate.label === "string" ? candidate.label : "",
+    };
+
+    const changed =
+        !Array.isArray(candidate.sets) ||
+        rawSets.length !== sets.length ||
+        rawSets.some((set, index) => {
+            if (typeof set === "number") {
+                return true;
+            }
+
+            if (!set || typeof set !== "object") {
+                return true;
+            }
+
+            const current = sets[index];
+            if (!current) {
+                return true;
+            }
+
+            return (
+                (set as { weight?: unknown }).weight !== current.weight ||
+                (set as { reps?: unknown }).reps !== current.reps
+            );
+        }) ||
+        typeof candidate.label !== "string";
+
+    return { entry: normalizedEntry, changed };
+}
+
+function normalizeAppData(data: AppData): { data: AppData; changed: boolean } {
+    let changed = false;
+    const nextData: AppData = {
+        machines: data.machines,
+        days: data.days,
+        history: {},
+    };
+
+    Object.entries(data.history).forEach(([machineId, entries]) => {
+        const normalizedEntries: HistoryEntry[] = [];
+
+        entries.forEach((entry) => {
+            const normalized = normalizeHistoryEntry(entry);
+            if (!normalized.entry) {
+                changed = true;
+                return;
+            }
+
+            if (normalized.changed) {
+                changed = true;
+            }
+
+            normalizedEntries.push(normalized.entry);
+        });
+
+        nextData.history[machineId] = normalizedEntries;
+    });
+
+    return { data: nextData, changed };
+}
+
+async function getNormalizedData() {
+    const data = await getData();
+    const normalized = normalizeAppData(data);
+
+    if (normalized.changed) {
+        await saveData(normalized.data);
+    }
+
+    return normalized.data;
 }
 
 async function syncDayNotifications(data: AppData) {
@@ -82,7 +212,9 @@ async function syncDayNotifications(data: AppData) {
             .filter((machine): machine is Machine => Boolean(machine));
     }
 
-    await syncNotifications(daysMachines, (key) => translateRuntime(getCategoryByKey(key).labelKey));
+    await syncNotifications(daysMachines, (key) =>
+        translateRuntime(getCategoryByKey(key).labelKey),
+    );
 }
 
 async function markSynced() {
@@ -90,11 +222,11 @@ async function markSynced() {
 }
 
 export async function getCachedWorkoutData() {
-    return getData();
+    return getNormalizedData();
 }
 
 export async function loadWorkoutData(options?: { forceSync?: boolean }) {
-    const cachedData = await getData();
+    const cachedData = await getNormalizedData();
     const currentCacheKey = await getDataCacheKey();
     const shouldSync = options?.forceSync || lastSyncedCacheKey !== currentCacheKey;
 
@@ -137,7 +269,7 @@ export async function syncWorkoutData() {
 
 export async function addMachineToDay(dayIndex: number, input: DayMachineInput) {
     const response = await addMachineToDayRequest(dayIndex, input);
-    const data = await getData();
+    const data = await getNormalizedData();
 
     data.machines[response.machine.id] = response.machine;
     data.days[response.day.dayIndex] = [...response.day.machineIds];
@@ -152,7 +284,7 @@ export async function addMachineToDay(dayIndex: number, input: DayMachineInput) 
 
 export async function removeMachineFromDay(dayIndex: number, machineId: string) {
     const response = await removeMachineFromDayRequest(dayIndex, machineId);
-    const data = await getData();
+    const data = await getNormalizedData();
 
     data.days[response.day.dayIndex] = [...response.day.machineIds];
 
@@ -192,7 +324,7 @@ export async function replaceWeekWithMachines(days: Record<number, DayMachineInp
 
 export async function saveWorkoutResults(results: WorkoutHistoryInput[]) {
     const createdEntries = await createWorkoutHistory(results);
-    const data = await getData();
+    const data = await getNormalizedData();
 
     createdEntries.forEach((entry) => {
         if (!data.history[entry.machineId]) {
@@ -212,7 +344,7 @@ export async function updateMachinePhoto(machineId: string, photo?: string) {
     const machine = await updateMachine(machineId, {
         photo: photo ?? "",
     });
-    const data = await getData();
+    const data = await getNormalizedData();
 
     data.machines[machine.id] = {
         ...(data.machines[machine.id] ?? machine),

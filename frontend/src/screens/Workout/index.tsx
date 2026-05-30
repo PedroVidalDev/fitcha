@@ -5,6 +5,7 @@ import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/nativ
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
     Image,
     Animated as RNAnimated,
     ScrollView,
@@ -18,16 +19,23 @@ import { ConfirmModal } from "../../components/ConfirmModal";
 import { useI18n } from "../../contexts/I18nContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import {
+    clearActiveWorkoutSession,
+    getActiveWorkoutSession,
+    saveActiveWorkoutSession,
+} from "../../services/activeWorkout";
+import {
     buildWorkoutResults,
     formatTime,
     getWorkoutDraft,
     hasDraftValue,
     isDraftComplete,
+    parseReps,
     parseWeight,
 } from "./helpers";
 import {
     Route,
     WorkoutDraft,
+    WorkoutDraftFieldKey,
     WorkoutDraftMap,
     WorkoutModalConfig,
     WorkoutResult,
@@ -48,11 +56,12 @@ export default function WorkoutScreen() {
 
     const [currentIdx, setCurrentIdx] = useState(0);
     const [drafts, setDrafts] = useState<WorkoutDraftMap>({});
+    const [startedAt, setStartedAt] = useState(() => Date.now());
     const [elapsed, setElapsed] = useState(0);
     const [restStartedAt, setRestStartedAt] = useState<number | null>(null);
     const [restElapsed, setRestElapsed] = useState(0);
     const [modal, setModal] = useState<WorkoutModalConfig | null>(null);
-    const startTime = useRef(Date.now()).current;
+    const [isSessionReady, setIsSessionReady] = useState(!route.params.resume);
     const machineNavScrollRef = useRef<ScrollView>(null);
 
     const machine = machines[currentIdx];
@@ -81,19 +90,39 @@ export default function WorkoutScreen() {
         action?.();
     };
 
-    const isValidSetValue = (value: string) => {
+    const clearAndExitWorkout = useCallback(async () => {
+        await clearActiveWorkoutSession();
+        navigation.goBack();
+    }, [navigation]);
+
+    const isValidWeightValue = (value: string) => {
         const parsed = parseWeight(value);
         return !Number.isNaN(parsed) && parsed > 0;
     };
 
-    const updateDraftField = (field: WorkoutSetKey, value: string) => {
+    const isValidRepsValue = (value: string) => {
+        const parsed = parseReps(value);
+        return !Number.isNaN(parsed) && parsed > 0;
+    };
+
+    const updateDraftField = (
+        field: WorkoutSetKey,
+        draftField: WorkoutDraftFieldKey,
+        value: string,
+    ) => {
         if (!machine) return;
 
         setDrafts((prev) => ({
             ...prev,
             [machine.id]: {
                 ...getWorkoutDraft(prev[machine.id]),
-                [field]: value,
+                sets: {
+                    ...getWorkoutDraft(prev[machine.id]).sets,
+                    [field]: {
+                        ...getWorkoutDraft(prev[machine.id]).sets[field],
+                        [draftField]: value,
+                    },
+                },
                 confirmed: {
                     ...getWorkoutDraft(prev[machine.id]).confirmed,
                     ...Object.fromEntries(
@@ -108,7 +137,11 @@ export default function WorkoutScreen() {
     };
 
     const confirmDraftField = (field: WorkoutSetKey) => {
-        if (!machine || !isValidSetValue(currentDraft[field])) return;
+        if (!machine) return;
+
+        const currentSet = currentDraft.sets[field];
+
+        if (!isValidWeightValue(currentSet.weight) || !isValidRepsValue(currentSet.reps)) return;
 
         const fieldIndex = WORKOUT_SET_KEYS.indexOf(field);
         const previousFields = WORKOUT_SET_KEYS.slice(0, fieldIndex);
@@ -116,13 +149,19 @@ export default function WorkoutScreen() {
 
         if (!canConfirm) return;
 
-        const normalizedValue = currentDraft[field].trim();
+        const normalizedSet = {
+            weight: currentSet.weight.trim(),
+            reps: currentSet.reps.trim(),
+        };
 
         setDrafts((prev) => ({
             ...prev,
             [machine.id]: {
                 ...getWorkoutDraft(prev[machine.id]),
-                [field]: normalizedValue,
+                sets: {
+                    ...getWorkoutDraft(prev[machine.id]).sets,
+                    [field]: normalizedSet,
+                },
                 confirmed: {
                     ...getWorkoutDraft(prev[machine.id]).confirmed,
                     [field]: true,
@@ -178,7 +217,9 @@ export default function WorkoutScreen() {
             confirmLabel: translate("common.actions.close"),
             hideCancel: true,
             confirmVariant: "accent",
-            onConfirm: () => navigation.goBack(),
+            onConfirm: () => {
+                void clearAndExitWorkout();
+            },
         });
     };
 
@@ -201,6 +242,7 @@ export default function WorkoutScreen() {
 
         try {
             await saveWorkout(finalResults);
+            await clearActiveWorkoutSession();
             showSavedWorkoutModal(finalResults);
         } catch {
             showSaveErrorModal();
@@ -216,7 +258,9 @@ export default function WorkoutScreen() {
                 message: translate("workout.incomplete.message"),
                 confirmLabel: translate("workout.incomplete.confirm"),
                 confirmVariant: "danger",
-                onConfirm: () => navigation.goBack(),
+                onConfirm: () => {
+                    void clearAndExitWorkout();
+                },
             });
             return;
         }
@@ -255,13 +299,68 @@ export default function WorkoutScreen() {
             message: translate("workout.quit.message"),
             confirmLabel: translate("workout.quit.confirm"),
             confirmVariant: "danger",
-            onConfirm: () => navigation.goBack(),
+            onConfirm: () => {
+                void clearAndExitWorkout();
+            },
         });
     };
 
     useEffect(() => {
+        let isCancelled = false;
+
+        const hydrateSession = async () => {
+            if (!route.params.resume) {
+                setCurrentIdx(0);
+                setDrafts({});
+                setStartedAt(Date.now());
+                setRestStartedAt(null);
+                setRestElapsed(0);
+                setIsSessionReady(true);
+                return;
+            }
+
+            const session = await getActiveWorkoutSession();
+            if (isCancelled) return;
+
+            if (session && session.dayIndex === day) {
+                setCurrentIdx(session.currentIdx);
+                setDrafts(session.drafts);
+                setStartedAt(session.startedAt);
+                setRestStartedAt(session.restStartedAt);
+                setRestElapsed(0);
+            } else {
+                setCurrentIdx(0);
+                setDrafts({});
+                setStartedAt(Date.now());
+                setRestStartedAt(null);
+                setRestElapsed(0);
+            }
+
+            setIsSessionReady(true);
+        };
+
+        void hydrateSession();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [day, route.params.resume]);
+
+    useEffect(() => {
+        if (!isSessionReady) return;
+
+        void saveActiveWorkoutSession({
+            dayIndex: day,
+            currentIdx,
+            drafts,
+            startedAt,
+            restStartedAt,
+        });
+    }, [currentIdx, day, drafts, isSessionReady, restStartedAt, startedAt]);
+
+    useEffect(() => {
         const syncTimers = () => {
-            setElapsed(Math.floor((Date.now() - startTime) / 1000));
+            setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
 
             if (!restStartedAt) {
                 setRestElapsed(0);
@@ -275,7 +374,7 @@ export default function WorkoutScreen() {
         const interval = setInterval(syncTimers, 1000);
 
         return () => clearInterval(interval);
-    }, [restStartedAt, startTime]);
+    }, [restStartedAt, startedAt]);
 
     const slideAnim = useRef(new RNAnimated.Value(30)).current;
     const fadeAnim = useRef(new RNAnimated.Value(0)).current;
@@ -314,40 +413,72 @@ export default function WorkoutScreen() {
         }, [refresh]),
     );
 
+    if (!isSessionReady) {
+        return (
+            <View
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: t.bg,
+                }}
+            >
+                <ActivityIndicator size="large" color={t.accent} />
+            </View>
+        );
+    }
+
     if (!machine) return null;
 
     const seriesFields = [
         {
             key: "set1" as const,
             label: translate("workout.series.one"),
-            value: currentDraft.set1,
-            placeholder: machine.recordSets?.[0]?.toString() ?? "",
+            weightValue: currentDraft.sets.set1.weight,
+            repsValue: currentDraft.sets.set1.reps,
+            weightPlaceholder: machine.recordSets?.[0]?.weight?.toString() ?? "",
+            repsPlaceholder:
+                machine.recordSets?.[0]?.reps && machine.recordSets[0].reps > 0
+                    ? machine.recordSets[0].reps.toString()
+                    : "",
         },
         {
             key: "set2" as const,
             label: translate("workout.series.two"),
-            value: currentDraft.set2,
-            placeholder: machine.recordSets?.[1]?.toString() ?? "",
+            weightValue: currentDraft.sets.set2.weight,
+            repsValue: currentDraft.sets.set2.reps,
+            weightPlaceholder: machine.recordSets?.[1]?.weight?.toString() ?? "",
+            repsPlaceholder:
+                machine.recordSets?.[1]?.reps && machine.recordSets[1].reps > 0
+                    ? machine.recordSets[1].reps.toString()
+                    : "",
         },
         {
             key: "set3" as const,
             label: translate("workout.series.three"),
-            value: currentDraft.set3,
-            placeholder: machine.recordSets?.[2]?.toString() ?? "",
+            weightValue: currentDraft.sets.set3.weight,
+            repsValue: currentDraft.sets.set3.reps,
+            weightPlaceholder: machine.recordSets?.[2]?.weight?.toString() ?? "",
+            repsPlaceholder:
+                machine.recordSets?.[2]?.reps && machine.recordSets[2].reps > 0
+                    ? machine.recordSets[2].reps.toString()
+                    : "",
         },
     ].map((item, idx, allFields) => {
         const previousSetsComplete =
             idx === 0 ||
             allFields.slice(0, idx).every((field) => currentDraft.confirmed[field.key]);
         const isConfirmed = currentDraft.confirmed[item.key];
-        const isValid = isValidSetValue(item.value);
+        const isWeightValid = isValidWeightValue(item.weightValue);
+        const isRepsValid = isValidRepsValue(item.repsValue);
 
         return {
             ...item,
             isConfirmed,
-            isValid,
+            isWeightValid,
+            isRepsValid,
             isLocked: !previousSetsComplete,
-            canConfirm: previousSetsComplete && isValid && !isConfirmed,
+            canConfirm: previousSetsComplete && isWeightValid && isRepsValid && !isConfirmed,
         };
     });
 
@@ -781,42 +912,105 @@ export default function WorkoutScreen() {
                                 <View
                                     style={{
                                         flexDirection: "row",
-                                        alignItems: "center",
                                         gap: 10,
                                     }}
                                 >
-                                    <TextInput
-                                        style={{
-                                            flex: 1,
-                                            paddingHorizontal: 14,
-                                            paddingVertical: 14,
-                                            borderRadius: 12,
-                                            backgroundColor: t.bg,
-                                            color: t.textPrimary,
-                                            fontSize: 20,
-                                            fontWeight: "800",
-                                            textAlign: "center",
-                                            borderWidth: 0.5,
-                                            borderColor: item.isConfirmed
-                                                ? t.accent + "55"
-                                                : t.border,
-                                        }}
-                                        placeholder={item.placeholder}
-                                        placeholderTextColor={t.textDim}
-                                        keyboardType="numeric"
-                                        value={item.value}
-                                        editable={!item.isLocked}
-                                        onChangeText={(value) => updateDraftField(item.key, value)}
-                                    />
-                                    <Text
-                                        style={{
-                                            color: t.textMuted,
-                                            fontSize: 14,
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        {translate("common.units.kg")}
-                                    </Text>
+                                    <View style={{ flex: 1, gap: 8 }}>
+                                        <Text
+                                            style={{
+                                                color: t.textDim,
+                                                fontSize: 11,
+                                                fontWeight: "700",
+                                                textTransform: "uppercase",
+                                                letterSpacing: 1,
+                                            }}
+                                        >
+                                            {translate("workout.series.weightLabel")}
+                                        </Text>
+                                        <View
+                                            style={{
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                gap: 8,
+                                            }}
+                                        >
+                                            <TextInput
+                                                style={{
+                                                    flex: 1,
+                                                    paddingHorizontal: 14,
+                                                    paddingVertical: 14,
+                                                    borderRadius: 12,
+                                                    backgroundColor: t.bg,
+                                                    color: t.textPrimary,
+                                                    fontSize: 20,
+                                                    fontWeight: "800",
+                                                    textAlign: "center",
+                                                    borderWidth: 0.5,
+                                                    borderColor: item.isConfirmed
+                                                        ? t.accent + "55"
+                                                        : t.border,
+                                                }}
+                                                placeholder={item.weightPlaceholder}
+                                                placeholderTextColor={t.textDim}
+                                                keyboardType="numeric"
+                                                value={item.weightValue}
+                                                editable={!item.isLocked}
+                                                onChangeText={(value) =>
+                                                    updateDraftField(item.key, "weight", value)
+                                                }
+                                            />
+                                            <Text
+                                                style={{
+                                                    color: t.textMuted,
+                                                    fontSize: 14,
+                                                    fontWeight: "600",
+                                                }}
+                                            >
+                                                {translate("common.units.kg")}
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={{ width: 116, gap: 8 }}>
+                                        <Text
+                                            style={{
+                                                color: t.textDim,
+                                                fontSize: 11,
+                                                fontWeight: "700",
+                                                textTransform: "uppercase",
+                                                letterSpacing: 1,
+                                            }}
+                                        >
+                                            {translate("workout.series.repsLabel")}
+                                        </Text>
+                                        <TextInput
+                                            style={{
+                                                paddingHorizontal: 14,
+                                                paddingVertical: 14,
+                                                borderRadius: 12,
+                                                backgroundColor: t.bg,
+                                                color: t.textPrimary,
+                                                fontSize: 20,
+                                                fontWeight: "800",
+                                                textAlign: "center",
+                                                borderWidth: 0.5,
+                                                borderColor: item.isConfirmed
+                                                    ? t.accent + "55"
+                                                    : t.border,
+                                            }}
+                                            placeholder={item.repsPlaceholder}
+                                            placeholderTextColor={t.textDim}
+                                            keyboardType="numeric"
+                                            value={item.repsValue}
+                                            editable={!item.isLocked}
+                                            onChangeText={(value) =>
+                                                updateDraftField(item.key, "reps", value)
+                                            }
+                                        />
+                                    </View>
+                                </View>
+
+                                <View>
                                     <TouchableOpacity
                                         activeOpacity={0.8}
                                         disabled={!item.canConfirm}
@@ -835,7 +1029,7 @@ export default function WorkoutScreen() {
                                                       : [t.card, t.card]
                                             }
                                             style={{
-                                                minWidth: 106,
+                                                width: "100%",
                                                 paddingHorizontal: 14,
                                                 paddingVertical: 12,
                                                 borderRadius: 12,
