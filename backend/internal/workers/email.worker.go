@@ -13,6 +13,7 @@ import (
 func NewEmailServeMux(mailer email.Mailer) *asynq.ServeMux {
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(jobs.TaskSendWelcomeEmail, handleWelcomeEmail(mailer))
+	mux.HandleFunc(jobs.TaskSendPasswordResetEmail, handlePasswordResetEmail(mailer))
 	mux.HandleFunc(jobs.TaskSendCreditsPurchasedEmail, handleCreditsPurchasedEmail(mailer))
 	return mux
 }
@@ -29,6 +30,24 @@ func handleWelcomeEmail(mailer email.Mailer) func(context.Context, *asynq.Task) 
 			"Oi, %s!\n\nSua conta no Fitcha foi criada com sucesso.\n\nAntes de entrar, confirme seu e-mail clicando neste link:\n%s\n\nDepois disso, voce ja podera fazer login no app.\n\nBom treino!\nEquipe Fitcha",
 			payload.Name,
 			payload.VerificationURL,
+		)
+
+		return mailer.Send(payload.Email, subject, body)
+	}
+}
+
+func handlePasswordResetEmail(mailer email.Mailer) func(context.Context, *asynq.Task) error {
+	return func(_ context.Context, task *asynq.Task) error {
+		var payload jobs.PasswordResetEmailPayload
+		if err := json.Unmarshal(task.Payload(), &payload); err != nil {
+			return err
+		}
+
+		subject := "Redefina sua senha no Fitcha"
+		body := fmt.Sprintf(
+			"Oi, %s!\n\nRecebemos um pedido para redefinir a sua senha no Fitcha.\n\nUse este link para escolher uma nova senha:\n%s\n\nSe voce nao fez esse pedido, pode ignorar este e-mail.\n\nEquipe Fitcha",
+			payload.Name,
+			payload.ResetURL,
 		)
 
 		return mailer.Send(payload.Email, subject, body)

@@ -1,12 +1,16 @@
 import { RootStackParamList } from "@/src/router/types";
 import { RouteProp } from "@react-navigation/native";
+import { HistorySet } from "../../dtos/HistoryEntry";
 
-export type WorkoutResult = { machineId: string; sets: [number, number, number] };
+export type WorkoutResult = { machineId: string; sets: HistorySet[] };
 export type WorkoutSetKey = "set1" | "set2" | "set3";
+export type WorkoutDraftFieldKey = "weight" | "reps";
+export type WorkoutSetDraft = {
+    weight: string;
+    reps: string;
+};
 export type WorkoutDraft = {
-    set1: string;
-    set2: string;
-    set3: string;
+    sets: Record<WorkoutSetKey, WorkoutSetDraft>;
     confirmed: Record<WorkoutSetKey, boolean>;
 };
 export type WorkoutDraftMap = Record<string, WorkoutDraft>;

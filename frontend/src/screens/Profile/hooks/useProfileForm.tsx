@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
+import { getAuthRequestErrorCode } from "../../../contexts/AuthContext";
 import { useI18n } from "../../../contexts/I18nContext";
 import { useFormErrors } from "../../../hooks/useFormValidations";
+import { getChangePasswordErrorPresentation } from "../../../utils/authErrors";
 import { ProfileFormValues, UseProfileFormParams, UseProfileFormResult } from "../types";
 
 const EMPTY_VALUES: ProfileFormValues = {
-    name: "",
-    email: "",
-    password: "",
+    currentPassword: "",
+    newPassword: "",
     confirmPassword: "",
 };
 
 export function useProfileForm(props: UseProfileFormParams): UseProfileFormResult {
-    const { user, onSubmitProfile } = props;
+    const { user, onSubmitPasswordChange } = props;
     const { t } = useI18n();
 
     const [values, setValues] = useState<ProfileFormValues>(EMPTY_VALUES);
@@ -25,20 +26,16 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
             return;
         }
 
-        setValues({
-            name: user.name,
-            email: user.email,
-            password: "",
-            confirmPassword: "",
-        });
-    }, [user?.email, user?.name]);
+        setValues(EMPTY_VALUES);
+    }, [user]);
 
     const setField = (field: keyof ProfileFormValues, value: string) => {
         setValues((prev) => ({ ...prev, [field]: value }));
         clearError(field);
 
-        if (field === "password" || field === "confirmPassword") {
-            clearError("password");
+        if (field === "currentPassword" || field === "newPassword" || field === "confirmPassword") {
+            clearError("currentPassword");
+            clearError("newPassword");
             clearError("confirmPassword");
         }
     };
@@ -47,30 +44,25 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
         clearAll();
         let valid = true;
 
-        if (!values.name.trim()) {
-            setError("name", t("auth.validation.nameRequired"));
+        if (!values.currentPassword.trim()) {
+            setError("currentPassword", t("profile.form.currentPasswordRequired"));
             valid = false;
         }
 
-        if (!values.email.trim()) {
-            setError("email", t("auth.validation.emailRequired"));
+        if (!values.newPassword.trim()) {
+            setError("newPassword", t("profile.form.newPasswordRequired"));
             valid = false;
-        } else if (!/\S+@\S+\.\S+/.test(values.email.trim())) {
-            setError("email", t("auth.validation.emailInvalid"));
-            valid = false;
-        }
-
-        if (values.password.trim() && values.password.trim().length < 6) {
-            setError("password", t("auth.validation.passwordMin"));
+        } else if (values.newPassword.trim().length < 6) {
+            setError("newPassword", t("auth.validation.passwordMin"));
             valid = false;
         }
 
-        if (values.password.trim() && !values.confirmPassword.trim()) {
+        if (!values.confirmPassword.trim()) {
             setError("confirmPassword", t("auth.validation.confirmPasswordRequired"));
             valid = false;
         } else if (
-            values.password.trim() &&
-            values.password.trim() !== values.confirmPassword.trim()
+            values.newPassword.trim() &&
+            values.newPassword.trim() !== values.confirmPassword.trim()
         ) {
             setError("confirmPassword", t("auth.validation.passwordMismatch"));
             valid = false;
@@ -85,24 +77,24 @@ export function useProfileForm(props: UseProfileFormParams): UseProfileFormResul
         setIsSubmitting(true);
 
         try {
-            await onSubmitProfile({
-                name: values.name.trim(),
-                email: values.email.trim(),
-                password: values.password.trim() || undefined,
+            await onSubmitPasswordChange({
+                currentPassword: values.currentPassword.trim(),
+                newPassword: values.newPassword.trim(),
             });
 
-            setValues((prev) => ({
-                ...prev,
-                password: "",
-                confirmPassword: "",
-            }));
+            setValues(EMPTY_VALUES);
 
             return true;
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : t("profile.form.saveError");
+            const presentation = getChangePasswordErrorPresentation(getAuthRequestErrorCode(error));
+            if (presentation) {
+                setError(presentation.field, t(presentation.translationKey));
+                return false;
+            }
 
-            setError("email", message);
+            const message = error instanceof Error ? error.message : t("profile.form.saveError");
+
+            setError("currentPassword", message);
             return false;
         } finally {
             setIsSubmitting(false);

@@ -5,14 +5,19 @@ import {
     ApiUser,
     AuthContextValue,
     AuthResponse,
+    ChangePasswordInput,
     LegacyStoredAuthSession,
-    MockProfile,
+    PasswordResetRequestResponse,
     RegisterResponse,
     StoredAuthSession,
-    UpdateProfileInput,
     User,
 } from "../../@types/auth";
-import { axiosApp, ensureApiUrlConfigured, setAxiosAuthToken } from "../../services/axios";
+import {
+    axiosApp,
+    ensureApiUrlConfigured,
+    setAxiosAuthSessionExpiredHandler,
+    setAxiosAuthToken,
+} from "../../services/axios";
 import { clearScheduledNotifications } from "../../services/notifications";
 import { clearData } from "../../services/storage";
 import { resetWorkoutSyncState } from "../../services/workoutData";
@@ -23,12 +28,14 @@ const ALWAYS_LOGGED_IN_FOR_TESTS = false;
 const SERVICE_UNAVAILABLE_MESSAGE =
     "O servico pode estar indisponivel no momento. Tente novamente em instantes.";
 const SERVICE_UNAVAILABLE_CODE = "AUTH_SERVICE_UNAVAILABLE";
+const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 type AuthErrorKind = "service_unavailable" | "validation";
 type ApiErrorResponse = {
     error?: string;
     code?: string;
 };
+type SessionTokenStatus = "valid" | "expired" | "invalid";
 
 const TEST_USER: User = {
     id: 0,
@@ -38,19 +45,16 @@ const TEST_USER: User = {
     verified: true,
 };
 
-const TEST_PROFILE: MockProfile = {
-    name: TEST_USER.name,
-    email: TEST_USER.email,
-    mockPassword: "123456",
-};
-
 const AuthContext = createContext<AuthContextValue>({
     user: null,
     isLoading: true,
+    isSessionExpiredNoticeVisible: false,
     login: async () => {},
     register: async () => ({ message: "", email: "" }),
+    requestPasswordReset: async () => ({ message: "" }),
+    dismissSessionExpiredNotice: () => {},
     logout: async () => {},
-    updateProfile: async () => {},
+    changePassword: async () => {},
     setCredits: async () => {},
 });
 
@@ -79,37 +83,15 @@ function normalizeUser(user: ApiUser): User {
     };
 }
 
-function buildProfile(user: User, profile?: Partial<MockProfile> | null): MockProfile {
-    return {
-        name: typeof profile?.name === "string" && profile.name.trim() ? profile.name : user.name,
-        email:
-            typeof profile?.email === "string" && profile.email.trim() ? profile.email : user.email,
-        mockPassword: typeof profile?.mockPassword === "string" ? profile.mockPassword : "",
-    };
-}
-
-function buildSession(
-    token: string,
-    user: User,
-    profile?: Partial<MockProfile> | null,
-): StoredAuthSession {
+function buildSession(token: string, user: User): StoredAuthSession {
     return {
         token,
         user,
-        profile: buildProfile(user, profile),
     };
 }
 
 function buildTestSession() {
-    return buildSession("test-session-token", TEST_USER, TEST_PROFILE);
-}
-
-function buildViewerUser(session: StoredAuthSession) {
-    return {
-        ...session.user,
-        name: session.profile.name,
-        email: session.profile.email,
-    };
+    return buildSession("test-session-token", TEST_USER);
 }
 
 function parseStoredSession(raw: string): StoredAuthSession | null {
@@ -128,27 +110,93 @@ function parseStoredSession(raw: string): StoredAuthSession | null {
             return null;
         }
 
-        return buildSession(
-            parsed.token,
-            {
-                id: parsed.user.id,
-                createdAt: parsed.user.createdAt,
-                updatedAt: parsed.user.updatedAt,
-                credits:
-                    typeof (parsed.user as User).credits === "number"
-                        ? (parsed.user as User).credits
-                        : 0,
-                verified:
-                    typeof (parsed.user as User).verified === "boolean"
-                        ? (parsed.user as User).verified
-                        : true,
-                name: parsed.user.name,
-                email: parsed.user.email,
-            },
-            parsed.profile,
-        );
+        return buildSession(parsed.token, {
+            id: parsed.user.id,
+            createdAt: parsed.user.createdAt,
+            updatedAt: parsed.user.updatedAt,
+            credits:
+                typeof (parsed.user as User).credits === "number"
+                    ? (parsed.user as User).credits
+                    : 0,
+            verified:
+                typeof (parsed.user as User).verified === "boolean"
+                    ? (parsed.user as User).verified
+                    : true,
+            name: parsed.user.name,
+            email: parsed.user.email,
+        });
     } catch {
         return null;
+    }
+}
+
+function storedSessionNeedsRewrite(raw: string) {
+    try {
+        const parsed = JSON.parse(raw) as { profile?: unknown } | null;
+        return !!parsed && typeof parsed === "object" && "profile" in parsed;
+    } catch {
+        return false;
+    }
+}
+
+function decodeBase64Latin1(value: string) {
+    let buffer = 0;
+    let bits = 0;
+    let decoded = "";
+
+    for (const char of value.replace(/=+$/g, "")) {
+        const index = BASE64_ALPHABET.indexOf(char);
+        if (index < 0) {
+            return null;
+        }
+
+        buffer = (buffer << 6) | index;
+        bits += 6;
+
+        if (bits >= 8) {
+            bits -= 8;
+            decoded += String.fromCharCode((buffer >> bits) & 0xff);
+        }
+    }
+
+    return decoded;
+}
+
+function getSessionTokenStatus(token: string): SessionTokenStatus {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+        return "invalid";
+    }
+
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const remainder = payload.length % 4;
+    const paddedPayload = payload + (remainder === 0 ? "" : "=".repeat(4 - remainder));
+    const decodedPayload = decodeBase64Latin1(paddedPayload);
+
+    if (!decodedPayload) {
+        return "invalid";
+    }
+
+    try {
+        const parsed = JSON.parse(decodedPayload) as { exp?: number | string } | null;
+        if (!parsed || typeof parsed !== "object") {
+            return "invalid";
+        }
+
+        const expSeconds =
+            typeof parsed.exp === "number"
+                ? parsed.exp
+                : typeof parsed.exp === "string"
+                  ? Number(parsed.exp)
+                  : Number.NaN;
+
+        if (!Number.isFinite(expSeconds)) {
+            return "invalid";
+        }
+
+        return expSeconds * 1000 <= Date.now() ? "expired" : "valid";
+    } catch {
+        return "invalid";
     }
 }
 
@@ -243,12 +291,14 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [session, setSession] = useState<StoredAuthSession | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSessionExpiredNoticeVisible, setIsSessionExpiredNoticeVisible] = useState(false);
 
     const persistSession = useCallback(async (nextSession: StoredAuthSession) => {
         resetWorkoutSyncState();
         setAxiosAuthToken(nextSession.token);
         await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(nextSession));
         await AsyncStorage.removeItem(LEGACY_AUTH_KEY);
+        setIsSessionExpiredNoticeVisible(false);
         setSession(nextSession);
     }, []);
 
@@ -282,7 +332,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
+                const tokenStatus = getSessionTokenStatus(storedSession.token);
+                if (tokenStatus !== "valid") {
+                    await clearSession();
+
+                    if (tokenStatus === "expired") {
+                        setIsSessionExpiredNoticeVisible(true);
+                    }
+
+                    return;
+                }
+
                 setAxiosAuthToken(storedSession.token);
+                if (storedSessionNeedsRewrite(raw)) {
+                    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(storedSession));
+                }
                 setSession(storedSession);
             } finally {
                 setIsLoading(false);
@@ -290,7 +354,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         void restoreSession();
-    }, [persistSession]);
+    }, [clearSession, persistSession]);
 
     const login = useCallback(
         async (email: string, password: string) => {
@@ -328,34 +392,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const updateProfile = useCallback(
-        async ({ name, email, password }: UpdateProfileInput) => {
-            if (!session) return;
+    const requestPasswordReset = useCallback(async (email: string) => {
+        try {
+            ensureApiUrlConfigured();
 
-            const nextSession = buildSession(session.token, session.user, {
-                ...session.profile,
-                name: name.trim(),
-                email: email.trim(),
-                mockPassword: password?.trim() ? password : session.profile.mockPassword,
+            const response = await axiosApp.post<PasswordResetRequestResponse>("/password/forgot", {
+                email,
             });
 
-            await persistSession(nextSession);
-        },
-        [persistSession, session],
-    );
+            return response.data;
+        } catch (error) {
+            throw buildAuthRequestError(error, "Nao foi possivel enviar o link de redefinicao");
+        }
+    }, []);
+
+    const changePassword = useCallback(async (input: ChangePasswordInput) => {
+        try {
+            ensureApiUrlConfigured();
+
+            await axiosApp.patch("/me/password", {
+                currentPassword: input.currentPassword,
+                newPassword: input.newPassword,
+            });
+        } catch (error) {
+            throw buildAuthRequestError(error, "Nao foi possivel atualizar a senha");
+        }
+    }, []);
 
     const setCredits = useCallback(
         async (credits: number) => {
             if (!session || session.user.credits === credits) return;
 
-            const nextSession = buildSession(
-                session.token,
-                {
-                    ...session.user,
-                    credits,
-                },
-                session.profile,
-            );
+            const nextSession = buildSession(session.token, {
+                ...session.user,
+                credits,
+            });
 
             await persistSession(nextSession);
         },
@@ -371,15 +442,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await clearSession();
     }, [clearSession, persistSession, session]);
 
+    const dismissSessionExpiredNotice = useCallback(() => {
+        setIsSessionExpiredNoticeVisible(false);
+    }, []);
+
+    const handleSessionExpired = useCallback(async () => {
+        await clearSession();
+        setIsSessionExpiredNoticeVisible(true);
+    }, [clearSession]);
+
+    useEffect(() => {
+        setAxiosAuthSessionExpiredHandler(handleSessionExpired);
+
+        return () => {
+            setAxiosAuthSessionExpiredHandler(null);
+        };
+    }, [handleSessionExpired]);
+
     return (
         <AuthContext.Provider
             value={{
-                user: session ? buildViewerUser(session) : null,
+                user: session?.user ?? null,
                 isLoading,
+                isSessionExpiredNoticeVisible,
                 login,
                 register,
+                requestPasswordReset,
+                dismissSessionExpiredNotice,
                 logout,
-                updateProfile,
+                changePassword,
                 setCredits,
             }}
         >

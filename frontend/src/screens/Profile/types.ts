@@ -1,15 +1,14 @@
-import { AuthenticatedUser, UpdateProfileInput } from "../../@types/auth";
+import { AuthenticatedUser, ChangePasswordInput } from "../../@types/auth";
 
 export type ProfileFormValues = {
-    name: string;
-    email: string;
-    password: string;
+    currentPassword: string;
+    newPassword: string;
     confirmPassword: string;
 };
 
 export type UseProfileFormParams = {
     user: AuthenticatedUser | null;
-    onSubmitProfile: (input: UpdateProfileInput) => Promise<void>;
+    onSubmitPasswordChange: (input: ChangePasswordInput) => Promise<void>;
 };
 
 export type UseProfileFormResult = {
