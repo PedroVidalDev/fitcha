@@ -2,7 +2,7 @@ package dtos
 
 import machineDtos "fitcha/internal/dtos/machine"
 
-type AddDayMachineType struct {
+type AddWorkoutMachineType struct {
 	CatalogMachineID string `json:"catalogMachineId"`
 	Name             string `json:"name"`
 	Description      string `json:"description"`
@@ -10,7 +10,12 @@ type AddDayMachineType struct {
 	CategoryKey      string `json:"categoryKey"`
 }
 
-type AddDayMachineResponseType struct {
-	Day     DayResponseType                 `json:"day"`
+type AddWorkoutMachineResponseType struct {
+	Workout WorkoutResponseType             `json:"workout"`
 	Machine machineDtos.MachineResponseType `json:"machine"`
+}
+
+type RemoveWorkoutMachineResponseType struct {
+	Workout        WorkoutResponseType `json:"workout"`
+	RemovedMachine bool                `json:"removedMachine"`
 }

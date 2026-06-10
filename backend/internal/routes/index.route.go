@@ -30,7 +30,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	paymentRepo := repositories.NewPaymentRepository(db)
 	machineRepo := repositories.NewMachineRepository(db)
 	userMachineRepo := repositories.NewUserMachineRepository(db)
-	dayRepo := repositories.NewDayRepository(db)
+	workoutRepo := repositories.NewWorkoutRepository(db)
 	historyRepo := repositories.NewHistoryRepository(db)
 
 	aiWorkoutService := services.NewAIWorkoutService(db, authRepo)
@@ -42,8 +42,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	creditController := controllers.NewCreditController(creditService)
 	machineService := services.NewMachineService(userMachineRepo, machineRepo)
 	machineController := controllers.NewMachineController(machineService)
-	dayService := services.NewDayService(db, dayRepo)
-	dayController := controllers.NewDayController(dayService)
+	workoutService := services.NewWorkoutService(db, workoutRepo)
+	workoutController := controllers.NewWorkoutController(workoutService)
 	historyService := services.NewHistoryService(db, historyRepo)
 	historyController := controllers.NewHistoryController(historyService)
 
@@ -51,7 +51,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	RegisterCreditRoutes(r, creditController)
 	RegisterAIWorkoutRoutes(r, aiWorkoutController)
 	RegisterMachineRoutes(r, machineController)
-	RegisterDayRoutes(r, dayController)
+	RegisterWorkoutRoutes(r, workoutController)
 	RegisterHistoryRoutes(r, historyController)
 
 	r.GET("/health", func(c *gin.Context) {
