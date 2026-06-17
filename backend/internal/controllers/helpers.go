@@ -42,3 +42,16 @@ func getIntParam(ctx *gin.Context, key string) (int, error) {
 
 	return strconv.Atoi(value)
 }
+
+func getUintParam(ctx *gin.Context, key string) (uint, error) {
+	value, err := getIntParam(ctx, key)
+	if err != nil {
+		return 0, err
+	}
+
+	if value <= 0 {
+		return 0, errors.New("parametro invalido")
+	}
+
+	return uint(value), nil
+}

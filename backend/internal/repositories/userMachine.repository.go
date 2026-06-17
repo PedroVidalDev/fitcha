@@ -96,8 +96,8 @@ func (r *userMachineRepository) DeleteUnassignedWithoutHistoryByUserID(userID ui
 		WHERE user_id = ?
 		  AND NOT EXISTS (
 			SELECT 1
-			FROM tb_day_machines
-			WHERE tb_day_machines.user_machine_id = tb_user_machines.id
+			FROM tb_workout_machines
+			WHERE tb_workout_machines.user_machine_id = tb_user_machines.id
 		  )
 		  AND NOT EXISTS (
 			SELECT 1

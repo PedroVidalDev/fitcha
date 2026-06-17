@@ -84,7 +84,7 @@ func (s *AIWorkoutService) Generate(ctx context.Context, userID uint, input dtos
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("a IA nao retornou categorias de treino validas")
 	}
 
-	weekInput := buildGeneratedWeekInputs(response)
+	workoutInputs := buildGeneratedWorkoutInputs(response)
 	remainingCredits := user.Credits
 
 	if err := mapAIWorkoutRequestError(ctx.Err()); err != nil {
@@ -96,7 +96,7 @@ func (s *AIWorkoutService) Generate(ctx context.Context, userID uint, input dtos
 			return err
 		}
 
-		if _, _, err := replaceWeekInTx(tx, userID, weekInput); err != nil {
+		if _, _, err := replaceWorkoutsInTx(tx, userID, workoutInputs); err != nil {
 			return err
 		}
 
@@ -347,11 +347,35 @@ func buildSelectedDayIndexes(days []int) string {
 	return "[" + strings.Join(indexes, ", ") + "]"
 }
 
-func buildGeneratedWeekInputs(response dtos.GenerateAIWorkoutResponse) map[int][]CreateDayMachineInput {
-	generatedDays := make(map[int][]CreateDayMachineInput, 7)
+func buildGeneratedWorkoutInputs(response dtos.GenerateAIWorkoutResponse) []ReplaceWorkoutInput {
+	workouts := make([]ReplaceWorkoutInput, 0, len(response.Categories))
+
+	for _, category := range response.Categories {
+		machines := make([]CreateWorkoutMachineInput, 0, len(category.Machines))
+
+		for _, machine := range category.Machines {
+			machines = append(machines, CreateWorkoutMachineInput{
+				Name:        strings.TrimSpace(machine.Name),
+				Description: buildGeneratedMachineDescription(category.Name, machine.Sets),
+				CategoryKey: inferGeneratedMachineCategoryKey(category.Name, machine.Name),
+			})
+		}
+
+		workouts = append(workouts, ReplaceWorkoutInput{
+			Title:       strings.TrimSpace(category.Name),
+			Description: buildGeneratedWorkoutDescription(category.Days),
+			Machines:    machines,
+		})
+	}
+
+	return workouts
+}
+
+func buildGeneratedWeekInputs(response dtos.GenerateAIWorkoutResponse) map[int][]CreateWorkoutMachineInput {
+	generatedDays := make(map[int][]CreateWorkoutMachineInput, 7)
 
 	for dayIndex := 0; dayIndex < 7; dayIndex++ {
-		generatedDays[dayIndex] = []CreateDayMachineInput{}
+		generatedDays[dayIndex] = []CreateWorkoutMachineInput{}
 	}
 
 	for _, category := range response.Categories {
@@ -361,7 +385,7 @@ func buildGeneratedWeekInputs(response dtos.GenerateAIWorkoutResponse) map[int][
 			}
 
 			for _, machine := range category.Machines {
-				generatedDays[dayIndex] = append(generatedDays[dayIndex], CreateDayMachineInput{
+				generatedDays[dayIndex] = append(generatedDays[dayIndex], CreateWorkoutMachineInput{
 					Name:        strings.TrimSpace(machine.Name),
 					Description: buildGeneratedMachineDescription(category.Name, machine.Sets),
 					CategoryKey: inferGeneratedMachineCategoryKey(category.Name, machine.Name),
@@ -371,6 +395,15 @@ func buildGeneratedWeekInputs(response dtos.GenerateAIWorkoutResponse) map[int][
 	}
 
 	return generatedDays
+}
+
+func buildGeneratedWorkoutDescription(days []int) string {
+	labels := buildSelectedDayNames(days)
+	if strings.TrimSpace(labels) == "" || labels == "nenhum dia valido informado" {
+		return "Gerado automaticamente por IA"
+	}
+
+	return fmt.Sprintf("Gerado automaticamente por IA. Dias sugeridos anteriormente: %s", labels)
 }
 
 func buildGeneratedMachineDescription(categoryName string, sets []float64) string {

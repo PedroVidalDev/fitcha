@@ -11,7 +11,8 @@ let hasPersistedValue = false;
 export function createEmptyAppData(): AppData {
     return {
         machines: {},
-        days: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+        workouts: {},
+        workoutOrder: [],
         history: {},
     };
 }

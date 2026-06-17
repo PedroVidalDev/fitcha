@@ -5,13 +5,14 @@ import (
 	"fitcha/pkg/email"
 	"fitcha/pkg/queue"
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Aviso: Arquivo .env nao encontrado, usando variaveis de ambiente do sistema")
+	if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {
+		log.Printf("Aviso: falha ao carregar arquivo .env: %v", err)
 	}
 
 	mailer, err := email.NewSMTPMailerFromEnv()
