@@ -1,44 +1,48 @@
 // https://docs.expo.dev/guides/using-eslint/
-const { defineConfig } = require("eslint/config");
-import js from "@eslint/js";
-import prettierPlugin from "eslint-plugin-prettier";
-import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import tseslint from "typescript-eslint";
+import { defineConfig } from 'eslint/config'
+import js from '@eslint/js'
+import globals from 'globals'
+import prettierPlugin from 'eslint-plugin-prettier'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
 
 export default defineConfig([
     {
-        ignores: ["dist"],
+        ignores: ['dist'],
     },
     {
         extends: [js.configs.recommended, ...tseslint.configs.recommended],
-        files: ["**/*.{ts,tsx}"],
+        files: ['**/*.{ts,tsx}'],
         languageOptions: {
             ecmaVersion: 2020,
             globals: globals.browser,
         },
         plugins: {
-            "react-hooks": reactHooks,
-            "react-refresh": reactRefresh,
+            'react-hooks': reactHooks,
+            'react-refresh': reactRefresh,
             prettier: prettierPlugin,
         },
         rules: {
-            "prettier/prettier": [
-                "error",
+            'prettier/prettier': [
+                'error',
                 {
                     singleQuote: true,
                     semi: false,
-                    endOfLine: "auto",
-                    trailingComma: "all",
+                    endOfLine: 'auto',
+                    trailingComma: 'all',
                     printWidth: 80,
                     tabWidth: 4,
                     jsxSingleQuote: true,
                     bracketSpacing: true,
-                    arrowParens: "always",
+                    arrowParens: 'always',
                 },
             ],
             ...reactHooks.configs.recommended.rules,
-            "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+            'react-refresh/only-export-components': [
+                'warn',
+                { allowConstantExport: true },
+            ],
         },
     },
-]);
+])

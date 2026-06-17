@@ -1,78 +1,94 @@
-import { Ionicons } from "@expo/vector-icons";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { Ionicons } from '@expo/vector-icons'
+import { NavigationContainer } from '@react-navigation/native'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 
-import { ConfirmModal } from "../components/ConfirmModal";
-import { ProfileShortcutButton } from "../components/ProfileShortcutButton";
-import { useAuth } from "../contexts/AuthContext";
-import { useI18n } from "../contexts/I18nContext";
-import { useTheme } from "../contexts/ThemeContext";
+import { ConfirmModal } from '../components/ConfirmModal'
+import { ProfileShortcutButton } from '../components/ProfileShortcutButton'
+import { useAuth } from '../contexts/AuthContext'
+import { useI18n } from '../contexts/I18nContext'
+import { useTheme } from '../contexts/ThemeContext'
 
-import DayScreen from "../screens/Day";
-import HomeScreen from "../screens/Home";
-import LoginScreen from "../screens/Login";
-import ProfileScreen from "../screens/Profile";
-import RegisterScreen from "../screens/Register";
-import WeekScreen from "../screens/Week";
-import WorkoutScreen from "../screens/Workout";
+import DayScreen from '../screens/Day'
+import HomeScreen from '../screens/Home'
+import LoginScreen from '../screens/Login'
+import ProfileScreen from '../screens/Profile'
+import RegisterScreen from '../screens/Register'
+import WeekScreen from '../screens/Week'
+import WorkoutScreen from '../screens/Workout'
 
-import { getDayLabelKey } from "../constants/categories";
-import MachineDetailScreen from "../screens/Detail";
-import { RootStackParamList } from "./types";
+import MachineDetailScreen from '../screens/Detail'
+import { RootStackParamList } from './types'
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>()
 
 export function AppNavigator() {
-    const { user, isLoading, logout, isSessionExpiredNoticeVisible, dismissSessionExpiredNotice } =
-        useAuth();
-    const { t, toggle } = useTheme();
-    const { t: translate } = useI18n();
+    const {
+        user,
+        isLoading,
+        logout,
+        isSessionExpiredNoticeVisible,
+        dismissSessionExpiredNotice,
+    } = useAuth()
+    const { t, toggle } = useTheme()
+    const { t: translate } = useI18n()
 
     if (isLoading) {
         return (
             <View
                 style={{
                     flex: 1,
-                    justifyContent: "center",
-                    alignItems: "center",
+                    justifyContent: 'center',
+                    alignItems: 'center',
                     backgroundColor: t.bg,
                 }}
             >
-                <ActivityIndicator size="large" color={t.accent} />
+                <ActivityIndicator size='large' color={t.accent} />
             </View>
-        );
+        )
     }
 
     const ThemeToggle = () => (
         <TouchableOpacity onPress={toggle} style={{ padding: 6 }}>
-            <Ionicons name={t.mode === "dark" ? "sunny" : "moon"} size={22} color={t.accent} />
+            <Ionicons
+                name={t.mode === 'dark' ? 'sunny' : 'moon'}
+                size={22}
+                color={t.accent}
+            />
         </TouchableOpacity>
-    );
+    )
 
-    const HeaderActions = ({ showLogout = false }: { showLogout?: boolean }) => (
+    const HeaderActions = ({
+        showLogout = false,
+    }: {
+        showLogout?: boolean
+    }) => (
         <View
             style={{
-                flexDirection: "row",
+                flexDirection: 'row',
                 gap: 10,
-                alignItems: "center",
+                alignItems: 'center',
             }}
         >
             <ThemeToggle />
             {showLogout && (
                 <TouchableOpacity onPress={logout} style={{ padding: 6 }}>
-                    <Ionicons name="log-out-outline" size={22} color={t.textMuted} />
+                    <Ionicons
+                        name='log-out-outline'
+                        size={22}
+                        color={t.textMuted}
+                    />
                 </TouchableOpacity>
             )}
             <ProfileShortcutButton />
         </View>
-    );
+    )
 
     return (
         <>
             <NavigationContainer
                 theme={{
-                    dark: t.mode === "dark",
+                    dark: t.mode === 'dark',
                     colors: {
                         primary: t.accent,
                         background: t.bg,
@@ -82,10 +98,10 @@ export function AppNavigator() {
                         notification: t.accent,
                     },
                     fonts: {
-                        regular: { fontFamily: "System", fontWeight: "400" },
-                        medium: { fontFamily: "System", fontWeight: "500" },
-                        bold: { fontFamily: "System", fontWeight: "700" },
-                        heavy: { fontFamily: "System", fontWeight: "900" },
+                        regular: { fontFamily: 'System', fontWeight: '400' },
+                        medium: { fontFamily: 'System', fontWeight: '500' },
+                        bold: { fontFamily: 'System', fontWeight: '700' },
+                        heavy: { fontFamily: 'System', fontWeight: '900' },
                     },
                 }}
             >
@@ -93,77 +109,83 @@ export function AppNavigator() {
                     screenOptions={{
                         headerStyle: { backgroundColor: t.headerBg },
                         headerTintColor: t.accent,
-                        headerTitleStyle: { fontWeight: "800", fontSize: 20 },
+                        headerTitleStyle: { fontWeight: '800', fontSize: 20 },
                         contentStyle: { backgroundColor: t.bg },
-                        animation: "slide_from_right",
+                        animation: 'slide_from_right',
                     }}
                 >
                     {user ? (
                         <>
                             <Stack.Screen
-                                name="Home"
+                                name='Home'
                                 component={HomeScreen}
                                 options={{
-                                    title: "Fitcha",
+                                    title: 'Fitcha',
                                     headerBackVisible: false,
-                                    headerRight: () => <HeaderActions showLogout />,
+                                    headerRight: () => (
+                                        <HeaderActions showLogout />
+                                    ),
                                 }}
                             />
 
                             <Stack.Screen
-                                name="Week"
+                                name='Week'
                                 component={WeekScreen}
                                 options={{
-                                    title: translate("week.title"),
-                                    headerRight: () => <HeaderActions showLogout />,
+                                    title: translate('week.title'),
+                                    headerRight: () => (
+                                        <HeaderActions showLogout />
+                                    ),
                                 }}
                             />
 
                             <Stack.Screen
-                                name="Profile"
+                                name='Profile'
                                 component={ProfileScreen}
                                 options={{
-                                    title: translate("navigation.profile"),
+                                    title: translate('navigation.profile'),
                                     headerRight: () => <ThemeToggle />,
                                 }}
                             />
 
                             <Stack.Screen
-                                name="Day"
+                                name='Day'
                                 component={DayScreen}
-                                options={({ route }) => ({
-                                    title: translate(getDayLabelKey(route.params.dayIndex)),
-                                    headerRight: () => <HeaderActions />,
-                                })}
-                            />
-
-                            <Stack.Screen
-                                name="MachineDetail"
-                                component={MachineDetailScreen}
                                 options={{
-                                    title: translate("navigation.machineDetail"),
+                                    title: translate('day.title'),
                                     headerRight: () => <HeaderActions />,
                                 }}
                             />
 
                             <Stack.Screen
-                                name="Workout"
+                                name='MachineDetail'
+                                component={MachineDetailScreen}
+                                options={{
+                                    title: translate(
+                                        'navigation.machineDetail',
+                                    ),
+                                    headerRight: () => <HeaderActions />,
+                                }}
+                            />
+
+                            <Stack.Screen
+                                name='Workout'
                                 component={WorkoutScreen}
                                 options={{
                                     headerShown: false,
-                                    animation: "slide_from_bottom",
+                                    animation: 'slide_from_bottom',
                                 }}
                             />
                         </>
                     ) : (
                         <>
                             <Stack.Screen
-                                name="Login"
+                                name='Login'
                                 component={LoginScreen}
                                 options={{ headerShown: false }}
                             />
                             <Stack.Screen
-                                name="Register"
+                                name='Register'
                                 component={RegisterScreen}
                                 options={{ headerShown: false }}
                             />
@@ -174,14 +196,14 @@ export function AppNavigator() {
 
             <ConfirmModal
                 visible={!user && isSessionExpiredNoticeVisible}
-                title={translate("auth.sessionExpired.title")}
-                message={translate("auth.sessionExpired.message")}
-                confirmLabel={translate("common.actions.understand")}
+                title={translate('auth.sessionExpired.title')}
+                message={translate('auth.sessionExpired.message')}
+                confirmLabel={translate('common.actions.understand')}
                 hideCancel
-                confirmVariant="accent"
+                confirmVariant='accent'
                 onClose={dismissSessionExpiredNotice}
                 onConfirm={dismissSessionExpiredNotice}
             />
         </>
-    );
+    )
 }

@@ -13,8 +13,8 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	if err != nil {
-		log.Println("Aviso: Arquivo .env não encontrado, usando variáveis de ambiente do sistema")
+	if err != nil && !os.IsNotExist(err) {
+		log.Printf("Aviso: falha ao carregar arquivo .env: %v", err)
 	}
 
 	dbConnection, err := database.InitDB()

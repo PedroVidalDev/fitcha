@@ -19,6 +19,10 @@ func InitDB() (*gorm.DB, error) {
 		os.Getenv("DB_PORT"),
 	)
 
+	if err := RunMigrations(dsn); err != nil {
+		return nil, err
+	}
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, fmt.Errorf("Error with the database connection")
@@ -51,8 +55,8 @@ func InitDB() (*gorm.DB, error) {
 		&models.Payment{},
 		&models.Machine{},
 		&models.UserMachine{},
-		&models.Day{},
-		&models.DayMachine{},
+		&models.Workout{},
+		&models.WorkoutMachine{},
 		&models.HistoryEntry{},
 	)
 	if err != nil {

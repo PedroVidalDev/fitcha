@@ -1,8 +1,10 @@
 import { HistoryEntry } from "./HistoryEntry";
 import { Machine } from "./Machine";
+import { WorkoutPlan } from "./WorkoutPlan";
 
 export type AppData = {
     machines: Record<string, Machine>;
-    days: Record<number, string[]>;
+    workouts: Record<string, WorkoutPlan>;
+    workoutOrder: number[];
     history: Record<string, HistoryEntry[]>;
 };
