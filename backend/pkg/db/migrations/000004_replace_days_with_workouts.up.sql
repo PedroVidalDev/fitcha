@@ -64,6 +64,8 @@ BEGIN
                 'Migrado automaticamente do planejamento semanal anterior.',
                 d.day_index
             FROM tb_days d
+            INNER JOIN tb_users u
+                ON u.id = d.user_id
             RETURNING id, user_id, position
         )
         INSERT INTO tb_workout_machines (created_at, updated_at, workout_id, user_machine_id, position)
@@ -76,6 +78,9 @@ BEGIN
         FROM tb_day_machines dm
         INNER JOIN tb_days d
             ON d.id = dm.day_id
+        INNER JOIN tb_user_machines um
+            ON um.id = dm.user_machine_id
+           AND um.user_id = d.user_id
         INNER JOIN inserted_workouts iw
             ON iw.user_id = d.user_id
            AND iw.position = d.day_index;
