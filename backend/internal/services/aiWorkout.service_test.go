@@ -26,7 +26,7 @@ func TestNormalizeSelectedDaysSortsAndDeduplicates(t *testing.T) {
 }
 
 func TestBuildAIWorkoutResponseSchemaRestrictsAllowedDays(t *testing.T) {
-	schema := buildAIWorkoutResponseSchema([]int{1, 3, 5})
+	schema := buildAIWorkoutResponseSchema([]int{1, 3, 5}, validCatalogMachines())
 
 	properties := schema["properties"].(map[string]any)
 	categories := properties["categories"].(map[string]any)
@@ -43,6 +43,26 @@ func TestBuildAIWorkoutResponseSchemaRestrictsAllowedDays(t *testing.T) {
 	}
 }
 
+func TestBuildAIWorkoutResponseSchemaRestrictsCatalogMachineIDs(t *testing.T) {
+	schema := buildAIWorkoutResponseSchema([]int{1, 3, 5}, validCatalogMachines())
+
+	properties := schema["properties"].(map[string]any)
+	categories := properties["categories"].(map[string]any)
+	categoryItems := categories["items"].(map[string]any)
+	categoryProperties := categoryItems["properties"].(map[string]any)
+	machines := categoryProperties["machines"].(map[string]any)
+	machineItems := machines["items"].(map[string]any)
+	machineProperties := machineItems["properties"].(map[string]any)
+	catalogMachineID := machineProperties["catalogMachineId"].(map[string]any)
+
+	got := catalogMachineID["enum"].([]string)
+	want := []string{"mach000000000001", "mach000000000028"}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("catalog machine enum mismatch: got %v want %v", got, want)
+	}
+}
+
 func TestBuildAIWorkoutPromptExplainsDayIndexConvention(t *testing.T) {
 	prompt := buildAIWorkoutPrompt(dtos.GenerateAIWorkoutRequest{
 		Height:       "180",
@@ -51,7 +71,7 @@ func TestBuildAIWorkoutPromptExplainsDayIndexConvention(t *testing.T) {
 		SelectedDays: []int{1, 2, 3, 4, 5},
 		Intensity:    "moderado",
 		Goal:         "hipertrofia",
-	})
+	}, validCatalogMachines())
 
 	if !strings.Contains(prompt, "0=domingo, 1=segunda, 2=terca, 3=quarta, 4=quinta, 5=sexta, 6=sabado") {
 		t.Fatalf("prompt does not explain the fixed day convention: %s", prompt)
@@ -60,9 +80,15 @@ func TestBuildAIWorkoutPromptExplainsDayIndexConvention(t *testing.T) {
 	if !strings.Contains(prompt, "Dias exatos escolhidos (indices obrigatorios): [1, 2, 3, 4, 5]") {
 		t.Fatalf("prompt does not include the selected day indexes: %s", prompt)
 	}
+
+	if !strings.Contains(prompt, "mach000000000001 | Supino reto com barra") {
+		t.Fatalf("prompt does not include the allowed catalog machines: %s", prompt)
+	}
 }
 
 func TestValidateGeneratedWorkoutRejectsDayOutsideSelection(t *testing.T) {
+	catalogByID := buildCatalogMachineLookup(validCatalogMachines())
+
 	err := validateGeneratedWorkout(
 		dtos.GenerateAIWorkoutResponse{
 			Categories: []dtos.GeneratedCategory{
@@ -70,12 +96,17 @@ func TestValidateGeneratedWorkoutRejectsDayOutsideSelection(t *testing.T) {
 					Name: "Peito",
 					Days: []int{0},
 					Machines: []dtos.GeneratedMachine{
-						{Name: "Supino reto", Sets: []float64{40, 35, 30}},
+						{
+							CatalogMachineID: "mach000000000001",
+							Name:             "Supino reto com barra",
+							Sets:             []float64{40, 35, 30},
+						},
 					},
 				},
 			},
 		},
 		[]int{1, 2, 3, 4, 5},
+		catalogByID,
 	)
 	if err == nil {
 		t.Fatal("expected validateGeneratedWorkout to reject an unselected day")
@@ -87,6 +118,8 @@ func TestValidateGeneratedWorkoutRejectsDayOutsideSelection(t *testing.T) {
 }
 
 func TestValidateGeneratedWorkoutRejectsDuplicateDaysInCategory(t *testing.T) {
+	catalogByID := buildCatalogMachineLookup(validCatalogMachines())
+
 	err := validateGeneratedWorkout(
 		dtos.GenerateAIWorkoutResponse{
 			Categories: []dtos.GeneratedCategory{
@@ -94,12 +127,17 @@ func TestValidateGeneratedWorkoutRejectsDuplicateDaysInCategory(t *testing.T) {
 					Name: "Upper",
 					Days: []int{1, 1, 3, 5},
 					Machines: []dtos.GeneratedMachine{
-						{Name: "Supino reto", Sets: []float64{40, 35, 30}},
+						{
+							CatalogMachineID: "mach000000000001",
+							Name:             "Supino reto com barra",
+							Sets:             []float64{40, 35, 30},
+						},
 					},
 				},
 			},
 		},
 		[]int{1, 3, 5},
+		catalogByID,
 	)
 	if err == nil {
 		t.Fatal("expected validateGeneratedWorkout to reject duplicate days in a category")
@@ -111,6 +149,8 @@ func TestValidateGeneratedWorkoutRejectsDuplicateDaysInCategory(t *testing.T) {
 }
 
 func TestValidateGeneratedWorkoutRejectsMissingSelectedDays(t *testing.T) {
+	catalogByID := buildCatalogMachineLookup(validCatalogMachines())
+
 	err := validateGeneratedWorkout(
 		dtos.GenerateAIWorkoutResponse{
 			Categories: []dtos.GeneratedCategory{
@@ -118,12 +158,17 @@ func TestValidateGeneratedWorkoutRejectsMissingSelectedDays(t *testing.T) {
 					Name: "Upper",
 					Days: []int{1, 3},
 					Machines: []dtos.GeneratedMachine{
-						{Name: "Supino inclinado", Sets: []float64{32, 30, 28}},
+						{
+							CatalogMachineID: "mach000000000001",
+							Name:             "Supino reto com barra",
+							Sets:             []float64{32, 30, 28},
+						},
 					},
 				},
 			},
 		},
 		[]int{1, 3, 5},
+		catalogByID,
 	)
 	if err == nil {
 		t.Fatal("expected validateGeneratedWorkout to reject missing selected days")
@@ -134,6 +179,35 @@ func TestValidateGeneratedWorkoutRejectsMissingSelectedDays(t *testing.T) {
 	}
 }
 
+func TestValidateGeneratedWorkoutRejectsMachineOutsideCatalog(t *testing.T) {
+	err := validateGeneratedWorkout(
+		dtos.GenerateAIWorkoutResponse{
+			Categories: []dtos.GeneratedCategory{
+				{
+					Name: "Peito",
+					Days: []int{1},
+					Machines: []dtos.GeneratedMachine{
+						{
+							CatalogMachineID: "mach999999999999",
+							Name:             "Supino inventado",
+							Sets:             []float64{40, 35, 30},
+						},
+					},
+				},
+			},
+		},
+		[]int{1},
+		buildCatalogMachineLookup(validCatalogMachines()),
+	)
+	if err == nil {
+		t.Fatal("expected validateGeneratedWorkout to reject a machine outside the catalog")
+	}
+
+	if !strings.Contains(err.Error(), "fora do catalogo") {
+		t.Fatalf("expected error to mention the catalog restriction, got: %v", err)
+	}
+}
+
 func TestBuildGeneratedWeekInputsMapsCategoriesToDays(t *testing.T) {
 	got := buildGeneratedWeekInputs(dtos.GenerateAIWorkoutResponse{
 		Categories: []dtos.GeneratedCategory{
@@ -141,18 +215,22 @@ func TestBuildGeneratedWeekInputsMapsCategoriesToDays(t *testing.T) {
 				Name: "Peito",
 				Days: []int{1, 3},
 				Machines: []dtos.GeneratedMachine{
-					{Name: "Supino reto", Sets: []float64{40, 35, 30}},
+					{
+						CatalogMachineID: "mach000000000001",
+						Name:             "Supino reto com barra",
+						Sets:             []float64{40, 35, 30},
+					},
 				},
 			},
 		},
-	})
+	}, buildCatalogMachineLookup(validCatalogMachines()))
 
 	if len(got[1]) != 1 || len(got[3]) != 1 {
 		t.Fatalf("expected generated machines on both selected days, got: %#v", got)
 	}
 
-	if got[1][0].CategoryKey != "peito" {
-		t.Fatalf("expected peito category key, got: %s", got[1][0].CategoryKey)
+	if got[1][0].CatalogMachineID != "mach000000000001" {
+		t.Fatalf("expected catalog machine id to be preserved, got: %s", got[1][0].CatalogMachineID)
 	}
 
 	wantDescription := "Peito - Series sugeridas (kg): 40 / 35 / 30"
@@ -174,6 +252,11 @@ type stubUserRepository struct {
 	findErr      error
 	consumeErr   error
 	consumeCalls int
+}
+
+type stubMachineRepository struct {
+	machines   []models.Machine
+	findAllErr error
 }
 
 func (r *stubUserRepository) FindByEmail(email string) (models.User, error) {
@@ -216,6 +299,37 @@ func (r *stubUserRepository) ConsumeCredit(userID uint) (models.User, error) {
 	return r.user, nil
 }
 
+func (r *stubMachineRepository) FindAll() ([]models.Machine, error) {
+	if r.findAllErr != nil {
+		return []models.Machine{}, r.findAllErr
+	}
+
+	return r.machines, nil
+}
+
+func (r *stubMachineRepository) FindByID(machineID string) (models.Machine, error) {
+	for _, machine := range r.machines {
+		if machine.ID == machineID {
+			return machine, nil
+		}
+	}
+
+	return models.Machine{}, errors.New("not found")
+}
+
+func (r *stubMachineRepository) Create(machine models.Machine) (models.Machine, error) {
+	return machine, nil
+}
+
+func (r *stubMachineRepository) Update(machine models.Machine) (models.Machine, error) {
+	return machine, nil
+}
+
+func (r *stubMachineRepository) UpsertMany(machines []models.Machine) error {
+	r.machines = machines
+	return nil
+}
+
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (fn roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -224,7 +338,8 @@ func (fn roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func newAIWorkoutServiceForTest(userRepo *stubUserRepository, transport roundTripFunc) *AIWorkoutService {
 	return &AIWorkoutService{
-		users: userRepo,
+		users:   userRepo,
+		catalog: &stubMachineRepository{machines: validCatalogMachines()},
 		httpClient: &http.Client{
 			Transport: transport,
 		},
@@ -243,8 +358,25 @@ func validGenerateRequest() dtos.GenerateAIWorkoutRequest {
 	}
 }
 
+func validCatalogMachines() []models.Machine {
+	return []models.Machine{
+		{
+			ID:          "mach000000000001",
+			Name:        "Supino reto com barra",
+			CategoryKey: "peito",
+			Aliases:     models.StringList{"supino reto", "bench press"},
+		},
+		{
+			ID:          "mach000000000028",
+			Name:        "Leg press 45",
+			CategoryKey: "pernas",
+			Aliases:     models.StringList{"leg press", "leg 45"},
+		},
+	}
+}
+
 func validOpenAIChatCompletionBody() string {
-	return `{"choices":[{"message":{"content":"{\"categories\":[{\"name\":\"Peito\",\"days\":[1,3,5],\"machines\":[{\"name\":\"Supino reto\",\"sets\":[40,35,30]}]}]}"}}]}`
+	return `{"choices":[{"message":{"content":"{\"categories\":[{\"name\":\"Peito\",\"days\":[1,3,5],\"machines\":[{\"catalogMachineId\":\"mach000000000001\",\"name\":\"Supino reto com barra\",\"sets\":[40,35,30]}]}]}"}}]}`
 }
 
 func TestGenerateDoesNotConsumeCreditsWhenRequestIsCanceled(t *testing.T) {

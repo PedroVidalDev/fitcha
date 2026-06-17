@@ -1,6 +1,7 @@
 package aiworkout
 
 type GeneratedMachine struct {
-	Name string    `json:"name"`
-	Sets []float64 `json:"sets"`
+	CatalogMachineID string    `json:"catalogMachineId,omitempty"`
+	Name             string    `json:"name"`
+	Sets             []float64 `json:"sets"`
 }

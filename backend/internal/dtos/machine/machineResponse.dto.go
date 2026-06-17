@@ -33,7 +33,7 @@ func FromMachineModel(machine models.UserMachine) MachineResponseType {
 		if machine.Machine.Name != "" {
 			name = machine.Machine.Name
 		}
-		if machine.Machine.Description != "" {
+		if description == "" && machine.Machine.Description != "" {
 			description = machine.Machine.Description
 		}
 		if machine.Machine.CategoryKey != "" {

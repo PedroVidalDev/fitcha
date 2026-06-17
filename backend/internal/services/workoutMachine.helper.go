@@ -22,6 +22,7 @@ func normalizeCreateWorkoutMachineInput(input CreateWorkoutMachineInput) (Create
 	if catalogMachineID != "" {
 		return CreateWorkoutMachineInput{
 			CatalogMachineID: catalogMachineID,
+			Description:      strings.TrimSpace(input.Description),
 			Photo:            strings.TrimSpace(input.Photo),
 		}, nil
 	}
@@ -60,8 +61,19 @@ func resolveUserMachineForInput(tx *gorm.DB, userID uint, input CreateWorkoutMac
 
 		existing, err := userMachineRepo.FindByMachineIDAndUserID(catalogMachine.ID, userID)
 		if err == nil {
+			needsUpdate := false
+
+			if input.Description != "" && existing.Description != input.Description {
+				existing.Description = input.Description
+				needsUpdate = true
+			}
+
 			if input.Photo != "" && existing.Photo != input.Photo {
 				existing.Photo = input.Photo
+				needsUpdate = true
+			}
+
+			if needsUpdate {
 				return userMachineRepo.Update(existing)
 			}
 
@@ -79,10 +91,11 @@ func resolveUserMachineForInput(tx *gorm.DB, userID uint, input CreateWorkoutMac
 
 		machineID := catalogMachine.ID
 		return userMachineRepo.Create(models.UserMachine{
-			ID:        userMachineID,
-			UserID:    userID,
-			MachineID: &machineID,
-			Photo:     input.Photo,
+			ID:          userMachineID,
+			UserID:      userID,
+			MachineID:   &machineID,
+			Description: input.Description,
+			Photo:       input.Photo,
 		})
 	}
 

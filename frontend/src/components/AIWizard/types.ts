@@ -24,6 +24,7 @@ export type GPTResponse = {
         name: string;
         days: number[];
         machines: {
+            catalogMachineId?: string;
             name: string;
             sets: [number, number, number];
         }[];

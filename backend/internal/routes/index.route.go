@@ -33,7 +33,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	workoutRepo := repositories.NewWorkoutRepository(db)
 	historyRepo := repositories.NewHistoryRepository(db)
 
-	aiWorkoutService := services.NewAIWorkoutService(db, authRepo)
+	aiWorkoutService := services.NewAIWorkoutService(db, authRepo, machineRepo)
 	aiWorkoutController := controllers.NewAIWorkoutController(aiWorkoutService)
 
 	mpClient, mpErr := mercadopago.NewClientFromEnv()
