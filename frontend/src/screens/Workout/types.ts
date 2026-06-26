@@ -1,6 +1,21 @@
+import { type useWorkoutMachines } from '@/src/hooks/useWorkoutMachines'
 import { RootStackParamList } from '@/src/router/types'
-import { RouteProp } from '@react-navigation/native'
+import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { HistorySet } from '../../dtos/HistoryEntry'
+
+export type WorkoutScreenProps = NativeStackScreenProps<
+    RootStackParamList,
+    'Workout'
+>
+
+export type UseWorkoutScreenParams = Pick<
+    WorkoutScreenProps,
+    'navigation' | 'route'
+>
+
+export type WorkoutMachine = ReturnType<
+    typeof useWorkoutMachines
+>['machines'][number]
 
 export type WorkoutResult = { machineId: string; sets: HistorySet[] }
 export type WorkoutSetKey = 'set1' | 'set2' | 'set3'
@@ -14,7 +29,6 @@ export type WorkoutDraft = {
     confirmed: Record<WorkoutSetKey, boolean>
 }
 export type WorkoutDraftMap = Record<string, WorkoutDraft>
-export type Route = RouteProp<RootStackParamList, 'Workout'>
 export const WORKOUT_SET_KEYS: WorkoutSetKey[] = ['set1', 'set2', 'set3']
 
 export type WorkoutModalConfig = {
@@ -25,4 +39,24 @@ export type WorkoutModalConfig = {
     hideCancel?: boolean
     confirmVariant?: 'danger' | 'accent'
     onConfirm: () => void
+}
+
+export type WorkoutSeriesField = {
+    key: WorkoutSetKey
+    label: string
+    weightValue: string
+    repsValue: string
+    weightPlaceholder: string
+    repsPlaceholder: string
+    isConfirmed: boolean
+    isLocked: boolean
+    canConfirm: boolean
+}
+
+export type WorkoutMachineProgressItem = {
+    id: string
+    position: number
+    isCurrent: boolean
+    hasDraft: boolean
+    isComplete: boolean
 }
