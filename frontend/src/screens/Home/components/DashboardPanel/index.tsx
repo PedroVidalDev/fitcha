@@ -1,9 +1,9 @@
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { LinearGradient } from 'expo-linear-gradient'
-import { ReactNode } from 'react'
 import { Platform, View } from 'react-native'
+import { type DashboardPanelProps } from './types'
 
-export function DashboardPanel({ children }: { children: ReactNode }) {
+export function DashboardPanel({ children }: DashboardPanelProps) {
     const { t } = useTheme()
 
     return (

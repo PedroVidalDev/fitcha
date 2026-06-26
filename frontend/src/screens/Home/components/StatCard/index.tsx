@@ -1,14 +1,9 @@
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
 import { Text, View } from 'react-native'
+import { type StatCardProps } from './types'
 
-export function StatCard(props: {
-    index: number
-    title: string
-    value: string
-    hint: string
-    icon: keyof typeof Ionicons.glyphMap
-}) {
+export function StatCard(props: StatCardProps) {
     const { index, title, value, hint, icon } = props
     const { t } = useTheme()
     const backgroundColor = t.home.background[index] ?? t.home.background[0]

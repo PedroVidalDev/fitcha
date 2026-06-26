@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { Ionicons } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useEffect, useRef, useState } from 'react'
 import {
     Animated,
     KeyboardAvoidingView,
@@ -9,99 +9,112 @@ import {
     Text,
     TouchableOpacity,
     View,
-} from "react-native";
-import { AppModal } from "../../components/AppModal";
-import { ConfirmModal } from "../../components/ConfirmModal";
-import { Input } from "../../components/Input";
+} from 'react-native'
+import { AppModal } from '../../components/AppModal'
+import { ConfirmModal } from '../../components/ConfirmModal'
+import { Input } from '../../components/Input'
 import {
     getAuthRequestErrorCode,
     isServiceUnavailableAuthError,
     useAuth,
-} from "../../contexts/AuthContext";
-import { useI18n } from "../../contexts/I18nContext";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useFormErrors } from "../../hooks/useFormValidations";
-import { getAuthErrorPresentation } from "../../utils/authErrors";
+} from '../../contexts/AuthContext'
+import { useI18n } from '../../contexts/I18nContext'
+import { useTheme } from '../../contexts/ThemeContext'
+import { useFormErrors } from '../../hooks/useFormValidations'
+import { getAuthErrorPresentation } from '../../utils/authErrors'
 
 export default function Login() {
-    const { t: theme } = useTheme();
-    const { t } = useI18n();
-    const { login, requestPasswordReset } = useAuth();
-    const navigation = useNavigation();
+    const { t: theme } = useTheme()
+    const { t } = useI18n()
+    const { login, requestPasswordReset } = useAuth()
+    const navigation = useNavigation()
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isServiceErrorModalVisible, setIsServiceErrorModalVisible] = useState(false);
-    const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
-    const [forgotPasswordError, setForgotPasswordError] = useState<string | undefined>();
-    const [isRequestingPasswordReset, setIsRequestingPasswordReset] = useState(false);
-    const [passwordResetSuccessMessage, setPasswordResetSuccessMessage] = useState<string | null>(
-        null,
-    );
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isServiceErrorModalVisible, setIsServiceErrorModalVisible] =
+        useState(false)
+    const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] =
+        useState(false)
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
+    const [forgotPasswordError, setForgotPasswordError] = useState<
+        string | undefined
+    >()
+    const [isRequestingPasswordReset, setIsRequestingPasswordReset] =
+        useState(false)
+    const [passwordResetSuccessMessage, setPasswordResetSuccessMessage] =
+        useState<string | null>(null)
 
-    const { errors, setError, clearError, clearAll } = useFormErrors();
+    const { errors, setError, clearError, clearAll } = useFormErrors()
 
-    const logoFade = useRef(new Animated.Value(0)).current;
-    const logoSlide = useRef(new Animated.Value(-30)).current;
-    const formFade = useRef(new Animated.Value(0)).current;
-    const formSlide = useRef(new Animated.Value(40)).current;
+    const logoFade = useRef(new Animated.Value(0)).current
+    const logoSlide = useRef(new Animated.Value(-30)).current
+    const formFade = useRef(new Animated.Value(0)).current
+    const formSlide = useRef(new Animated.Value(40)).current
 
     const validate = (): boolean => {
-        clearAll();
-        let valid = true;
+        clearAll()
+        let valid = true
 
         if (!email.trim()) {
-            setError("email", t("auth.validation.emailRequired"));
-            valid = false;
+            setError('email', t('auth.validation.emailRequired'))
+            valid = false
         } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-            setError("email", t("auth.validation.emailInvalid"));
-            valid = false;
+            setError('email', t('auth.validation.emailInvalid'))
+            valid = false
         }
 
         if (!password.trim()) {
-            setError("password", t("auth.validation.passwordRequired"));
-            valid = false;
+            setError('password', t('auth.validation.passwordRequired'))
+            valid = false
         }
 
-        return valid;
-    };
+        return valid
+    }
 
     const handleLogin = async () => {
-        if (!validate() || isSubmitting) return;
+        if (!validate() || isSubmitting) return
 
-        setIsSubmitting(true);
+        setIsSubmitting(true)
 
         try {
-            await login(email.trim(), password);
+            await login(email.trim(), password)
         } catch (error) {
             if (isServiceUnavailableAuthError(error)) {
-                setIsServiceErrorModalVisible(true);
-                return;
+                setIsServiceErrorModalVisible(true)
+                return
             }
 
-            const presentation = getAuthErrorPresentation(getAuthRequestErrorCode(error), "login");
+            const presentation = getAuthErrorPresentation(
+                getAuthRequestErrorCode(error),
+                'login',
+            )
             if (presentation) {
-                setError(presentation.field, t(presentation.translationKey));
-                return;
+                setError(presentation.field, t(presentation.translationKey))
+                return
             }
 
             const message =
-                error instanceof Error ? error.message : t("auth.errors.genericLogin");
+                error instanceof Error
+                    ? error.message
+                    : t('auth.errors.genericLogin')
 
-            setError("password", message);
+            setError('password', message)
         } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false)
         }
-    };
+    }
 
-    const btnColor = theme.mode === "dark" ? "#0d0500" : "#FFF";
+    const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
 
     useEffect(() => {
         Animated.sequence([
             Animated.parallel([
-                Animated.timing(logoFade, { toValue: 1, duration: 600, useNativeDriver: true }),
+                Animated.timing(logoFade, {
+                    toValue: 1,
+                    duration: 600,
+                    useNativeDriver: true,
+                }),
                 Animated.spring(logoSlide, {
                     toValue: 0,
                     tension: 50,
@@ -110,7 +123,11 @@ export default function Login() {
                 }),
             ]),
             Animated.parallel([
-                Animated.timing(formFade, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.timing(formFade, {
+                    toValue: 1,
+                    duration: 400,
+                    useNativeDriver: true,
+                }),
                 Animated.spring(formSlide, {
                     toValue: 0,
                     tension: 50,
@@ -118,82 +135,90 @@ export default function Login() {
                     useNativeDriver: true,
                 }),
             ]),
-        ]).start();
-    }, [formFade, formSlide, logoFade, logoSlide]);
+        ]).start()
+    }, [formFade, formSlide, logoFade, logoSlide])
 
-    const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false);
-    const closePasswordResetSuccessModal = () => setPasswordResetSuccessMessage(null);
+    const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false)
+    const closePasswordResetSuccessModal = () =>
+        setPasswordResetSuccessMessage(null)
 
     const openForgotPasswordModal = () => {
         setForgotPasswordEmail((current) => {
-            const nextEmail = email.trim();
-            return nextEmail || current;
-        });
-        setForgotPasswordError(undefined);
-        setIsForgotPasswordModalVisible(true);
-    };
+            const nextEmail = email.trim()
+            return nextEmail || current
+        })
+        setForgotPasswordError(undefined)
+        setIsForgotPasswordModalVisible(true)
+    }
 
     const closeForgotPasswordModal = () => {
-        if (isRequestingPasswordReset) return;
-        setForgotPasswordError(undefined);
-        setIsForgotPasswordModalVisible(false);
-    };
+        if (isRequestingPasswordReset) return
+        setForgotPasswordError(undefined)
+        setIsForgotPasswordModalVisible(false)
+    }
 
     const handleForgotPassword = async () => {
-        const normalizedEmail = forgotPasswordEmail.trim();
+        const normalizedEmail = forgotPasswordEmail.trim()
 
         if (!normalizedEmail) {
-            setForgotPasswordError(t("auth.validation.emailRequired"));
-            return;
+            setForgotPasswordError(t('auth.validation.emailRequired'))
+            return
         }
 
         if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
-            setForgotPasswordError(t("auth.validation.emailInvalid"));
-            return;
+            setForgotPasswordError(t('auth.validation.emailInvalid'))
+            return
         }
 
-        if (isRequestingPasswordReset) return;
+        if (isRequestingPasswordReset) return
 
-        setIsRequestingPasswordReset(true);
+        setIsRequestingPasswordReset(true)
 
         try {
-            await requestPasswordReset(normalizedEmail);
-            setIsForgotPasswordModalVisible(false);
-            setForgotPasswordError(undefined);
+            await requestPasswordReset(normalizedEmail)
+            setIsForgotPasswordModalVisible(false)
+            setForgotPasswordError(undefined)
             setPasswordResetSuccessMessage(
-                t("auth.resetPassword.successMessage", {
+                t('auth.resetPassword.successMessage', {
                     email: normalizedEmail,
                 }),
-            );
+            )
         } catch (error) {
             if (isServiceUnavailableAuthError(error)) {
-                setIsServiceErrorModalVisible(true);
-                return;
+                setIsServiceErrorModalVisible(true)
+                return
             }
 
-            const message = error instanceof Error ? error.message : t("auth.resetPassword.error");
-            setForgotPasswordError(message);
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : t('auth.resetPassword.error')
+            setForgotPasswordError(message)
         } finally {
-            setIsRequestingPasswordReset(false);
+            setIsRequestingPasswordReset(false)
         }
-    };
+    }
 
     return (
         <LinearGradient
             colors={
-                theme.mode === "dark"
-                    ? ["#1a0a00", "#0d0500", "#060200"]
-                    : ["#FAF6F2", "#F5F0EB", "#EDE4DB"]
+                theme.mode === 'dark'
+                    ? ['#1a0a00', '#0d0500', '#060200']
+                    : ['#FAF6F2', '#F5F0EB', '#EDE4DB']
             }
             style={{ flex: 1 }}
         >
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    paddingHorizontal: 28,
+                }}
             >
                 <Animated.View
                     style={{
-                        alignItems: "center",
+                        alignItems: 'center',
                         marginBottom: 48,
                         opacity: logoFade,
                         transform: [{ translateY: logoSlide }],
@@ -205,17 +230,17 @@ export default function Login() {
                             height: 80,
                             borderRadius: 24,
                             backgroundColor: theme.accent,
-                            justifyContent: "center",
-                            alignItems: "center",
+                            justifyContent: 'center',
+                            alignItems: 'center',
                             marginBottom: 16,
                         }}
                     >
-                        <Ionicons name="barbell" size={40} color={btnColor} />
+                        <Ionicons name='barbell' size={40} color={btnColor} />
                     </View>
                     <Text
                         style={{
                             fontSize: 32,
-                            fontWeight: "900",
+                            fontWeight: '900',
                             color: theme.textPrimary,
                             letterSpacing: -1,
                         }}
@@ -227,36 +252,41 @@ export default function Login() {
                             fontSize: 14,
                             color: theme.textMuted,
                             marginTop: 4,
-                            fontWeight: "500",
+                            fontWeight: '500',
                         }}
                     >
-                        {t("app.tagline")}
+                        {t('app.tagline')}
                     </Text>
                 </Animated.View>
 
-                <Animated.View style={{ opacity: formFade, transform: [{ translateY: formSlide }] }}>
+                <Animated.View
+                    style={{
+                        opacity: formFade,
+                        transform: [{ translateY: formSlide }],
+                    }}
+                >
                     <Input
-                        label={t("auth.login.emailLabel")}
-                        icon="mail-outline"
+                        label={t('auth.login.emailLabel')}
+                        icon='mail-outline'
                         value={email}
                         onChangeText={(value) => {
-                            setEmail(value);
-                            clearError("email");
+                            setEmail(value)
+                            clearError('email')
                         }}
-                        placeholder={t("auth.login.emailPlaceholder")}
-                        keyboardType="email-address"
+                        placeholder={t('auth.login.emailPlaceholder')}
+                        keyboardType='email-address'
                         error={errors.email}
                     />
 
                     <Input
-                        label={t("auth.login.passwordLabel")}
-                        icon="lock-closed-outline"
+                        label={t('auth.login.passwordLabel')}
+                        icon='lock-closed-outline'
                         value={password}
                         onChangeText={(value) => {
-                            setPassword(value);
-                            clearError("password");
+                            setPassword(value)
+                            clearError('password')
                         }}
-                        placeholder={t("auth.login.passwordPlaceholder")}
+                        placeholder={t('auth.login.passwordPlaceholder')}
                         secure
                         error={errors.password}
                     />
@@ -264,16 +294,21 @@ export default function Login() {
                     <TouchableOpacity
                         onPress={openForgotPasswordModal}
                         activeOpacity={0.7}
-                        style={{ alignSelf: "flex-end", marginTop: -4, marginBottom: 8, padding: 6 }}
+                        style={{
+                            alignSelf: 'flex-end',
+                            marginTop: -4,
+                            marginBottom: 8,
+                            padding: 6,
+                        }}
                     >
                         <Text
                             style={{
                                 color: theme.accent,
                                 fontSize: 13,
-                                fontWeight: "700",
+                                fontWeight: '700',
                             }}
                         >
-                            {t("auth.login.forgotPasswordCta")}
+                            {t('auth.login.forgotPasswordCta')}
                         </Text>
                     </TouchableOpacity>
 
@@ -281,50 +316,87 @@ export default function Login() {
                         activeOpacity={0.8}
                         disabled={isSubmitting}
                         onPress={handleLogin}
-                        style={{ marginTop: 12, opacity: isSubmitting ? 0.8 : 1 }}
+                        style={{
+                            marginTop: 12,
+                            opacity: isSubmitting ? 0.8 : 1,
+                        }}
                     >
                         <LinearGradient
                             colors={theme.gradientAccent}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ paddingVertical: 16, borderRadius: 14, alignItems: "center" }}
+                            style={{
+                                paddingVertical: 16,
+                                borderRadius: 14,
+                                alignItems: 'center',
+                            }}
                         >
-                            <Text style={{ color: btnColor, fontSize: 17, fontWeight: "900" }}>
-                                {isSubmitting ? t("auth.login.submitting") : t("auth.login.submit")}
+                            <Text
+                                style={{
+                                    color: btnColor,
+                                    fontSize: 17,
+                                    fontWeight: '900',
+                                }}
+                            >
+                                {isSubmitting
+                                    ? t('auth.login.submitting')
+                                    : t('auth.login.submit')}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
 
                     <View
-                        style={{ flexDirection: "row", alignItems: "center", marginVertical: 28 }}
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            marginVertical: 28,
+                        }}
                     >
-                        <View style={{ flex: 1, height: 0.5, backgroundColor: theme.border }} />
+                        <View
+                            style={{
+                                flex: 1,
+                                height: 0.5,
+                                backgroundColor: theme.border,
+                            }}
+                        />
                         <Text
                             style={{
                                 color: theme.textDim,
                                 fontSize: 12,
                                 marginHorizontal: 14,
-                                fontWeight: "600",
+                                fontWeight: '600',
                             }}
                         >
-                            {t("common.or")}
+                            {t('common.or')}
                         </Text>
-                        <View style={{ flex: 1, height: 0.5, backgroundColor: theme.border }} />
+                        <View
+                            style={{
+                                flex: 1,
+                                height: 0.5,
+                                backgroundColor: theme.border,
+                            }}
+                        />
                     </View>
 
                     <TouchableOpacity
-                        onPress={() => navigation.navigate("Register")}
+                        onPress={() => navigation.navigate('Register')}
                         activeOpacity={0.7}
                         style={{
                             paddingVertical: 16,
                             borderRadius: 14,
-                            alignItems: "center",
+                            alignItems: 'center',
                             borderWidth: 1,
                             borderColor: theme.accent,
                         }}
                     >
-                        <Text style={{ color: theme.accent, fontSize: 16, fontWeight: "800" }}>
-                            {t("auth.login.createAccountCta")}
+                        <Text
+                            style={{
+                                color: theme.accent,
+                                fontSize: 16,
+                                fontWeight: '800',
+                            }}
+                        >
+                            {t('auth.login.createAccountCta')}
                         </Text>
                     </TouchableOpacity>
                 </Animated.View>
@@ -332,25 +404,29 @@ export default function Login() {
 
             <ConfirmModal
                 visible={isServiceErrorModalVisible}
-                title={t("auth.errors.serviceUnavailableTitle")}
-                message={t("auth.errors.serviceUnavailableMessage")}
-                confirmLabel={t("common.actions.understand")}
+                title={t('auth.errors.serviceUnavailableTitle')}
+                message={t('auth.errors.serviceUnavailableMessage')}
+                confirmLabel={t('common.actions.understand')}
                 hideCancel
-                confirmVariant="accent"
+                confirmVariant='accent'
                 onClose={closeServiceErrorModal}
                 onConfirm={closeServiceErrorModal}
             />
 
-            <AppModal visible={isForgotPasswordModalVisible} onClose={closeForgotPasswordModal} compact>
+            <AppModal
+                visible={isForgotPasswordModalVisible}
+                onClose={closeForgotPasswordModal}
+                compact
+            >
                 <Text
                     style={{
                         color: theme.accent,
                         fontSize: 20,
-                        fontWeight: "800",
+                        fontWeight: '800',
                         marginBottom: 10,
                     }}
                 >
-                    {t("auth.resetPassword.title")}
+                    {t('auth.resetPassword.title')}
                 </Text>
                 <Text
                     style={{
@@ -360,36 +436,47 @@ export default function Login() {
                         marginBottom: 18,
                     }}
                 >
-                    {t("auth.resetPassword.description")}
+                    {t('auth.resetPassword.description')}
                 </Text>
 
                 <Input
-                    label={t("auth.login.emailLabel")}
-                    icon="mail-outline"
+                    label={t('auth.login.emailLabel')}
+                    icon='mail-outline'
                     value={forgotPasswordEmail}
                     onChangeText={(value) => {
-                        setForgotPasswordEmail(value);
-                        setForgotPasswordError(undefined);
+                        setForgotPasswordEmail(value)
+                        setForgotPasswordError(undefined)
                     }}
-                    placeholder={t("auth.login.emailPlaceholder")}
-                    keyboardType="email-address"
+                    placeholder={t('auth.login.emailPlaceholder')}
+                    keyboardType='email-address'
                     error={forgotPasswordError}
                 />
 
-                <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        gap: 12,
+                        marginTop: 8,
+                    }}
+                >
                     <TouchableOpacity
                         onPress={closeForgotPasswordModal}
                         disabled={isRequestingPasswordReset}
-                        style={{ padding: 12, justifyContent: "center", opacity: isRequestingPasswordReset ? 0.7 : 1 }}
+                        style={{
+                            padding: 12,
+                            justifyContent: 'center',
+                            opacity: isRequestingPasswordReset ? 0.7 : 1,
+                        }}
                     >
                         <Text
                             style={{
                                 color: theme.textMuted,
                                 fontSize: 15,
-                                fontWeight: "600",
+                                fontWeight: '600',
                             }}
                         >
-                            {t("common.actions.cancel")}
+                            {t('common.actions.cancel')}
                         </Text>
                     </TouchableOpacity>
 
@@ -411,12 +498,12 @@ export default function Login() {
                                 style={{
                                     color: btnColor,
                                     fontSize: 15,
-                                    fontWeight: "800",
+                                    fontWeight: '800',
                                 }}
                             >
                                 {isRequestingPasswordReset
-                                    ? t("auth.resetPassword.submitting")
-                                    : t("auth.resetPassword.submit")}
+                                    ? t('auth.resetPassword.submitting')
+                                    : t('auth.resetPassword.submit')}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -425,14 +512,14 @@ export default function Login() {
 
             <ConfirmModal
                 visible={!!passwordResetSuccessMessage}
-                title={t("auth.resetPassword.successTitle")}
-                message={passwordResetSuccessMessage ?? ""}
-                confirmLabel={t("common.actions.understand")}
+                title={t('auth.resetPassword.successTitle')}
+                message={passwordResetSuccessMessage ?? ''}
+                confirmLabel={t('common.actions.understand')}
                 hideCancel
-                confirmVariant="accent"
+                confirmVariant='accent'
                 onClose={closePasswordResetSuccessModal}
                 onConfirm={closePasswordResetSuccessModal}
             />
         </LinearGradient>
-    );
+    )
 }
