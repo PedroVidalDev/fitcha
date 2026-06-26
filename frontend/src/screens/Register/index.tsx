@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import {
     Animated,
     KeyboardAvoidingView,
@@ -12,111 +12,34 @@ import {
 } from 'react-native'
 import { ConfirmModal } from '../../components/ConfirmModal'
 import { Input } from '../../components/Input'
-import {
-    getAuthRequestErrorCode,
-    isServiceUnavailableAuthError,
-    useAuth,
-} from '../../contexts/AuthContext'
 import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
-import { useFormErrors } from '../../hooks/useFormValidations'
-import { getAuthErrorPresentation } from '../../utils/authErrors'
+import { useRegisterScreen } from './useRegisterScreen'
 
 export default function Register() {
     const { t: theme } = useTheme()
     const { t } = useI18n()
-    const { register } = useAuth()
     const navigation = useNavigation()
-
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isServiceErrorModalVisible, setIsServiceErrorModalVisible] =
-        useState(false)
-    const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
-    const { errors, setError, clearError, clearAll } = useFormErrors()
+    const {
+        name,
+        email,
+        password,
+        confirmPassword,
+        isSubmitting,
+        isServiceErrorModalVisible,
+        successMessage,
+        errors,
+        handleNameChange,
+        handleEmailChange,
+        handlePasswordChange,
+        handleConfirmPasswordChange,
+        handleRegister,
+        closeServiceErrorModal,
+        clearSuccessMessage,
+    } = useRegisterScreen()
 
     const fade = useRef(new Animated.Value(0)).current
     const slide = useRef(new Animated.Value(40)).current
-
-    const validate = (): boolean => {
-        clearAll()
-        let valid = true
-
-        if (!name.trim()) {
-            setError('name', t('auth.validation.nameRequired'))
-            valid = false
-        }
-
-        if (!email.trim()) {
-            setError('email', t('auth.validation.emailRequired'))
-            valid = false
-        } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-            setError('email', t('auth.validation.emailInvalid'))
-            valid = false
-        }
-
-        if (!password.trim()) {
-            setError('password', t('auth.validation.passwordCreateRequired'))
-            valid = false
-        } else if (password.length < 6) {
-            setError('password', t('auth.validation.passwordMin'))
-            valid = false
-        }
-
-        if (!confirmPassword.trim()) {
-            setError(
-                'confirmPassword',
-                t('auth.validation.confirmPasswordRequired'),
-            )
-            valid = false
-        } else if (password !== confirmPassword) {
-            setError('confirmPassword', t('auth.validation.passwordMismatch'))
-            valid = false
-        }
-
-        return valid
-    }
-
-    const handleRegister = async () => {
-        if (!validate() || isSubmitting) return
-
-        setIsSubmitting(true)
-
-        try {
-            const response = await register(name.trim(), email.trim(), password)
-            setSuccessMessage(
-                t('auth.register.successMessage', {
-                    email: response.email,
-                }),
-            )
-        } catch (error) {
-            if (isServiceUnavailableAuthError(error)) {
-                setIsServiceErrorModalVisible(true)
-                return
-            }
-
-            const presentation = getAuthErrorPresentation(
-                getAuthRequestErrorCode(error),
-                'register',
-            )
-            if (presentation) {
-                setError(presentation.field, t(presentation.translationKey))
-                return
-            }
-
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : t('auth.errors.genericRegister')
-            setError('email', message)
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
 
     const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
 
@@ -136,11 +59,14 @@ export default function Register() {
         ]).start()
     }, [fade, slide])
 
-    const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false)
-    const closeSuccessModal = () => {
-        setSuccessMessage(null)
+    const handleGoBack = useCallback(() => {
         navigation.goBack()
-    }
+    }, [navigation])
+
+    const closeSuccessModal = useCallback(() => {
+        clearSuccessMessage()
+        navigation.goBack()
+    }, [clearSuccessMessage, navigation])
 
     return (
         <LinearGradient
@@ -172,7 +98,7 @@ export default function Register() {
                         }}
                     >
                         <TouchableOpacity
-                            onPress={() => navigation.goBack()}
+                            onPress={handleGoBack}
                             style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
@@ -221,10 +147,7 @@ export default function Register() {
                             label={t('auth.register.nameLabel')}
                             icon='person-outline'
                             value={name}
-                            onChangeText={(value) => {
-                                setName(value)
-                                clearError('name')
-                            }}
+                            onChangeText={handleNameChange}
                             placeholder={t('auth.register.namePlaceholder')}
                             autoCapitalize='words'
                             error={errors.name}
@@ -234,10 +157,7 @@ export default function Register() {
                             label={t('auth.register.emailLabel')}
                             icon='mail-outline'
                             value={email}
-                            onChangeText={(value) => {
-                                setEmail(value)
-                                clearError('email')
-                            }}
+                            onChangeText={handleEmailChange}
                             placeholder={t('auth.register.emailPlaceholder')}
                             keyboardType='email-address'
                             error={errors.email}
@@ -247,10 +167,7 @@ export default function Register() {
                             label={t('auth.register.passwordLabel')}
                             icon='lock-closed-outline'
                             value={password}
-                            onChangeText={(value) => {
-                                setPassword(value)
-                                clearError('password')
-                            }}
+                            onChangeText={handlePasswordChange}
                             placeholder={t('auth.register.passwordPlaceholder')}
                             secure
                             error={errors.password}
@@ -260,10 +177,7 @@ export default function Register() {
                             label={t('auth.register.confirmPasswordLabel')}
                             icon='shield-checkmark-outline'
                             value={confirmPassword}
-                            onChangeText={(value) => {
-                                setConfirmPassword(value)
-                                clearError('confirmPassword')
-                            }}
+                            onChangeText={handleConfirmPasswordChange}
                             placeholder={t(
                                 'auth.register.confirmPasswordPlaceholder',
                             )}
@@ -305,7 +219,7 @@ export default function Register() {
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            onPress={() => navigation.goBack()}
+                            onPress={handleGoBack}
                             style={{
                                 marginTop: 20,
                                 alignItems: 'center',
