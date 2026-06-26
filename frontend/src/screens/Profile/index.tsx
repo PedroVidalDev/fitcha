@@ -1,93 +1,39 @@
-import { useFocusEffect } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useCallback } from 'react'
 import {
-    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
-    Text,
-    TouchableOpacity,
     View,
-} from "react-native";
-import { CreditPurchaseModal } from "../../components/CreditPurchaseModal";
-import { Input } from "../../components/Input";
-import { useAuth } from "../../contexts/AuthContext";
-import { useI18n } from "../../contexts/I18nContext";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useCreditCheckout } from "../../hooks/useCreditCheckout";
-import { localeLabels, supportedLocales } from "../../translates";
-import { useProfileForm } from "./hooks/useProfileForm";
+} from 'react-native'
+import { useAuth } from '../../contexts/AuthContext'
+import { useI18n } from '../../contexts/I18nContext'
+import { useTheme } from '../../contexts/ThemeContext'
+import { useCreditCheckout } from '../../hooks/useCreditCheckout'
+import { ProfileAccountSection } from './components/ProfileAccountSection'
+import { ProfileCreditsModal } from './components/ProfileCreditsModal'
+import { ProfileCreditsSection } from './components/ProfileCreditsSection'
+import { ProfileHeaderCard } from './components/ProfileHeaderCard'
+import { ProfileLanguageSection } from './components/ProfileLanguageSection'
+import { ProfilePasswordSection } from './components/ProfilePasswordSection'
+import { formatDate } from './helpers'
+import { useProfileForm } from './hooks/useProfileForm'
+import { type ProfileScreenProps } from './types'
 
-function formatDate(value: string | null | undefined, locale: string) {
-    if (!value) return null;
+export default function ProfileScreen(props: ProfileScreenProps) {
+    void props
 
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
+    const { t: theme } = useTheme()
+    const { user, changePassword } = useAuth()
+    const { locale, setLocale, t } = useI18n()
 
-    return new Intl.DateTimeFormat(locale, {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(date);
-}
-
-function AccountInfoField(props: {
-    label: string;
-    value: string;
-    theme: ReturnType<typeof useTheme>["t"];
-}) {
-    const { label, value, theme } = props;
-
-    return (
-        <View
-            style={{
-                backgroundColor: theme.card,
-                borderRadius: 16,
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                borderWidth: 0.5,
-                borderColor: theme.border,
-            }}
-        >
-            <Text
-                style={{
-                    color: theme.textDim,
-                    fontSize: 11,
-                    fontWeight: "800",
-                    textTransform: "uppercase",
-                    letterSpacing: 1.1,
-                    marginBottom: 6,
-                }}
-            >
-                {label}
-            </Text>
-            <Text
-                style={{
-                    color: theme.textPrimary,
-                    fontSize: 15,
-                    fontWeight: "700",
-                }}
-            >
-                {value}
-            </Text>
-        </View>
-    );
-}
-
-export default function ProfileScreen() {
-    const { t: theme } = useTheme();
-    const { user, changePassword } = useAuth();
-    const { locale, setLocale, t } = useI18n();
-
-    const { values, errors, isSubmitting, setField, handleSubmit } = useProfileForm({
-        user,
-        onSubmitPasswordChange: changePassword,
-    });
+    const { values, errors, isSubmitting, setField, handleSubmit } =
+        useProfileForm({
+            user,
+            onSubmitPasswordChange: changePassword,
+        })
 
     const {
         payment,
@@ -110,536 +56,74 @@ export default function ProfileScreen() {
         reloadSummary,
     } = useCreditCheckout({
         autoLoad: true,
-    });
+    })
 
     useFocusEffect(
         useCallback(() => {
-            void reloadSummary();
+            void reloadSummary()
         }, [reloadSummary]),
-    );
+    )
 
-    if (!user) return null;
+    const handleSaveProfile = useCallback(async () => {
+        const saved = await handleSubmit()
+        if (!saved) return
 
-    const btnColor = theme.mode === "dark" ? "#0d0500" : "#FFF";
-    const paymentExpiresAt = formatDate(payment?.paymentExpiresAt, locale);
-    const hasPendingPayment = payment?.status === "pending";
+        Alert.alert(
+            t('profile.alert.savedTitle'),
+            t('profile.alert.savedMessage'),
+        )
+    }, [handleSubmit, t])
 
-    const handleSaveProfile = async () => {
-        const saved = await handleSubmit();
-        if (!saved) return;
+    if (!user) return null
 
-        Alert.alert(t("profile.alert.savedTitle"), t("profile.alert.savedMessage"));
-    };
+    const paymentExpiresAt = formatDate(payment?.paymentExpiresAt, locale)
+    const hasPendingPayment = payment?.status === 'pending'
 
     return (
         <LinearGradient colors={theme.gradientHero} style={{ flex: 1 }}>
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
             >
                 <ScrollView
                     contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
+                    keyboardShouldPersistTaps='handled'
                 >
-                    <View
-                        style={{
-                            backgroundColor: theme.inputBg,
-                            borderRadius: 24,
-                            padding: 20,
-                            borderWidth: 0.5,
-                            borderColor: theme.border,
-                            marginBottom: 18,
-                        }}
-                    >
-                        <View
-                            style={{
-                                width: 56,
-                                height: 56,
-                                borderRadius: 999,
-                                backgroundColor: theme.accent,
-                                justifyContent: "center",
-                                alignItems: "center",
-                                marginBottom: 16,
-                            }}
-                        >
-                            <Text style={{ color: btnColor, fontSize: 20, fontWeight: "900" }}>
-                                {user.name.trim().charAt(0).toUpperCase() || "U"}
-                            </Text>
-                        </View>
+                    <View style={{ gap: 18 }}>
+                        <ProfileHeaderCard name={user.name} />
 
-                        <Text
-                            style={{
-                                color: theme.textDim,
-                                fontSize: 11,
-                                fontWeight: "700",
-                                textTransform: "uppercase",
-                                letterSpacing: 2,
-                                marginBottom: 8,
-                            }}
-                        >
-                            {t("profile.kicker")}
-                        </Text>
-
-                        <Text
-                            style={{
-                                color: theme.textPrimary,
-                                fontSize: 28,
-                                fontWeight: "900",
-                                marginBottom: 8,
-                            }}
-                        >
-                            {user.name}
-                        </Text>
-
-                        <Text style={{ color: theme.textMuted, fontSize: 14, lineHeight: 21 }}>
-                            {t("profile.header.description")}
-                        </Text>
-                    </View>
-
-                    <View
-                        style={{
-                            backgroundColor: theme.inputBg,
-                            borderRadius: 24,
-                            padding: 20,
-                            borderWidth: 0.5,
-                            borderColor: theme.border,
-                            marginBottom: 18,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: theme.textPrimary,
-                                fontSize: 20,
-                                fontWeight: "900",
-                                marginBottom: 6,
-                            }}
-                        >
-                            {t("profile.account.title")}
-                        </Text>
-                        <Text
-                            style={{
-                                color: theme.textMuted,
-                                fontSize: 13,
-                                lineHeight: 20,
-                                marginBottom: 18,
-                            }}
-                        >
-                            {t("profile.account.description")}
-                        </Text>
-
-                        <View style={{ gap: 10 }}>
-                            <AccountInfoField
-                                label={t("auth.register.nameLabel")}
-                                value={user.name}
-                                theme={theme}
-                            />
-                            <AccountInfoField
-                                label={t("auth.register.emailLabel")}
-                                value={user.email}
-                                theme={theme}
-                            />
-                        </View>
-                    </View>
-
-                    <View
-                        style={{
-                            backgroundColor: theme.inputBg,
-                            borderRadius: 24,
-                            padding: 20,
-                            borderWidth: 0.5,
-                            borderColor: theme.border,
-                            marginBottom: 18,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: theme.textPrimary,
-                                fontSize: 20,
-                                fontWeight: "900",
-                                marginBottom: 6,
-                            }}
-                        >
-                            {t("profile.language.title")}
-                        </Text>
-                        <Text
-                            style={{
-                                color: theme.textMuted,
-                                fontSize: 13,
-                                lineHeight: 20,
-                                marginBottom: 18,
-                            }}
-                        >
-                            {t("profile.language.description")}
-                        </Text>
-
-                        <View style={{ gap: 10 }}>
-                            {supportedLocales.map((option) => {
-                                const isActive = option === locale;
-
-                                return (
-                                    <TouchableOpacity
-                                        key={option}
-                                        activeOpacity={0.8}
-                                        onPress={() => setLocale(option)}
-                                    >
-                                        <View
-                                            style={{
-                                                flexDirection: "row",
-                                                alignItems: "center",
-                                                justifyContent: "space-between",
-                                                backgroundColor: isActive
-                                                    ? theme.chipBg
-                                                    : theme.card,
-                                                borderRadius: 16,
-                                                paddingHorizontal: 16,
-                                                paddingVertical: 14,
-                                                borderWidth: 0.5,
-                                                borderColor: isActive ? theme.accent : theme.border,
-                                            }}
-                                        >
-                                            <View>
-                                                <Text
-                                                    style={{
-                                                        color: isActive
-                                                            ? theme.textPrimary
-                                                            : theme.textMuted,
-                                                        fontSize: 15,
-                                                        fontWeight: "800",
-                                                    }}
-                                                >
-                                                    {localeLabels[option]}
-                                                </Text>
-                                                <Text
-                                                    style={{
-                                                        color: theme.textDim,
-                                                        fontSize: 11,
-                                                        marginTop: 2,
-                                                    }}
-                                                >
-                                                    {option}
-                                                </Text>
-                                            </View>
-
-                                            <Ionicons
-                                                name={
-                                                    isActive
-                                                        ? "checkmark-circle"
-                                                        : "ellipse-outline"
-                                                }
-                                                size={20}
-                                                color={isActive ? theme.accent : theme.textDim}
-                                            />
-                                        </View>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
-                    </View>
-
-                    <View
-                        style={{
-                            backgroundColor: theme.inputBg,
-                            borderRadius: 24,
-                            padding: 20,
-                            borderWidth: 0.5,
-                            borderColor: theme.border,
-                            marginBottom: 18,
-                        }}
-                    >
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                marginBottom: 16,
-                            }}
-                        >
-                            <View
-                                style={{
-                                    flex: 1,
-                                    minWidth: 0,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: 10,
-                                }}
-                            >
-                                <View
-                                    style={{
-                                        width: 42,
-                                        height: 42,
-                                        borderRadius: 14,
-                                        backgroundColor: theme.chipBg,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <Ionicons name="sparkles" size={20} color={theme.accent} />
-                                </View>
-                                <View style={{ flexShrink: 1 }}>
-                                    <Text
-                                        style={{
-                                            color: theme.textPrimary,
-                                            fontSize: 18,
-                                            fontWeight: "800",
-                                        }}
-                                    >
-                                        Fitcha AI
-                                    </Text>
-                                    <Text style={{ color: theme.textMuted, fontSize: 13 }}>
-                                        {t("profile.credits.subtitle")}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <View
-                                style={{
-                                    backgroundColor: theme.accent,
-                                    borderRadius: 999,
-                                    paddingHorizontal: 12,
-                                    paddingVertical: 6,
-                                    marginLeft: 12,
-                                    flexShrink: 0,
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        color: btnColor,
-                                        fontSize: 11,
-                                        fontWeight: "800",
-                                        textTransform: "uppercase",
-                                        letterSpacing: 1,
-                                    }}
-                                >
-                                    {t("profile.credits.balanceLabel")}
-                                </Text>
-                            </View>
-                        </View>
-
-                        <Text
-                            style={{
-                                color: theme.textMuted,
-                                fontSize: 14,
-                                lineHeight: 21,
-                                marginBottom: 14,
-                            }}
-                        >
-                            {t("profile.credits.description")}
-                        </Text>
-
-                        <View
-                            style={{
-                                backgroundColor: theme.chipBg,
-                                borderRadius: 20,
-                                padding: 18,
-                                marginBottom: 18,
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: theme.textDim,
-                                    fontSize: 12,
-                                    fontWeight: "800",
-                                    textTransform: "uppercase",
-                                    letterSpacing: 1.2,
-                                    marginBottom: 8,
-                                }}
-                            >
-                                {t("profile.credits.balanceLabel")}
-                            </Text>
-                            <Text
-                                style={{
-                                    color: theme.textPrimary,
-                                    fontSize: 42,
-                                    fontWeight: "900",
-                                }}
-                            >
-                                {user.credits}
-                            </Text>
-                            <Text
-                                style={{
-                                    color: theme.textMuted,
-                                    fontSize: 13,
-                                    lineHeight: 20,
-                                    marginTop: 6,
-                                }}
-                            >
-                                {t("profile.credits.balanceHint")}
-                            </Text>
-                        </View>
-
-                        {isLoading ? (
-                            <View style={{ paddingVertical: 18, alignItems: "center" }}>
-                                <ActivityIndicator color={theme.accent} />
-                            </View>
-                        ) : hasPendingPayment ? (
-                            <View style={{ gap: 12 }}>
-                                <View
-                                    style={{
-                                        backgroundColor: theme.chipBg,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            color: theme.textPrimary,
-                                            fontSize: 16,
-                                            fontWeight: "900",
-                                            marginBottom: 6,
-                                        }}
-                                    >
-                                        {t("profile.credits.pendingTitle")}
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: theme.textMuted,
-                                            fontSize: 14,
-                                            lineHeight: 21,
-                                        }}
-                                    >
-                                        {paymentExpiresAt
-                                            ? t("profile.credits.pendingDescriptionWithDate", {
-                                                  date: paymentExpiresAt,
-                                                  quantity: payment?.creditQuantity ?? 1,
-                                              })
-                                            : t("profile.credits.pendingDescription")}
-                                    </Text>
-                                </View>
-
-                                <TouchableOpacity activeOpacity={0.8} onPress={openModal}>
-                                    <LinearGradient
-                                        colors={theme.gradientAccent}
-                                        style={{
-                                            borderRadius: 16,
-                                            paddingVertical: 15,
-                                            paddingHorizontal: 18,
-                                        }}
-                                    >
-                                        <Text
-                                            style={{
-                                                color: btnColor,
-                                                fontSize: 16,
-                                                fontWeight: "900",
-                                                textAlign: "center",
-                                            }}
-                                        >
-                                            {t("profile.credits.continuePayment")}
-                                        </Text>
-                                    </LinearGradient>
-                                </TouchableOpacity>
-                            </View>
-                        ) : (
-                            <TouchableOpacity activeOpacity={0.8} onPress={openModal}>
-                                <LinearGradient
-                                    colors={theme.gradientAccent}
-                                    style={{
-                                        borderRadius: 16,
-                                        paddingVertical: 15,
-                                        paddingHorizontal: 18,
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            color: btnColor,
-                                            fontSize: 16,
-                                            fontWeight: "900",
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        {t("profile.credits.buy")}
-                                    </Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
-                    <View
-                        style={{
-                            backgroundColor: theme.inputBg,
-                            borderRadius: 24,
-                            padding: 20,
-                            borderWidth: 0.5,
-                            borderColor: theme.border,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: theme.textPrimary,
-                                fontSize: 20,
-                                fontWeight: "900",
-                                marginBottom: 6,
-                            }}
-                        >
-                            {t("profile.form.title")}
-                        </Text>
-                        <Text
-                            style={{
-                                color: theme.textMuted,
-                                fontSize: 13,
-                                lineHeight: 20,
-                                marginBottom: 20,
-                            }}
-                        >
-                            {t("profile.form.description")}
-                        </Text>
-
-                        <Input
-                            label={t("profile.form.currentPasswordLabel")}
-                            icon="key-outline"
-                            value={values.currentPassword}
-                            onChangeText={(value) => setField("currentPassword", value)}
-                            placeholder={t("profile.form.currentPasswordPlaceholder")}
-                            secure
-                            error={errors.currentPassword}
+                        <ProfileAccountSection
+                            name={user.name}
+                            email={user.email}
                         />
 
-                        <Input
-                            label={t("profile.form.newPasswordLabel")}
-                            icon="lock-closed-outline"
-                            value={values.newPassword}
-                            onChangeText={(value) => setField("newPassword", value)}
-                            placeholder={t("profile.form.newPasswordPlaceholder")}
-                            secure
-                            error={errors.newPassword}
+                        <ProfileLanguageSection
+                            locale={locale}
+                            onSelectLocale={setLocale}
                         />
 
-                        <Input
-                            label={t("profile.form.confirmNewPasswordLabel")}
-                            icon="shield-checkmark-outline"
-                            value={values.confirmPassword}
-                            onChangeText={(value) => setField("confirmPassword", value)}
-                            placeholder={t("profile.form.confirmNewPasswordPlaceholder")}
-                            secure
-                            error={errors.confirmPassword}
+                        <ProfileCreditsSection
+                            credits={user.credits}
+                            payment={payment}
+                            paymentExpiresAt={paymentExpiresAt}
+                            hasPendingPayment={hasPendingPayment}
+                            isLoading={isLoading}
+                            onOpenModal={openModal}
                         />
 
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            disabled={isSubmitting}
-                            onPress={handleSaveProfile}
-                            style={{ marginTop: 8, opacity: isSubmitting ? 0.8 : 1 }}
-                        >
-                            <LinearGradient
-                                colors={theme.gradientAccent}
-                                style={{
-                                    borderRadius: 16,
-                                    paddingVertical: 16,
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Text style={{ color: btnColor, fontSize: 16, fontWeight: "900" }}>
-                                    {isSubmitting
-                                        ? t("profile.form.saving")
-                                        : t("profile.form.save")}
-                                </Text>
-                            </LinearGradient>
-                        </TouchableOpacity>
+                        <ProfilePasswordSection
+                            values={values}
+                            errors={errors}
+                            isSubmitting={isSubmitting}
+                            setField={setField}
+                            onSave={handleSaveProfile}
+                        />
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
 
-            <CreditPurchaseModal
+            <ProfileCreditsModal
                 visible={isModalVisible}
                 step={step}
                 payment={payment}
@@ -658,5 +142,5 @@ export default function ProfileScreen() {
                 onRefreshStatus={() => void refreshStatus()}
             />
         </LinearGradient>
-    );
+    )
 }
