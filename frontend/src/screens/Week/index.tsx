@@ -8,11 +8,8 @@ import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { AIWizard } from '../../components/AIWizard'
 import { WizardData } from '../../components/AIWizard/types'
-import { AnimatedCard } from '../../components/AnimatedCard'
-import { CategoryBadge } from '../../components/CategoryBadge'
 import { ConfirmModal } from '../../components/ConfirmModal'
 import { CreditPurchaseModal } from '../../components/CreditPurchaseModal'
-import { GradientCard } from '../../components/GradientCard'
 import { WorkoutFormModal } from '../../components/WorkoutFormModal'
 import { useAuth } from '../../contexts/AuthContext'
 import { useI18n } from '../../contexts/I18nContext'
@@ -20,6 +17,8 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useCreditCheckout } from '../../hooks/useCreditCheckout'
 import { generateAIWorkout } from '../../services/aiWorkout'
 import { syncWorkoutData } from '../../services/workoutData'
+import { EmptyWorkout } from './components/EmptyWorkout'
+import { Workout } from './components/Workout'
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Week'>
 
@@ -196,140 +195,9 @@ export default function WeekScreen() {
                 keyExtractor={(item) => String(item.id)}
                 contentContainerStyle={{ gap: 12, paddingBottom: 40 }}
                 showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                    <View
-                        style={{
-                            backgroundColor: t.inputBg,
-                            borderRadius: 18,
-                            borderWidth: 0.5,
-                            borderColor: t.border,
-                            padding: 18,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: t.textPrimary,
-                                fontSize: 16,
-                                fontWeight: '800',
-                            }}
-                        >
-                            {translate('week.emptyDay')}
-                        </Text>
-                        <Text
-                            style={{
-                                color: t.textMuted,
-                                fontSize: 13,
-                                lineHeight: 19,
-                                marginTop: 6,
-                            }}
-                        >
-                            {translate('week.emptyHint')}
-                        </Text>
-                    </View>
-                }
+                ListEmptyComponent={<EmptyWorkout />}
                 renderItem={({ item: workout, index }) => {
-                    const isEmpty = workout.machines.length === 0
-
-                    return (
-                        <AnimatedCard index={index}>
-                            <GradientCard
-                                onPress={() => {
-                                    navigation.navigate('Day', {
-                                        workoutId: workout.id,
-                                    })
-                                }}
-                            >
-                                <View style={{ flex: 1 }}>
-                                    <Text
-                                        style={{
-                                            color: t.textPrimary,
-                                            fontSize: 16,
-                                            fontWeight: '700',
-                                        }}
-                                    >
-                                        {workout.title}
-                                    </Text>
-
-                                    {workout.description ? (
-                                        <Text
-                                            style={{
-                                                color: t.textMuted,
-                                                fontSize: 12,
-                                                lineHeight: 18,
-                                                marginTop: 6,
-                                            }}
-                                            numberOfLines={2}
-                                        >
-                                            {workout.description}
-                                        </Text>
-                                    ) : null}
-
-                                    {isEmpty ? (
-                                        <Text
-                                            style={{
-                                                color: t.textDim,
-                                                fontSize: 12,
-                                                marginTop: 8,
-                                                fontStyle: 'italic',
-                                            }}
-                                        >
-                                            {translate('day.emptyMachines')}
-                                        </Text>
-                                    ) : (
-                                        <View
-                                            style={{
-                                                flexDirection: 'row',
-                                                flexWrap: 'wrap',
-                                                gap: 6,
-                                                marginTop: 10,
-                                            }}
-                                        >
-                                            {[
-                                                ...new Set(
-                                                    workout.machines.map(
-                                                        (machine) =>
-                                                            machine.categoryKey,
-                                                    ),
-                                                ),
-                                            ].map((key) => (
-                                                <CategoryBadge
-                                                    key={key}
-                                                    categoryKey={key}
-                                                />
-                                            ))}
-                                            <Text
-                                                style={{
-                                                    color: t.textDim,
-                                                    fontSize: 11,
-                                                    alignSelf: 'center',
-                                                    marginLeft: 2,
-                                                }}
-                                            >
-                                                {translate(
-                                                    'week.machineCount',
-                                                    {
-                                                        count: workout.machines
-                                                            .length,
-                                                        pluralSuffix:
-                                                            workout.machines
-                                                                .length !== 1
-                                                                ? 's'
-                                                                : '',
-                                                    },
-                                                )}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </View>
-
-                                <Ionicons
-                                    name='chevron-forward'
-                                    size={18}
-                                    color={t.textMuted}
-                                />
-                            </GradientCard>
-                        </AnimatedCard>
-                    )
+                    return <Workout index={index} workout={workout} />
                 }}
             />
 
