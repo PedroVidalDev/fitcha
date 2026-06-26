@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import {
     Animated,
     KeyboardAvoidingView,
@@ -13,97 +13,40 @@ import {
 import { AppModal } from '../../components/AppModal'
 import { ConfirmModal } from '../../components/ConfirmModal'
 import { Input } from '../../components/Input'
-import {
-    getAuthRequestErrorCode,
-    isServiceUnavailableAuthError,
-    useAuth,
-} from '../../contexts/AuthContext'
 import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
-import { useFormErrors } from '../../hooks/useFormValidations'
-import { getAuthErrorPresentation } from '../../utils/authErrors'
+import { useLoginScreen } from './useLoginScreen'
 
 export default function Login() {
     const { t: theme } = useTheme()
     const { t } = useI18n()
-    const { login, requestPasswordReset } = useAuth()
     const navigation = useNavigation()
-
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isServiceErrorModalVisible, setIsServiceErrorModalVisible] =
-        useState(false)
-    const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] =
-        useState(false)
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
-    const [forgotPasswordError, setForgotPasswordError] = useState<
-        string | undefined
-    >()
-    const [isRequestingPasswordReset, setIsRequestingPasswordReset] =
-        useState(false)
-    const [passwordResetSuccessMessage, setPasswordResetSuccessMessage] =
-        useState<string | null>(null)
-
-    const { errors, setError, clearError, clearAll } = useFormErrors()
+    const {
+        email,
+        errors,
+        password,
+        handleLogin,
+        isSubmitting,
+        handleEmailChange,
+        forgotPasswordEmail,
+        forgotPasswordError,
+        handlePasswordChange,
+        handleForgotPassword,
+        closeServiceErrorModal,
+        openForgotPasswordModal,
+        closeForgotPasswordModal,
+        isRequestingPasswordReset,
+        isServiceErrorModalVisible,
+        passwordResetSuccessMessage,
+        isForgotPasswordModalVisible,
+        closePasswordResetSuccessModal,
+        handleForgotPasswordEmailChange,
+    } = useLoginScreen()
 
     const logoFade = useRef(new Animated.Value(0)).current
     const logoSlide = useRef(new Animated.Value(-30)).current
     const formFade = useRef(new Animated.Value(0)).current
     const formSlide = useRef(new Animated.Value(40)).current
-
-    const validate = (): boolean => {
-        clearAll()
-        let valid = true
-
-        if (!email.trim()) {
-            setError('email', t('auth.validation.emailRequired'))
-            valid = false
-        } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-            setError('email', t('auth.validation.emailInvalid'))
-            valid = false
-        }
-
-        if (!password.trim()) {
-            setError('password', t('auth.validation.passwordRequired'))
-            valid = false
-        }
-
-        return valid
-    }
-
-    const handleLogin = async () => {
-        if (!validate() || isSubmitting) return
-
-        setIsSubmitting(true)
-
-        try {
-            await login(email.trim(), password)
-        } catch (error) {
-            if (isServiceUnavailableAuthError(error)) {
-                setIsServiceErrorModalVisible(true)
-                return
-            }
-
-            const presentation = getAuthErrorPresentation(
-                getAuthRequestErrorCode(error),
-                'login',
-            )
-            if (presentation) {
-                setError(presentation.field, t(presentation.translationKey))
-                return
-            }
-
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : t('auth.errors.genericLogin')
-
-            setError('password', message)
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
 
     const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
 
@@ -137,67 +80,6 @@ export default function Login() {
             ]),
         ]).start()
     }, [formFade, formSlide, logoFade, logoSlide])
-
-    const closeServiceErrorModal = () => setIsServiceErrorModalVisible(false)
-    const closePasswordResetSuccessModal = () =>
-        setPasswordResetSuccessMessage(null)
-
-    const openForgotPasswordModal = () => {
-        setForgotPasswordEmail((current) => {
-            const nextEmail = email.trim()
-            return nextEmail || current
-        })
-        setForgotPasswordError(undefined)
-        setIsForgotPasswordModalVisible(true)
-    }
-
-    const closeForgotPasswordModal = () => {
-        if (isRequestingPasswordReset) return
-        setForgotPasswordError(undefined)
-        setIsForgotPasswordModalVisible(false)
-    }
-
-    const handleForgotPassword = async () => {
-        const normalizedEmail = forgotPasswordEmail.trim()
-
-        if (!normalizedEmail) {
-            setForgotPasswordError(t('auth.validation.emailRequired'))
-            return
-        }
-
-        if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
-            setForgotPasswordError(t('auth.validation.emailInvalid'))
-            return
-        }
-
-        if (isRequestingPasswordReset) return
-
-        setIsRequestingPasswordReset(true)
-
-        try {
-            await requestPasswordReset(normalizedEmail)
-            setIsForgotPasswordModalVisible(false)
-            setForgotPasswordError(undefined)
-            setPasswordResetSuccessMessage(
-                t('auth.resetPassword.successMessage', {
-                    email: normalizedEmail,
-                }),
-            )
-        } catch (error) {
-            if (isServiceUnavailableAuthError(error)) {
-                setIsServiceErrorModalVisible(true)
-                return
-            }
-
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : t('auth.resetPassword.error')
-            setForgotPasswordError(message)
-        } finally {
-            setIsRequestingPasswordReset(false)
-        }
-    }
 
     return (
         <LinearGradient
@@ -269,10 +151,7 @@ export default function Login() {
                         label={t('auth.login.emailLabel')}
                         icon='mail-outline'
                         value={email}
-                        onChangeText={(value) => {
-                            setEmail(value)
-                            clearError('email')
-                        }}
+                        onChangeText={handleEmailChange}
                         placeholder={t('auth.login.emailPlaceholder')}
                         keyboardType='email-address'
                         error={errors.email}
@@ -282,10 +161,7 @@ export default function Login() {
                         label={t('auth.login.passwordLabel')}
                         icon='lock-closed-outline'
                         value={password}
-                        onChangeText={(value) => {
-                            setPassword(value)
-                            clearError('password')
-                        }}
+                        onChangeText={handlePasswordChange}
                         placeholder={t('auth.login.passwordPlaceholder')}
                         secure
                         error={errors.password}
@@ -443,10 +319,7 @@ export default function Login() {
                     label={t('auth.login.emailLabel')}
                     icon='mail-outline'
                     value={forgotPasswordEmail}
-                    onChangeText={(value) => {
-                        setForgotPasswordEmail(value)
-                        setForgotPasswordError(undefined)
-                    }}
+                    onChangeText={handleForgotPasswordEmailChange}
                     placeholder={t('auth.login.emailPlaceholder')}
                     keyboardType='email-address'
                     error={forgotPasswordError}
