@@ -7,8 +7,6 @@ import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useState } from 'react'
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { AnimatedCard } from '../../components/AnimatedCard'
-import { AppModal } from '../../components/AppModal'
 import { CategoryBadge } from '../../components/CategoryBadge'
 import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -17,22 +15,11 @@ import {
     getHistoryEntryVolume,
     getRecordHistoryEntry,
 } from '../../utils/workoutRecords'
+import { History } from './components/History'
+import { PhotoModal } from './components/PhotoModal'
+import { PhotoModalState } from './components/PhotoModal/types'
 
 type Route = RouteProp<RootStackParamList, 'MachineDetail'>
-type PhotoModalAction = {
-    label: string
-    icon: keyof typeof Ionicons.glyphMap
-    variant?: 'default' | 'accent' | 'danger'
-    onPress: () => void
-}
-
-type PhotoModalState = {
-    title: string
-    message?: string
-    actions: PhotoModalAction[]
-    closeLabel?: string
-    hideCloseButton?: boolean
-}
 
 export default function MachineDetailScreen() {
     const { t } = useTheme()
@@ -46,7 +33,6 @@ export default function MachineDetailScreen() {
     const { photo, updatePhoto, removePhoto } = useMachinePhoto(machineId)
 
     const [photoModal, setPhotoModal] = useState<PhotoModalState | null>(null)
-    const btnColor = t.mode === 'dark' ? '#0d0500' : '#FFF'
 
     const closePhotoModal = () => {
         setPhotoModal(null)
@@ -473,190 +459,16 @@ export default function MachineDetailScreen() {
                 ) : (
                     <View style={{ gap: 8 }}>
                         {history.map((item, index) => (
-                            <AnimatedCard key={item.id} index={index}>
-                                <View
-                                    style={{
-                                        flexDirection: 'row',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        backgroundColor: t.histBg,
-                                        borderRadius: 12,
-                                        paddingHorizontal: 16,
-                                        paddingVertical: 12,
-                                        borderWidth: 0.5,
-                                        borderColor: t.border,
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            color: t.textMuted,
-                                            fontSize: 13,
-                                            fontWeight: '500',
-                                        }}
-                                    >
-                                        {item.label}
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: t.accent,
-                                            fontSize: 14,
-                                            fontWeight: '700',
-                                        }}
-                                    >
-                                        {formatSetSequence(item.sets, ' / ')}
-                                    </Text>
-                                </View>
-                            </AnimatedCard>
+                            <History key={item.id} item={item} index={index} />
                         ))}
                     </View>
                 )}
             </ScrollView>
 
-            <AppModal visible={!!photoModal} onClose={closePhotoModal} compact>
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    bounces={false}
-                    contentContainerStyle={{ paddingBottom: 4 }}
-                >
-                    <Text
-                        style={{
-                            color: t.accent,
-                            fontSize: 20,
-                            fontWeight: '800',
-                            marginBottom: 10,
-                        }}
-                    >
-                        {photoModal?.title ?? ''}
-                    </Text>
-                    {!!photoModal?.message && (
-                        <Text
-                            style={{
-                                color: t.textMuted,
-                                fontSize: 14,
-                                lineHeight: 20,
-                                marginBottom: 18,
-                            }}
-                        >
-                            {photoModal.message}
-                        </Text>
-                    )}
-
-                    <View style={{ gap: 10 }}>
-                        {photoModal?.actions.map((action) => (
-                            <TouchableOpacity
-                                key={action.label}
-                                activeOpacity={0.78}
-                                onPress={action.onPress}
-                            >
-                                {action.variant === 'accent' ? (
-                                    <LinearGradient
-                                        colors={t.gradientAccent}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: 10,
-                                            paddingVertical: 14,
-                                            paddingHorizontal: 16,
-                                            borderRadius: 14,
-                                        }}
-                                    >
-                                        <Ionicons
-                                            name={action.icon}
-                                            size={18}
-                                            color={btnColor}
-                                        />
-                                        <Text
-                                            style={{
-                                                color: btnColor,
-                                                fontSize: 15,
-                                                fontWeight: '800',
-                                            }}
-                                        >
-                                            {action.label}
-                                        </Text>
-                                    </LinearGradient>
-                                ) : (
-                                    <View
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: 10,
-                                            paddingVertical: 14,
-                                            paddingHorizontal: 16,
-                                            borderRadius: 14,
-                                            backgroundColor:
-                                                action.variant === 'danger'
-                                                    ? '#EF5350'
-                                                    : t.inputBg,
-                                            borderWidth:
-                                                action.variant === 'danger'
-                                                    ? 0
-                                                    : 0.5,
-                                            borderColor:
-                                                action.variant === 'danger'
-                                                    ? 'transparent'
-                                                    : t.border,
-                                        }}
-                                    >
-                                        <Ionicons
-                                            name={action.icon}
-                                            size={18}
-                                            color={
-                                                action.variant === 'danger'
-                                                    ? '#FFF'
-                                                    : t.textMuted
-                                            }
-                                        />
-                                        <Text
-                                            style={{
-                                                color:
-                                                    action.variant === 'danger'
-                                                        ? '#FFF'
-                                                        : t.textMuted,
-                                                fontSize: 15,
-                                                fontWeight: '700',
-                                            }}
-                                        >
-                                            {action.label}
-                                        </Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {!photoModal?.hideCloseButton && (
-                        <TouchableOpacity
-                            onPress={closePhotoModal}
-                            activeOpacity={0.8}
-                            style={{
-                                marginTop: 12,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: 14,
-                                borderWidth: 0.5,
-                                borderColor: t.border,
-                                backgroundColor: t.card,
-                                paddingVertical: 14,
-                                paddingHorizontal: 16,
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: t.textMuted,
-                                    fontSize: 15,
-                                    fontWeight: '700',
-                                }}
-                            >
-                                {photoModal?.closeLabel ??
-                                    translate('common.actions.cancel')}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                </ScrollView>
-            </AppModal>
+            <PhotoModal
+                photoModal={photoModal}
+                closePhotoModal={closePhotoModal}
+            />
         </>
     )
 }
