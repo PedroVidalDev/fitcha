@@ -1,9 +1,9 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { Text, TouchableOpacity, View } from "react-native";
-import { AppModal } from "../AppModal";
-import { useI18n } from "../../contexts/I18nContext";
-import { useTheme } from "../../contexts/ThemeContext";
-import { ConfirmModalProps } from "./types";
+import { LinearGradient } from 'expo-linear-gradient'
+import { Text, TouchableOpacity, View } from 'react-native'
+import { AppModal } from '../AppModal'
+import { useI18n } from '../../contexts/I18nContext'
+import { useTheme } from '../../contexts/ThemeContext'
+import { ConfirmModalProps } from './types'
 
 export const ConfirmModal = (props: ConfirmModalProps) => {
     const {
@@ -13,24 +13,31 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
         confirmLabel,
         cancelLabel,
         hideCancel = false,
-        confirmVariant = "danger",
+        confirmVariant = 'danger',
         onClose,
         onConfirm,
-    } = props;
+    } = props
 
-    const { t } = useTheme();
-    const { t: translate } = useI18n();
-    const btnColor = t.mode === "dark" ? "#0d0500" : "#FFF";
-    const resolvedConfirmLabel = confirmLabel ?? translate("common.actions.confirm");
-    const resolvedCancelLabel = cancelLabel ?? translate("common.actions.cancel");
+    const { t } = useTheme()
+    const { t: translate } = useI18n()
+    const btnColor = t.mode === 'dark' ? '#0d0500' : '#FFF'
+    const resolvedConfirmLabel =
+        confirmLabel ?? translate('common.actions.confirm')
+    const resolvedCancelLabel =
+        cancelLabel ?? translate('common.actions.cancel')
 
     return (
-        <AppModal visible={visible} onClose={onClose} overlayPadding={24} compact>
+        <AppModal
+            visible={visible}
+            onClose={onClose}
+            overlayPadding={24}
+            compact
+        >
             <Text
                 style={{
                     color: t.accent,
                     fontSize: 20,
-                    fontWeight: "800",
+                    fontWeight: '800',
                     marginBottom: 10,
                 }}
             >
@@ -46,14 +53,23 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
             >
                 {message}
             </Text>
-            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+            <View
+                style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    gap: 12,
+                }}
+            >
                 {!hideCancel && (
-                    <TouchableOpacity onPress={onClose} style={{ padding: 12, justifyContent: "center" }}>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        style={{ padding: 12, justifyContent: 'center' }}
+                    >
                         <Text
                             style={{
                                 color: t.textMuted,
                                 fontSize: 15,
-                                fontWeight: "600",
+                                fontWeight: '600',
                             }}
                         >
                             {resolvedCancelLabel}
@@ -61,7 +77,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                     </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={onConfirm} activeOpacity={0.75}>
-                    {confirmVariant === "accent" ? (
+                    {confirmVariant === 'accent' ? (
                         <LinearGradient
                             colors={t.gradientAccent}
                             style={{
@@ -74,7 +90,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                                 style={{
                                     color: btnColor,
                                     fontSize: 15,
-                                    fontWeight: "800",
+                                    fontWeight: '800',
                                 }}
                             >
                                 {resolvedConfirmLabel}
@@ -83,7 +99,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                     ) : (
                         <View
                             style={{
-                                backgroundColor: "#EF5350",
+                                backgroundColor: '#EF5350',
                                 paddingHorizontal: 24,
                                 paddingVertical: 12,
                                 borderRadius: 12,
@@ -91,9 +107,9 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                         >
                             <Text
                                 style={{
-                                    color: "#FFF",
+                                    color: '#FFF',
                                     fontSize: 15,
-                                    fontWeight: "800",
+                                    fontWeight: '800',
                                 }}
                             >
                                 {resolvedConfirmLabel}
@@ -103,5 +119,5 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                 </TouchableOpacity>
             </View>
         </AppModal>
-    );
-};
+    )
+}

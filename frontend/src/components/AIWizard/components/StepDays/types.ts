@@ -1,4 +1,4 @@
 export type StepDaysProps = {
-    value: number[];
-    onChange: (value: number[]) => void;
-};
+    value: number[]
+    onChange: (value: number[]) => void
+}

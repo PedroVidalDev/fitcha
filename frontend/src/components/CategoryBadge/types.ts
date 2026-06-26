@@ -1,3 +1,3 @@
 export type CategoryBadgeProps = {
-    categoryKey: string;
-};
+    categoryKey: string
+}

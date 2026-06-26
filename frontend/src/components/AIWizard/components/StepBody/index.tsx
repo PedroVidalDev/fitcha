@@ -1,27 +1,32 @@
-import { useTheme } from "@/src/contexts/ThemeContext";
-import { Ionicons } from "@expo/vector-icons";
-import { Text, TextInput, View } from "react-native";
-import { useI18n } from "@/src/contexts/I18nContext";
-import { StepBodyProps } from "./types";
+import { useTheme } from '@/src/contexts/ThemeContext'
+import { Ionicons } from '@expo/vector-icons'
+import { Text, TextInput, View } from 'react-native'
+import { useI18n } from '@/src/contexts/I18nContext'
+import { StepBodyProps } from './types'
 
 export const StepBody = (props: StepBodyProps) => {
-    const { height, weight, onHeightChange, onWeightChange } = props;
+    const { height, weight, onHeightChange, onWeightChange } = props
 
-    const { t } = useTheme();
-    const { t: translate } = useI18n();
+    const { t } = useTheme()
+    const { t: translate } = useI18n()
 
     return (
         <View style={{ gap: 16 }}>
             <View>
                 <Text
-                    style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 12,
+                        fontWeight: '700',
+                        marginBottom: 8,
+                    }}
                 >
-                    {translate("aiWizard.body.heightLabel")}
+                    {translate('aiWizard.body.heightLabel')}
                 </Text>
                 <View
                     style={{
-                        flexDirection: "row",
-                        alignItems: "center",
+                        flexDirection: 'row',
+                        alignItems: 'center',
                         gap: 10,
                         backgroundColor: t.inputBg,
                         borderRadius: 14,
@@ -30,37 +35,52 @@ export const StepBody = (props: StepBodyProps) => {
                         borderColor: t.border,
                     }}
                 >
-                    <Ionicons name="resize-outline" size={18} color={t.textDim} />
+                    <Ionicons
+                        name='resize-outline'
+                        size={18}
+                        color={t.textDim}
+                    />
                     <TextInput
                         style={{
                             flex: 1,
                             padding: 16,
                             color: t.textPrimary,
                             fontSize: 20,
-                            fontWeight: "800",
+                            fontWeight: '800',
                         }}
-                        placeholder="175"
+                        placeholder='175'
                         placeholderTextColor={t.textDim}
-                        keyboardType="numeric"
+                        keyboardType='numeric'
                         value={height}
                         onChangeText={onHeightChange}
                     />
-                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>
-                        {translate("common.units.cm")}
+                    <Text
+                        style={{
+                            color: t.textMuted,
+                            fontSize: 14,
+                            fontWeight: '600',
+                        }}
+                    >
+                        {translate('common.units.cm')}
                     </Text>
                 </View>
             </View>
 
             <View>
                 <Text
-                    style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 12,
+                        fontWeight: '700',
+                        marginBottom: 8,
+                    }}
                 >
-                    {translate("aiWizard.body.weightLabel")}
+                    {translate('aiWizard.body.weightLabel')}
                 </Text>
                 <View
                     style={{
-                        flexDirection: "row",
-                        alignItems: "center",
+                        flexDirection: 'row',
+                        alignItems: 'center',
                         gap: 10,
                         backgroundColor: t.inputBg,
                         borderRadius: 14,
@@ -69,30 +89,47 @@ export const StepBody = (props: StepBodyProps) => {
                         borderColor: t.border,
                     }}
                 >
-                    <Ionicons name="scale-outline" size={18} color={t.textDim} />
+                    <Ionicons
+                        name='scale-outline'
+                        size={18}
+                        color={t.textDim}
+                    />
                     <TextInput
                         style={{
                             flex: 1,
                             padding: 16,
                             color: t.textPrimary,
                             fontSize: 20,
-                            fontWeight: "800",
+                            fontWeight: '800',
                         }}
-                        placeholder="75"
+                        placeholder='75'
                         placeholderTextColor={t.textDim}
-                        keyboardType="numeric"
+                        keyboardType='numeric'
                         value={weight}
                         onChangeText={onWeightChange}
                     />
-                    <Text style={{ color: t.textMuted, fontSize: 14, fontWeight: "600" }}>
-                        {translate("common.units.kg")}
+                    <Text
+                        style={{
+                            color: t.textMuted,
+                            fontSize: 14,
+                            fontWeight: '600',
+                        }}
+                    >
+                        {translate('common.units.kg')}
                     </Text>
                 </View>
             </View>
 
-            <Text style={{ color: t.textDim, fontSize: 12, textAlign: "center", marginTop: 4 }}>
-                {translate("aiWizard.body.hint")}
+            <Text
+                style={{
+                    color: t.textDim,
+                    fontSize: 12,
+                    textAlign: 'center',
+                    marginTop: 4,
+                }}
+            >
+                {translate('aiWizard.body.hint')}
             </Text>
         </View>
-    );
+    )
 }

@@ -2,7 +2,20 @@ import { AppData } from '../dtos/AppData'
 import { HistoryEntry, HistorySet } from '../dtos/HistoryEntry'
 import { Machine } from '../dtos/Machine'
 import { WorkoutPlan } from '../dtos/WorkoutPlan'
+import {
+    createWorkoutHistory,
+    getMyHistory,
+    HistoryApiEntry,
+    WorkoutHistoryInput,
+} from './history'
+import { getMyMachines, updateMachine } from './machines'
 import { clearScheduledNotifications } from './notifications'
+import {
+    createEmptyAppData,
+    getData,
+    getDataCacheKey,
+    saveData,
+} from './storage'
 import {
     addMachineToWorkout as addMachineToWorkoutRequest,
     createWorkout as createWorkoutRequest,
@@ -12,19 +25,6 @@ import {
     updateWorkout as updateWorkoutRequest,
     WorkoutMachineInput,
 } from './workouts'
-import {
-    createWorkoutHistory,
-    getMyHistory,
-    HistoryApiEntry,
-    WorkoutHistoryInput,
-} from './history'
-import { getMyMachines, updateMachine } from './machines'
-import {
-    createEmptyAppData,
-    getData,
-    getDataCacheKey,
-    saveData,
-} from './storage'
 
 let syncPromise: Promise<AppData> | null = null
 let lastSyncedCacheKey: string | null = null

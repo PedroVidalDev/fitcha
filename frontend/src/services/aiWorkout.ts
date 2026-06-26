@@ -1,53 +1,61 @@
-import { GPTResponse, WizardData } from "../components/AIWizard/types";
-import { translateRuntime } from "../translates/runtime";
-import { ensureApiUrlConfigured, axiosApp } from "./axios";
+import { GPTResponse, WizardData } from '../components/AIWizard/types'
+import { translateRuntime } from '../translates/runtime'
+import { ensureApiUrlConfigured, axiosApp } from './axios'
 
 type GenerateAIWorkoutResponse = GPTResponse & {
-    remainingCredits: number;
-};
+    remainingCredits: number
+}
 
 function getAIWorkoutErrorMessage(error: unknown, fallback: string) {
     if (
-        typeof error === "object" &&
+        typeof error === 'object' &&
         error !== null &&
-        "response" in error &&
-        typeof error.response === "object" &&
+        'response' in error &&
+        typeof error.response === 'object' &&
         error.response !== null &&
-        "data" in error.response &&
-        typeof error.response.data === "object" &&
+        'data' in error.response &&
+        typeof error.response.data === 'object' &&
         error.response.data !== null &&
-        "error" in error.response.data &&
-        typeof error.response.data.error === "string"
+        'error' in error.response.data &&
+        typeof error.response.data.error === 'string'
     ) {
-        return error.response.data.error;
+        return error.response.data.error
     }
 
     if (error instanceof Error && error.message) {
-        return error.message;
+        return error.message
     }
 
-    return fallback;
+    return fallback
 }
 
-export async function generateAIWorkout(data: WizardData): Promise<GenerateAIWorkoutResponse> {
-    ensureApiUrlConfigured();
+export async function generateAIWorkout(
+    data: WizardData,
+): Promise<GenerateAIWorkoutResponse> {
+    ensureApiUrlConfigured()
 
     try {
-        const response = await axiosApp.post<GenerateAIWorkoutResponse>("/me/ai-workout/generate", {
-            ...data,
-            daysPerWeek: data.selectedDays.length,
-            height: data.height.trim(),
-            weight: data.weight.trim(),
-            hoursPerDay: data.hoursPerDay.trim(),
-            machinesPerDay: data.machinesPerDay.trim(),
-            workoutSplit: data.workoutSplit.trim(),
-            customInstructions: data.customInstructions.trim(),
-        });
+        const response = await axiosApp.post<GenerateAIWorkoutResponse>(
+            '/me/ai-workout/generate',
+            {
+                ...data,
+                daysPerWeek: data.selectedDays.length,
+                height: data.height.trim(),
+                weight: data.weight.trim(),
+                hoursPerDay: data.hoursPerDay.trim(),
+                machinesPerDay: data.machinesPerDay.trim(),
+                workoutSplit: data.workoutSplit.trim(),
+                customInstructions: data.customInstructions.trim(),
+            },
+        )
 
-        return response.data;
+        return response.data
     } catch (error) {
         throw new Error(
-            getAIWorkoutErrorMessage(error, translateRuntime("services.aiWorkout.generateError")),
-        );
+            getAIWorkoutErrorMessage(
+                error,
+                translateRuntime('services.aiWorkout.generateError'),
+            ),
+        )
     }
 }

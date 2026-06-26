@@ -1,54 +1,69 @@
-import { isAxiosError } from "axios";
-import { CreditCheckoutResponse, CreditSummaryResponse } from "../@types/credit";
-import { translateRuntime } from "../translates/runtime";
-import { axiosApp, ensureApiUrlConfigured } from "./axios";
+import { isAxiosError } from 'axios'
+import { CreditCheckoutResponse, CreditSummaryResponse } from '../@types/credit'
+import { translateRuntime } from '../translates/runtime'
+import { axiosApp, ensureApiUrlConfigured } from './axios'
 
 function getCreditErrorMessage(error: unknown, fallback: string) {
     if (isAxiosError(error)) {
-        const responseData = error.response?.data;
+        const responseData = error.response?.data
 
         if (
             responseData &&
-            typeof responseData === "object" &&
-            "error" in responseData &&
-            typeof responseData.error === "string" &&
+            typeof responseData === 'object' &&
+            'error' in responseData &&
+            typeof responseData.error === 'string' &&
             responseData.error.trim()
         ) {
-            return responseData.error;
+            return responseData.error
         }
     }
 
     if (error instanceof Error && error.message.trim()) {
-        return error.message;
+        return error.message
     }
 
-    return fallback;
+    return fallback
 }
 
 export async function getCreditSummary() {
-    ensureApiUrlConfigured();
+    ensureApiUrlConfigured()
 
     try {
-        const response = await axiosApp.get<CreditSummaryResponse>("/me/credits");
-        return response.data;
+        const response =
+            await axiosApp.get<CreditSummaryResponse>('/me/credits')
+        return response.data
     } catch (error) {
         throw new Error(
-            getCreditErrorMessage(error, translateRuntime("services.credit.loadError")),
-        );
+            getCreditErrorMessage(
+                error,
+                translateRuntime('services.credit.loadError'),
+            ),
+        )
     }
 }
 
-export async function createCreditCheckout(creditQuantity: number, documentNumber: string) {
-    ensureApiUrlConfigured();
+export async function createCreditCheckout(
+    creditQuantity: number,
+    documentNumber: string,
+) {
+    ensureApiUrlConfigured()
 
     try {
-        const response = await axiosApp.post<CreditCheckoutResponse>("/me/credits/checkout", {
-            creditQuantity,
-            documentNumber,
-        });
+        const response = await axiosApp.post<CreditCheckoutResponse>(
+            '/me/credits/checkout',
+            {
+                creditQuantity,
+                documentNumber,
+            },
+        )
 
-        return response.data;
+        return response.data
     } catch (error) {
-        throw new Error(getCreditErrorMessage(error, translateRuntime("services.credit.checkoutError")));
+        throw new Error(
+            getCreditErrorMessage(
+                error,
+                translateRuntime('services.credit.checkoutError'),
+            ),
+        )
     }
 }

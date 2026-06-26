@@ -1,55 +1,55 @@
-import { enUS } from "./en-US";
-import { esES } from "./es-ES";
-import { ptBR } from "./pt-BR";
+import { enUS } from './en-US'
+import { esES } from './es-ES'
+import { ptBR } from './pt-BR'
 
-export type SupportedLocale = "pt-BR" | "en-US" | "es-ES";
-export type TranslationKey = keyof typeof ptBR;
-export type TranslationDictionary = Record<TranslationKey, string>;
-export type TranslationParams = Record<string, number | string>;
+export type SupportedLocale = 'pt-BR' | 'en-US' | 'es-ES'
+export type TranslationKey = keyof typeof ptBR
+export type TranslationDictionary = Record<TranslationKey, string>
+export type TranslationParams = Record<string, number | string>
 
-export const defaultLocale: SupportedLocale = "pt-BR";
-export const supportedLocales: SupportedLocale[] = ["pt-BR", "en-US", "es-ES"];
+export const defaultLocale: SupportedLocale = 'pt-BR'
+export const supportedLocales: SupportedLocale[] = ['pt-BR', 'en-US', 'es-ES']
 export const localeLabels: Record<SupportedLocale, string> = {
-    "pt-BR": "Português (Brasil)",
-    "en-US": "English (US)",
-    "es-ES": "Español",
-};
+    'pt-BR': 'Português (Brasil)',
+    'en-US': 'English (US)',
+    'es-ES': 'Español',
+}
 
 const translations: Record<SupportedLocale, TranslationDictionary> = {
-    "pt-BR": ptBR,
-    "en-US": enUS,
-    "es-ES": esES,
-};
+    'pt-BR': ptBR,
+    'en-US': enUS,
+    'es-ES': esES,
+}
 
 const localeAliases: Record<string, SupportedLocale> = {
-    pt: "pt-BR",
-    "pt-br": "pt-BR",
-    en: "en-US",
-    "en-us": "en-US",
-    es: "es-ES",
-    "es-es": "es-ES",
-    "es-419": "es-ES",
-};
+    pt: 'pt-BR',
+    'pt-br': 'pt-BR',
+    en: 'en-US',
+    'en-us': 'en-US',
+    es: 'es-ES',
+    'es-es': 'es-ES',
+    'es-419': 'es-ES',
+}
 
 function interpolate(template: string, params?: TranslationParams) {
-    if (!params) return template;
+    if (!params) return template
 
     return template.replace(/\{(\w+)\}/g, (_, key: string) => {
-        if (!(key in params)) return `{${key}}`;
-        return String(params[key]);
-    });
+        if (!(key in params)) return `{${key}}`
+        return String(params[key])
+    })
 }
 
 export function normalizeLocale(locale?: string | null): SupportedLocale {
-    if (!locale) return defaultLocale;
+    if (!locale) return defaultLocale
 
-    const normalized = locale.replace(/_/g, "-").toLowerCase();
+    const normalized = locale.replace(/_/g, '-').toLowerCase()
 
     if (normalized in localeAliases) {
-        return localeAliases[normalized];
+        return localeAliases[normalized]
     }
 
-    return defaultLocale;
+    return defaultLocale
 }
 
 export function translate(
@@ -57,8 +57,8 @@ export function translate(
     key: TranslationKey,
     params?: TranslationParams,
 ) {
-    const dictionary = translations[locale] ?? translations[defaultLocale];
-    const template = dictionary[key] ?? translations[defaultLocale][key] ?? key;
+    const dictionary = translations[locale] ?? translations[defaultLocale]
+    const template = dictionary[key] ?? translations[defaultLocale][key] ?? key
 
-    return interpolate(template, params);
+    return interpolate(template, params)
 }
