@@ -3,6 +3,7 @@ export type Mode = 'dark' | 'light'
 export type ThemePalette = {
     mode: Mode
     bg: string
+    btnColor: string
     card: string
     surface: string
     border: string
@@ -46,6 +47,7 @@ export const dark: ThemePalette = {
     mode: 'dark',
     bg: '#160A03',
     card: '#241108',
+    btnColor: '#0d0500',
     surface: '#34170A',
     border: 'rgba(255, 183, 94, 0.16)',
     accent: '#F4A261',
@@ -104,6 +106,7 @@ export const light: ThemePalette = {
     mode: 'light',
     bg: '#F7F1EA',
     card: '#FFF8F1',
+    btnColor: '#FFF',
     surface: '#F4E7DA',
     border: 'rgba(194, 101, 26, 0.14)',
     accent: '#C2651A',

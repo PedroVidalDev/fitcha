@@ -9,7 +9,6 @@ export function ProfileHeaderCard(props: ProfileHeaderCardProps) {
     const { name } = props
     const { t: theme } = useTheme()
     const { t } = useI18n()
-    const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
 
     return (
         <ProfileCard>
@@ -26,7 +25,7 @@ export function ProfileHeaderCard(props: ProfileHeaderCardProps) {
             >
                 <Text
                     style={{
-                        color: btnColor,
+                        color: theme.btnColor,
                         fontSize: 20,
                         fontWeight: '900',
                     }}

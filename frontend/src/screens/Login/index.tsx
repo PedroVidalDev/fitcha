@@ -48,8 +48,6 @@ export default function Login() {
     const formFade = useRef(new Animated.Value(0)).current
     const formSlide = useRef(new Animated.Value(40)).current
 
-    const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
-
     useEffect(() => {
         Animated.sequence([
             Animated.parallel([
@@ -117,7 +115,11 @@ export default function Login() {
                             marginBottom: 16,
                         }}
                     >
-                        <Ionicons name='barbell' size={40} color={btnColor} />
+                        <Ionicons
+                            name='barbell'
+                            size={40}
+                            color={theme.btnColor}
+                        />
                     </View>
                     <Text
                         style={{
@@ -209,7 +211,7 @@ export default function Login() {
                         >
                             <Text
                                 style={{
-                                    color: btnColor,
+                                    color: theme.btnColor,
                                     fontSize: 17,
                                     fontWeight: '900',
                                 }}
@@ -369,7 +371,7 @@ export default function Login() {
                         >
                             <Text
                                 style={{
-                                    color: btnColor,
+                                    color: theme.btnColor,
                                     fontSize: 15,
                                     fontWeight: '800',
                                 }}

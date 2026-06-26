@@ -17,7 +17,6 @@ export function ProfileCreditsSection(props: ProfileCreditsSectionProps) {
     } = props
     const { t: theme } = useTheme()
     const { t } = useI18n()
-    const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
 
     return (
         <ProfileCard>
@@ -87,7 +86,7 @@ export function ProfileCreditsSection(props: ProfileCreditsSectionProps) {
                 >
                     <Text
                         style={{
-                            color: btnColor,
+                            color: theme.btnColor,
                             fontSize: 11,
                             fontWeight: '800',
                             textTransform: 'uppercase',
@@ -210,7 +209,7 @@ export function ProfileCreditsSection(props: ProfileCreditsSectionProps) {
                         >
                             <Text
                                 style={{
-                                    color: btnColor,
+                                    color: theme.btnColor,
                                     fontSize: 16,
                                     fontWeight: '900',
                                     textAlign: 'center',
@@ -233,7 +232,7 @@ export function ProfileCreditsSection(props: ProfileCreditsSectionProps) {
                     >
                         <Text
                             style={{
-                                color: btnColor,
+                                color: theme.btnColor,
                                 fontSize: 16,
                                 fontWeight: '900',
                                 textAlign: 'center',

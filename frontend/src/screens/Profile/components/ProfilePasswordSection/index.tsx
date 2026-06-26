@@ -11,7 +11,6 @@ export function ProfilePasswordSection(props: ProfilePasswordSectionProps) {
     const { values, errors, isSubmitting, setField, onSave } = props
     const { t: theme } = useTheme()
     const { t } = useI18n()
-    const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
 
     return (
         <ProfileCard>
@@ -69,7 +68,7 @@ export function ProfilePasswordSection(props: ProfilePasswordSectionProps) {
                 >
                     <Text
                         style={{
-                            color: btnColor,
+                            color: theme.btnColor,
                             fontSize: 16,
                             fontWeight: '900',
                         }}
