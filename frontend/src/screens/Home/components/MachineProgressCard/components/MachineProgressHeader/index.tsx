@@ -17,7 +17,7 @@ export function MachineProgressHeader(props: MachineProgressHeaderProps) {
               : t.home.danger
     const comparisonText =
         item.deltaFromStart === null
-            ? item.latestWeight === null
+            ? item.latestMetric === null
                 ? translate('home.machine.comparison.noHistory')
                 : translate('home.machine.comparison.needMore')
             : translate('home.machine.comparison.default')
@@ -77,7 +77,7 @@ export function MachineProgressHeader(props: MachineProgressHeaderProps) {
                     marginTop: 14,
                 }}
             >
-                {formatDelta(item.deltaFromStart, translate)}
+                {formatDelta(item.deltaFromStart, item.metricKind, translate)}
             </Text>
 
             <Text

@@ -10,10 +10,12 @@ import (
 )
 
 type UpdateMachineInput struct {
-	Name        *string
-	Description *string
-	Photo       *string
-	CategoryKey *string
+	Name           *string
+	Description    *string
+	Photo          *string
+	CategoryKey    *string
+	TrackingType   *string
+	RequiresWeight *bool
 }
 
 type MachineService struct {
@@ -84,6 +86,30 @@ func (s *MachineService) Update(userID uint, machineID string, input UpdateMachi
 		}
 
 		machine.CategoryKey = categoryKey
+	}
+
+	if input.TrackingType != nil || input.RequiresWeight != nil {
+		if isCatalogLinked {
+			return models.UserMachine{}, errors.New("o tipo de registro de uma maquina de catalogo nao pode ser alterado")
+		}
+
+		trackingType := machine.EffectiveTrackingType()
+		if input.TrackingType != nil {
+			trackingType = strings.TrimSpace(*input.TrackingType)
+		}
+
+		requiresWeight := machine.EffectiveRequiresWeight()
+		if input.RequiresWeight != nil {
+			requiresWeight = *input.RequiresWeight
+		}
+
+		normalizedTrackingType, normalizedRequiresWeight, err := models.NormalizeMachineTrackingConfig(trackingType, requiresWeight)
+		if err != nil {
+			return models.UserMachine{}, err
+		}
+
+		machine.TrackingType = normalizedTrackingType
+		machine.RequiresWeight = normalizedRequiresWeight
 	}
 
 	return s.userMachines.Update(machine)

@@ -1,6 +1,7 @@
 import { Animated as RNAnimated, ScrollView, View } from 'react-native'
 import { useTheme } from '../../contexts/ThemeContext'
 import { WorkoutConfirmModal } from './components/WorkoutConfirmModal'
+import { WorkoutDurationCard } from './components/WorkoutDurationCard'
 import { WorkoutFooterActions } from './components/WorkoutFooterActions'
 import { WorkoutHeader } from './components/WorkoutHeader'
 import { WorkoutLoadingState } from './components/WorkoutLoadingState'
@@ -30,6 +31,7 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         modal,
         machineProgressItems,
         seriesFields,
+        durationConfig,
         hasLockedSeries,
         fadeAnim,
         slideAnim,
@@ -43,6 +45,7 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         handleSelectMachine,
         handleUpdateDraftField,
         handleConfirmDraftField,
+        handleDurationAction,
     } = useWorkoutScreen(props)
 
     if (isLoading) {
@@ -98,13 +101,20 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                         restElapsed={restElapsed}
                     />
 
-                    <WorkoutSeriesList
-                        machineId={machine.id}
-                        items={seriesFields}
-                        hasLockedSeries={hasLockedSeries}
-                        onChangeField={handleUpdateDraftField}
-                        onConfirmField={handleConfirmDraftField}
-                    />
+                    {machine.trackingType === 'duration' && durationConfig ? (
+                        <WorkoutDurationCard
+                            config={durationConfig}
+                            onAction={handleDurationAction}
+                        />
+                    ) : (
+                        <WorkoutSeriesList
+                            machineId={machine.id}
+                            items={seriesFields}
+                            hasLockedSeries={hasLockedSeries}
+                            onChangeField={handleUpdateDraftField}
+                            onConfirmField={handleConfirmDraftField}
+                        />
+                    )}
 
                     <WorkoutFooterActions
                         canGoBack={canGoPrev}

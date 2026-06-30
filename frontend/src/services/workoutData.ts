@@ -1,6 +1,6 @@
 import { AppData } from '../dtos/AppData'
 import { HistoryEntry, HistorySet } from '../dtos/HistoryEntry'
-import { Machine } from '../dtos/Machine'
+import { Machine, MachineTrackingType } from '../dtos/Machine'
 import { WorkoutPlan } from '../dtos/WorkoutPlan'
 import {
     createWorkoutHistory,
@@ -46,7 +46,7 @@ function buildAppData(
     const data = createEmptyAppData()
 
     machines.forEach((machine) => {
-        data.machines[machine.id] = machine
+        data.machines[machine.id] = normalizeMachine(machine) ?? machine
     })
 
     workouts.forEach((workout) => {
@@ -71,9 +71,55 @@ function toHistoryEntry(entry: HistoryApiEntry): HistoryEntry {
         sets: entry.sets.map((set) => ({
             weight: set.weight,
             reps: set.reps,
+            durationSeconds: set.durationSeconds ?? 0,
         })),
         date: entry.date,
         label: '',
+    }
+}
+
+function normalizeTrackingType(value: unknown): MachineTrackingType {
+    return value === 'duration' ? 'duration' : 'sets'
+}
+
+function normalizeMachine(value: unknown): Machine | null {
+    if (!value || typeof value !== 'object') {
+        return null
+    }
+
+    const candidate = value as Partial<Machine>
+    if (
+        typeof candidate.id !== 'string' ||
+        typeof candidate.name !== 'string' ||
+        typeof candidate.categoryKey !== 'string'
+    ) {
+        return null
+    }
+
+    const trackingType = normalizeTrackingType(candidate.trackingType)
+    const requiresWeight =
+        trackingType === 'duration'
+            ? false
+            : typeof candidate.requiresWeight === 'boolean'
+              ? candidate.requiresWeight
+              : true
+
+    return {
+        id: candidate.id,
+        catalogMachineId:
+            typeof candidate.catalogMachineId === 'string'
+                ? candidate.catalogMachineId
+                : undefined,
+        name: candidate.name,
+        description:
+            typeof candidate.description === 'string'
+                ? candidate.description
+                : undefined,
+        photo:
+            typeof candidate.photo === 'string' ? candidate.photo : undefined,
+        categoryKey: candidate.categoryKey,
+        trackingType,
+        requiresWeight,
     }
 }
 
@@ -84,6 +130,7 @@ function normalizeHistorySet(value: unknown): HistorySet | null {
         return {
             weight: value,
             reps: 0,
+            durationSeconds: 0,
         }
     }
 
@@ -95,26 +142,49 @@ function normalizeHistorySet(value: unknown): HistorySet | null {
         'weight' in value ? (value as { weight?: unknown }).weight : undefined
     const rawReps =
         'reps' in value ? (value as { reps?: unknown }).reps : undefined
+    const rawDurationSeconds =
+        'durationSeconds' in value
+            ? (value as { durationSeconds?: unknown }).durationSeconds
+            : undefined
     const weight =
         typeof rawWeight === 'number'
             ? rawWeight
             : typeof rawWeight === 'string'
               ? Number(rawWeight)
-              : Number.NaN
+              : 0
     const reps =
         typeof rawReps === 'number'
             ? rawReps
             : typeof rawReps === 'string'
               ? Number(rawReps)
               : 0
+    const durationSeconds =
+        typeof rawDurationSeconds === 'number'
+            ? rawDurationSeconds
+            : typeof rawDurationSeconds === 'string'
+              ? Number(rawDurationSeconds)
+              : 0
 
-    if (!Number.isFinite(weight) || weight <= 0) {
+    const normalizedWeight = Number.isFinite(weight) && weight > 0 ? weight : 0
+    const normalizedReps =
+        Number.isFinite(reps) && reps > 0 ? Math.trunc(reps) : 0
+    const normalizedDuration =
+        Number.isFinite(durationSeconds) && durationSeconds > 0
+            ? Math.trunc(durationSeconds)
+            : 0
+
+    if (
+        normalizedWeight <= 0 &&
+        normalizedReps <= 0 &&
+        normalizedDuration <= 0
+    ) {
         return null
     }
 
     return {
-        weight,
-        reps: Number.isFinite(reps) && reps > 0 ? Math.trunc(reps) : 0,
+        weight: normalizedWeight,
+        reps: normalizedReps,
+        durationSeconds: normalizedDuration,
     }
 }
 
@@ -168,7 +238,9 @@ function normalizeHistoryEntry(entry: unknown): {
 
             return (
                 (set as { weight?: unknown }).weight !== current.weight ||
-                (set as { reps?: unknown }).reps !== current.reps
+                (set as { reps?: unknown }).reps !== current.reps ||
+                (set as { durationSeconds?: unknown }).durationSeconds !==
+                    current.durationSeconds
             )
         }) ||
         typeof candidate.label !== 'string'
@@ -224,7 +296,31 @@ function normalizeAppData(rawData: LegacyAppData): {
         rawData.machines &&
         typeof rawData.machines === 'object'
     ) {
-        nextData.machines = rawData.machines
+        Object.entries(rawData.machines).forEach(([machineId, machine]) => {
+            const normalizedMachine = normalizeMachine(machine)
+            if (!normalizedMachine) {
+                changed = true
+                return
+            }
+
+            nextData.machines[machineId] = normalizedMachine
+
+            if (
+                !machine ||
+                typeof machine !== 'object' ||
+                normalizeTrackingType(
+                    (machine as Partial<Machine>).trackingType,
+                ) !== normalizedMachine.trackingType ||
+                (typeof (machine as Partial<Machine>).requiresWeight ===
+                'boolean'
+                    ? (machine as Partial<Machine>).requiresWeight
+                    : normalizedMachine.trackingType === 'duration'
+                      ? false
+                      : true) !== normalizedMachine.requiresWeight
+            ) {
+                changed = true
+            }
+        })
     }
 
     if (
