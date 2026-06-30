@@ -1,8 +1,10 @@
 import { UserPayment } from '../../@types/credit'
 
+export type CreditPurchaseStep = 1 | 2 | 3
+
 export type CreditPurchaseModalProps = {
     visible: boolean
-    step: 1 | 2 | 3
+    step: CreditPurchaseStep
     payment: UserPayment | null
     creditQuantity: string
     documentNumber: string

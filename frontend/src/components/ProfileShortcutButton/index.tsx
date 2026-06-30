@@ -4,20 +4,9 @@ import { Text, TouchableOpacity } from 'react-native'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { RootStackParamList } from '../../router/types'
+import { getInitials } from './consts'
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>
-
-function getInitials(name: string) {
-    const initials = name
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join('')
-
-    return initials || 'U'
-}
 
 export function ProfileShortcutButton() {
     const navigation = useNavigation<Navigation>()

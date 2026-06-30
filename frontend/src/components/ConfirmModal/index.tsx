@@ -20,7 +20,6 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
 
     const { t } = useTheme()
     const { t: translate } = useI18n()
-    const btnColor = t.mode === 'dark' ? '#0d0500' : '#FFF'
     const resolvedConfirmLabel =
         confirmLabel ?? translate('common.actions.confirm')
     const resolvedCancelLabel =
@@ -88,7 +87,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                         >
                             <Text
                                 style={{
-                                    color: btnColor,
+                                    color: t.btnColor,
                                     fontSize: 15,
                                     fontWeight: '800',
                                 }}
