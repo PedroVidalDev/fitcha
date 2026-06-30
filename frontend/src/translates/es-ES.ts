@@ -263,12 +263,14 @@ export const esES: TranslationDictionary = {
     'detail.record.empty':
         'Todavia no hay un record guardado para esta maquina.',
     'detail.record.volume': 'volumen {volume}',
+    'detail.record.reps': '{value} reps',
+    'detail.record.duration': '{value} de duracion',
     'detail.history.title': 'historial',
     'detail.history.empty':
-        'Todavia no hay registros. Inicia un entrenamiento para guardar pesos y repeticiones.',
+        'Todavia no hay registros. Inicia un entrenamiento para guardar tu evolucion.',
     'home.greetingFallback': 'atleta',
     'home.delta.noBase': 'Sin base',
-    'home.delta.zero': '0 kg',
+    'home.delta.zero': '0',
     'home.relative.daysAgo': '{count} dias',
     'home.featured.emptyTitle': 'evolucion por maquina',
     'home.featured.emptySubtitle':
@@ -288,7 +290,7 @@ export const esES: TranslationDictionary = {
     'home.machine.comparison.needMore':
         'Guarda un entrenamiento mas para comparar tu evolucion.',
     'home.machine.comparison.default':
-        'Comparacion de la carga actual contra el primer registro guardado.',
+        'Comparacion del rendimiento actual contra el primer registro guardado.',
     'home.machine.previous.noHistory': 'sin historial',
     'home.machine.previous.oneRecord': '1 registro guardado',
     'home.machine.previous.noComparison': 'sin comparacion',
@@ -299,6 +301,7 @@ export const esES: TranslationDictionary = {
     'home.machine.metric.initial': 'inicial',
     'home.machine.metric.record': 'record',
     'home.machine.recordVolume': '{volume} de volumen',
+    'home.machine.recordMetric': '{value} de record',
     'home.machine.noHistoryCard':
         'Esta maquina ya esta en el dia planificado, pero todavia no tiene historial guardado.',
     'home.machine.recordsTitle': 'ultimos registros',
@@ -400,17 +403,17 @@ export const esES: TranslationDictionary = {
     'workout.saved.message':
         '{count} maquina{machineSuffix} registrada{registeredSuffix} en {elapsed}',
     'workout.empty.title': 'Entrenamiento vacio',
-    'workout.empty.message': 'No se registro ninguna serie.',
+    'workout.empty.message': 'No se registro ningun ejercicio.',
     'workout.error.title': 'Error al guardar',
     'workout.error.message':
         'No fue posible guardar el entrenamiento ahora. Intentalo de nuevo en unos instantes.',
-    'workout.incomplete.title': 'Ninguna maquina completa',
+    'workout.incomplete.title': 'Ningun ejercicio completo',
     'workout.incomplete.message':
-        'Todavia no hay ejercicio con las 3 series completas. Si sales ahora, los borradores se descartaran.',
+        'Todavia no hay ejercicio listo para guardar. Si sales ahora, los borradores se descartaran.',
     'workout.incomplete.confirm': 'Salir sin guardar',
     'workout.pending.title': 'Finalizar con pendientes?',
     'workout.pending.message':
-        '{count} maquina{machineSuffix} sin las 3 series completas. Puedes guardar ahora o seguir revisando.',
+        '{count} maquina{machineSuffix} todavia necesita revision. Puedes guardar ahora o seguir revisando.',
     'workout.quit.title': 'Cerrar entrenamiento?',
     'workout.quit.message':
         'Si sales ahora, el entrenamiento terminara y no se guardara nada.',
@@ -426,15 +429,27 @@ export const esES: TranslationDictionary = {
     'workout.status.draftTitle': 'Borrador guardado',
     'workout.status.skipTitle': 'Puedes saltarlo sin romper el flujo',
     'workout.status.registeredMessage':
-        'Puedes seguir ahora o volver despues para ajustar los pesos.',
+        'Puedes seguir ahora o volver despues para revisar este ejercicio.',
     'workout.status.draftMessage':
         'Los valores quedan guardados al cambiar de maquina. Completa cuando quede libre.',
     'workout.status.skipMessage':
         'Si la maquina esta ocupada, avanza ahora y vuelve cuando quieras usando las tarjetas de arriba.',
     'workout.rest.title': 'descanso',
-    'workout.rest.idle': 'El timer empieza apenas confirmas una serie.',
+    'workout.rest.idle':
+        'El timer empieza apenas confirmas una serie o finalizas un ejercicio por tiempo.',
     'workout.rest.active': 'Contando desde la ultima serie confirmada.',
-    'workout.fillSeries': 'completa carga y repeticiones en las 3 series',
+    'workout.duration.title': 'registro por tiempo',
+    'workout.duration.idle':
+        'Toca para iniciar y contar cuanto tiempo permaneces en este ejercicio.',
+    'workout.duration.active':
+        'El timer esta corriendo. Finaliza cuando termines el ejercicio.',
+    'workout.duration.done':
+        'Tiempo registrado. Toca para reiniciar si quieres repetirlo.',
+    'workout.duration.startCta': 'Iniciar',
+    'workout.duration.stopCta': 'Finalizar',
+    'workout.duration.restartCta': 'Reiniciar',
+    'workout.duration.lastRecord': 'Ultimo {value}',
+    'workout.fillSeries': 'completa las series del ejercicio',
     'workout.series.confirmCta': 'Confirmar',
     'workout.series.confirmedCta': 'Confirmada',
     'workout.series.readyState': 'Lista',

@@ -9,16 +9,20 @@ type MachineResponseType struct {
 	Description      string `json:"description,omitempty"`
 	Photo            string `json:"photo,omitempty"`
 	CategoryKey      string `json:"categoryKey"`
+	TrackingType     string `json:"trackingType"`
+	RequiresWeight   bool   `json:"requiresWeight"`
 }
 
 type CatalogMachineResponseType struct {
-	ID          string            `json:"id"`
-	Slug        string            `json:"slug"`
-	Name        string            `json:"name"`
-	Description string            `json:"description,omitempty"`
-	Photo       string            `json:"photo,omitempty"`
-	CategoryKey string            `json:"categoryKey"`
-	Aliases     models.StringList `json:"aliases"`
+	ID             string            `json:"id"`
+	Slug           string            `json:"slug"`
+	Name           string            `json:"name"`
+	Description    string            `json:"description,omitempty"`
+	Photo          string            `json:"photo,omitempty"`
+	CategoryKey    string            `json:"categoryKey"`
+	TrackingType   string            `json:"trackingType"`
+	RequiresWeight bool              `json:"requiresWeight"`
+	Aliases        models.StringList `json:"aliases"`
 }
 
 func FromMachineModel(machine models.UserMachine) MachineResponseType {
@@ -26,6 +30,8 @@ func FromMachineModel(machine models.UserMachine) MachineResponseType {
 	description := machine.Description
 	photo := machine.Photo
 	categoryKey := machine.CategoryKey
+	trackingType := machine.EffectiveTrackingType()
+	requiresWeight := machine.EffectiveRequiresWeight()
 	catalogMachineID := ""
 
 	if machine.Machine != nil {
@@ -39,6 +45,8 @@ func FromMachineModel(machine models.UserMachine) MachineResponseType {
 		if machine.Machine.CategoryKey != "" {
 			categoryKey = machine.Machine.CategoryKey
 		}
+		trackingType = machine.Machine.EffectiveTrackingType()
+		requiresWeight = machine.Machine.EffectiveRequiresWeight()
 		if photo == "" {
 			photo = machine.Machine.Photo
 		}
@@ -51,6 +59,8 @@ func FromMachineModel(machine models.UserMachine) MachineResponseType {
 		Description:      description,
 		Photo:            photo,
 		CategoryKey:      categoryKey,
+		TrackingType:     trackingType,
+		RequiresWeight:   requiresWeight,
 	}
 }
 
@@ -66,13 +76,15 @@ func FromMachineModels(machines []models.UserMachine) []MachineResponseType {
 
 func FromCatalogMachineModel(machine models.Machine) CatalogMachineResponseType {
 	return CatalogMachineResponseType{
-		ID:          machine.ID,
-		Slug:        machine.Slug,
-		Name:        machine.Name,
-		Description: machine.Description,
-		Photo:       machine.Photo,
-		CategoryKey: machine.CategoryKey,
-		Aliases:     machine.Aliases,
+		ID:             machine.ID,
+		Slug:           machine.Slug,
+		Name:           machine.Name,
+		Description:    machine.Description,
+		Photo:          machine.Photo,
+		CategoryKey:    machine.CategoryKey,
+		TrackingType:   machine.EffectiveTrackingType(),
+		RequiresWeight: machine.EffectiveRequiresWeight(),
+		Aliases:        machine.Aliases,
 	}
 }
 

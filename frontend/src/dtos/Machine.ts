@@ -1,5 +1,7 @@
 import { MachineCategoryKey } from '../constants/categories'
 
+export type MachineTrackingType = 'sets' | 'duration'
+
 export type Machine = {
     id: string
     catalogMachineId?: string
@@ -7,4 +9,6 @@ export type Machine = {
     description?: string
     photo?: string
     categoryKey: MachineCategoryKey
+    trackingType: MachineTrackingType
+    requiresWeight: boolean
 }

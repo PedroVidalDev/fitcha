@@ -89,63 +89,71 @@ export function WorkoutSeriesCard(props: WorkoutSeriesCardProps) {
                     gap: 10,
                 }}
             >
-                <View style={{ flex: 1, gap: 8 }}>
-                    <Text
-                        style={{
-                            color: t.textDim,
-                            fontSize: 11,
-                            fontWeight: '700',
-                            textTransform: 'uppercase',
-                            letterSpacing: 1,
-                        }}
-                    >
-                        {translate('workout.series.weightLabel')}
-                    </Text>
-                    <View
-                        style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 8,
-                        }}
-                    >
-                        <TextInput
-                            style={{
-                                flex: 1,
-                                paddingHorizontal: 14,
-                                paddingVertical: 14,
-                                borderRadius: 12,
-                                backgroundColor: t.bg,
-                                color: t.textPrimary,
-                                fontSize: 20,
-                                fontWeight: '800',
-                                textAlign: 'center',
-                                borderWidth: 0.5,
-                                borderColor: item.isConfirmed
-                                    ? t.accent + '55'
-                                    : t.border,
-                            }}
-                            placeholder={item.weightPlaceholder}
-                            placeholderTextColor={t.textDim}
-                            keyboardType='numeric'
-                            value={item.weightValue}
-                            editable={!item.isLocked}
-                            onChangeText={(value) =>
-                                onChangeField(item.key, 'weight', value)
-                            }
-                        />
+                {item.requiresWeight ? (
+                    <View style={{ flex: 1, gap: 8 }}>
                         <Text
                             style={{
                                 color: t.textMuted,
-                                fontSize: 14,
-                                fontWeight: '600',
+                                fontSize: 11,
+                                fontWeight: '700',
+                                textTransform: 'uppercase',
+                                letterSpacing: 1,
                             }}
                         >
-                            {translate('common.units.kg')}
+                            {translate('workout.series.weightLabel')}
                         </Text>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 8,
+                            }}
+                        >
+                            <TextInput
+                                style={{
+                                    flex: 1,
+                                    paddingHorizontal: 14,
+                                    paddingVertical: 14,
+                                    borderRadius: 12,
+                                    backgroundColor: t.bg,
+                                    color: t.textPrimary,
+                                    fontSize: 20,
+                                    fontWeight: '800',
+                                    textAlign: 'center',
+                                    borderWidth: 0.5,
+                                    borderColor: item.isConfirmed
+                                        ? t.accent + '55'
+                                        : t.border,
+                                }}
+                                placeholder={item.weightPlaceholder}
+                                placeholderTextColor={t.textDim}
+                                keyboardType='numeric'
+                                value={item.weightValue}
+                                editable={!item.isLocked}
+                                onChangeText={(value) =>
+                                    onChangeField(item.key, 'weight', value)
+                                }
+                            />
+                            <Text
+                                style={{
+                                    color: t.textMuted,
+                                    fontSize: 14,
+                                    fontWeight: '600',
+                                }}
+                            >
+                                {translate('common.units.kg')}
+                            </Text>
+                        </View>
                     </View>
-                </View>
+                ) : null}
 
-                <View style={{ width: 116, gap: 8 }}>
+                <View
+                    style={{
+                        width: item.requiresWeight ? 116 : '100%',
+                        flex: item.requiresWeight ? undefined : 1,
+                        gap: 8,
+                    }}
+                >
                     <Text
                         style={{
                             color: t.textDim,

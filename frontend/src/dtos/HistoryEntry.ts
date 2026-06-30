@@ -1,6 +1,7 @@
 export type HistorySet = {
     weight: number
     reps: number
+    durationSeconds: number
 }
 
 export type HistoryEntry = {

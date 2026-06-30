@@ -24,7 +24,7 @@ func SeedCatalogMachines(db *gorm.DB) error {
 		catalogMachine(8, "crossover-polia-alta", "Crossover na polia alta", "Cruze de cabos com enfase em aducao horizontal e contracao do peitoral.", "peito", "crossover alto", "cable crossover"),
 		catalogMachine(9, "crossover-polia-media", "Crossover na polia media", "Variacao de crossover com linha de forca mais horizontal para peitoral medio.", "peito", "crossover medio", "cross over"),
 		catalogMachine(10, "crossover-polia-baixa", "Crossover na polia baixa", "Variacao de cabos com trajeto ascendente, favorecendo fibras superiores do peitoral.", "peito", "crossover baixo", "low cable fly"),
-		catalogMachine(11, "flexao-de-braco", "Flexao de braco", "Movimento com peso corporal para peitoral, ombros e triceps, com tronco alinhado.", "peito", "push up", "flexao"),
+		catalogMachineNoWeight(11, "flexao-de-braco", "Flexao de braco", "Movimento com peso corporal para peitoral, ombros e triceps, com tronco alinhado.", "peito", "push up", "flexao"),
 		catalogMachine(12, "chest-press-maquina", "Chest press na maquina", "Press guiado para peitoral com boa estabilidade e facilidade de progressao de carga.", "peito", "supino maquina", "press maquina"),
 		catalogMachine(13, "pullover-halter", "Pullover com halter", "Exercicio acessorio que combina controle toracico e alongamento na fase excenctrica.", "peito", "pullover", "dumbbell pullover"),
 
@@ -37,7 +37,7 @@ func SeedCatalogMachines(db *gorm.DB) error {
 		catalogMachine(19, "remada-cavalinho", "Remada cavalinho", "Remada com apoio de quadril, favorecendo espessura de costas com boa estabilidade.", "costas", "t-bar row", "cavalinho"),
 		catalogMachine(20, "puxada-neutra-triangulo", "Puxada neutra com triangulo", "Puxada com pegada neutra para dorsais, mantendo o peito aberto no movimento.", "costas", "neutral grip pulldown", "puxada triangulo"),
 		catalogMachine(21, "remada-maquina-articulada", "Remada na maquina articulada", "Remada guiada com foco em retracao escapular e trajeto consistente.", "costas", "machine row", "remada articulada"),
-		catalogMachine(22, "barra-fixa", "Barra fixa", "Movimento com peso corporal para dorsais e biceps, com controle da escapula na subida.", "costas", "pull up", "barra"),
+		catalogMachineNoWeight(22, "barra-fixa", "Barra fixa", "Movimento com peso corporal para dorsais e biceps, com controle da escapula na subida.", "costas", "pull up", "barra"),
 		catalogMachine(23, "pulldown-braco-reto", "Pulldown com braco reto", "Isolamento de dorsais no cabo, com pouca flexao de cotovelos e foco em depressao escapular.", "costas", "straight arm pulldown", "pullover no cabo"),
 		catalogMachine(24, "remada-serrote", "Remada serrote", "Variacao de remada unilateral com apoio, priorizando amplitude e estabilidade.", "costas", "serrote", "supported one arm row"),
 		catalogMachine(25, "puxada-fechada", "Puxada fechada", "Puxada vertical com pegada mais fechada para dorsais e redondos.", "costas", "close grip pulldown", "pulldown fechado"),
@@ -93,51 +93,66 @@ func SeedCatalogMachines(db *gorm.DB) error {
 		catalogMachine(67, "triceps-corda", "Triceps corda", "Extensao para triceps na polia, enfatizando extensao total e abertura final da corda.", "triceps", "pushdown corda", "triceps pulley"),
 		catalogMachine(68, "triceps-testa-barra", "Triceps testa com barra", "Exercicio para cabeca longa do triceps, com cuidado para manter os cotovelos alinhados.", "triceps", "skull crusher", "triceps testa"),
 		catalogMachine(69, "triceps-frances-halter", "Triceps frances com halter", "Movimento acima da cabeca para triceps, com foco em amplitude e controle.", "triceps", "overhead dumbbell extension", "frances"),
-		catalogMachine(70, "triceps-banco", "Triceps no banco", "Exercicio com peso corporal para triceps, mantendo o quadril proximo ao banco.", "triceps", "bench dips", "mergulho banco"),
+		catalogMachineNoWeight(70, "triceps-banco", "Triceps no banco", "Exercicio com peso corporal para triceps, mantendo o quadril proximo ao banco.", "triceps", "bench dips", "mergulho banco"),
 		catalogMachine(71, "supino-fechado", "Supino fechado", "Variacao de press que aumenta a participacao do triceps sem perder estabilidade.", "triceps", "close grip bench press", "bench fechado"),
-		catalogMachine(72, "mergulho-paralelas", "Mergulho nas paralelas", "Movimento composto para triceps e peitoral, exigindo bom controle corporal.", "triceps", "dips", "paralelas"),
+		catalogMachineNoWeight(72, "mergulho-paralelas", "Mergulho nas paralelas", "Movimento composto para triceps e peitoral, exigindo bom controle corporal.", "triceps", "dips", "paralelas"),
 		catalogMachine(73, "triceps-polia-barra-reta", "Triceps na polia com barra reta", "Extensao no cabo com pegada firme e foco em extensao completa do cotovelo.", "triceps", "straight bar pushdown", "triceps barra reta"),
 		catalogMachine(74, "triceps-unilateral-polia", "Triceps unilateral na polia", "Variacao unilateral que ajuda a ajustar tecnica e equilibrio entre os lados.", "triceps", "single arm pushdown", "triceps unilateral"),
 		catalogMachine(75, "extensao-triceps-acima-cabeca-corda", "Extensao de triceps acima da cabeca com corda", "Movimento no cabo para cabeca longa do triceps com boa tensao em alongamento.", "triceps", "overhead rope extension", "triceps overhead"),
 		catalogMachine(76, "coice-triceps", "Coice de triceps", "Exercicio acessorio para triceps com foco em extensao total e cotovelo fixo.", "triceps", "triceps kickback", "coice"),
 
 		// Core
-		catalogMachine(77, "prancha", "Prancha", "Exercicio isometrico para core com foco em alinhamento corporal e respiracao.", "core", "plank", "prancha abdominal"),
+		catalogMachineDuration(77, "prancha", "Prancha", "Exercicio isometrico para core com foco em alinhamento corporal e respiracao.", "core", "plank", "prancha abdominal"),
 		catalogMachine(78, "abdominal-cabo", "Abdominal no cabo", "Flexao de tronco no cabo para core, com foco em encurtamento controlado e sem puxar com os bracos.", "core", "cable crunch", "abdominal polia"),
 		catalogMachine(79, "abdominal-maquina", "Abdominal na maquina", "Movimento guiado para reto abdominal com boa estabilidade e ajuste de carga.", "core", "ab crunch machine", "maquina abdominal"),
-		catalogMachine(80, "elevacao-pernas-barra", "Elevacao de pernas na barra", "Exercicio para abdome inferior e flexores de quadril com forte demanda de controle corporal.", "core", "leg raise", "barra abdominal"),
-		catalogMachine(81, "elevacao-joelhos-paralela", "Elevacao de joelhos na paralela", "Variacao de core com apoio, focando em flexao de quadril e estabilizacao do tronco.", "core", "knee raise", "paralela abdominal"),
-		catalogMachine(82, "prancha-lateral", "Prancha lateral", "Isometria para obliquos e estabilidade lateral do tronco.", "core", "side plank", "lateral plank"),
-		catalogMachine(83, "crunch-solo", "Crunch no solo", "Abdominal classico com foco em flexao de tronco controlada e sem puxar o pescoco.", "core", "crunch", "abdominal solo"),
-		catalogMachine(84, "bicicleta-no-ar", "Bicicleta no ar", "Movimento dinamico para reto abdominal e obliquos com alternancia coordenada.", "core", "bicycle crunch", "bicicleta abdominal"),
-		catalogMachine(85, "abdominal-infra-banco", "Abdominal infra no banco", "Variacao para porcao inferior do abdome com apoio e controle da pelve.", "core", "reverse crunch bench", "infra banco"),
+		catalogMachineNoWeight(80, "elevacao-pernas-barra", "Elevacao de pernas na barra", "Exercicio para abdome inferior e flexores de quadril com forte demanda de controle corporal.", "core", "leg raise", "barra abdominal"),
+		catalogMachineNoWeight(81, "elevacao-joelhos-paralela", "Elevacao de joelhos na paralela", "Variacao de core com apoio, focando em flexao de quadril e estabilizacao do tronco.", "core", "knee raise", "paralela abdominal"),
+		catalogMachineDuration(82, "prancha-lateral", "Prancha lateral", "Isometria para obliquos e estabilidade lateral do tronco.", "core", "side plank", "lateral plank"),
+		catalogMachineNoWeight(83, "crunch-solo", "Crunch no solo", "Abdominal classico com foco em flexao de tronco controlada e sem puxar o pescoco.", "core", "crunch", "abdominal solo"),
+		catalogMachineNoWeight(84, "bicicleta-no-ar", "Bicicleta no ar", "Movimento dinamico para reto abdominal e obliquos com alternancia coordenada.", "core", "bicycle crunch", "bicicleta abdominal"),
+		catalogMachineNoWeight(85, "abdominal-infra-banco", "Abdominal infra no banco", "Variacao para porcao inferior do abdome com apoio e controle da pelve.", "core", "reverse crunch bench", "infra banco"),
 		catalogMachine(86, "hiperextensao-lombar", "Hiperextensao lombar", "Exercicio para cadeia posterior e estabilizacao do tronco com foco em amplitude segura.", "core", "back extension", "lombar banco romano"),
 
 		// Cardio
-		catalogMachine(87, "esteira", "Esteira", "Cardio para caminhada ou corrida com controle de ritmo e postura.", "cardio", "treadmill", "corrida esteira"),
-		catalogMachine(88, "bicicleta-ergometrica", "Bicicleta ergometrica", "Cardio de baixo impacto para condicionamento e aquecimento.", "cardio", "bike", "bicicleta", "spinning"),
-		catalogMachine(89, "eliptico", "Eliptico", "Cardio continuo com baixo impacto articular e foco em ritmo sustentavel.", "cardio", "elliptical", "transport"),
-		catalogMachine(90, "escada", "Escada", "Equipamento de subida continua para condicionamento e trabalho de pernas.", "cardio", "stair climber", "stepmill"),
-		catalogMachine(91, "remo-ergometro", "Remo ergometro", "Cardio que combina membros superiores e inferiores com foco em tecnica e cadencia.", "cardio", "rowing machine", "remo"),
-		catalogMachine(92, "air-bike", "Air bike", "Bicicleta de resistencia ao ar para tiros intensos ou protocolos intervalados.", "cardio", "assault bike", "fan bike"),
-		catalogMachine(93, "bicicleta-spinning", "Bicicleta de spinning", "Modalidade de bike indoor com foco em cadencia, resistencia e condicionamento.", "cardio", "spin bike", "spinning"),
-		catalogMachine(94, "bicicleta-horizontal", "Bicicleta horizontal", "Bike reclinada de baixo impacto, boa para volume cardio com mais conforto.", "cardio", "recumbent bike", "bike horizontal"),
-		catalogMachine(95, "caminhada-inclinada-esteira", "Caminhada inclinada na esteira", "Variacao de cardio com foco em intensidade moderada e trabalho de gluteos e panturrilhas.", "cardio", "incline walk", "caminhada inclinada"),
-		catalogMachine(96, "corrida-intervalada-esteira", "Corrida intervalada na esteira", "Protocolo de tiros na esteira para ganho de capacidade cardiovascular.", "cardio", "hiit treadmill", "tiros na esteira"),
-		catalogMachine(97, "ski-erg", "Ski erg", "Cardio de tracao vertical com forte demanda de tronco, ombros e condicionamento.", "cardio", "skierg", "ski machine"),
-		catalogMachine(98, "transport", "Transport", "Equipamento de cardio com passada guiada e baixo impacto articular.", "cardio", "glider", "simulador de caminhada"),
-		catalogMachine(99, "pular-corda", "Pular corda", "Cardio dinamico para coordenacao, agilidade e resistencia.", "cardio", "jump rope", "corda"),
-		catalogMachine(100, "battle-rope", "Battle rope", "Condicionamento metabolico com cordas, exigindo potencia e ritmo de membros superiores.", "cardio", "corda naval", "ropes"),
+		catalogMachineDuration(87, "esteira", "Esteira", "Cardio para caminhada ou corrida com controle de ritmo e postura.", "cardio", "treadmill", "corrida esteira"),
+		catalogMachineDuration(88, "bicicleta-ergometrica", "Bicicleta ergometrica", "Cardio de baixo impacto para condicionamento e aquecimento.", "cardio", "bike", "bicicleta", "spinning"),
+		catalogMachineDuration(89, "eliptico", "Eliptico", "Cardio continuo com baixo impacto articular e foco em ritmo sustentavel.", "cardio", "elliptical", "transport"),
+		catalogMachineDuration(90, "escada", "Escada", "Equipamento de subida continua para condicionamento e trabalho de pernas.", "cardio", "stair climber", "stepmill"),
+		catalogMachineDuration(91, "remo-ergometro", "Remo ergometro", "Cardio que combina membros superiores e inferiores com foco em tecnica e cadencia.", "cardio", "rowing machine", "remo"),
+		catalogMachineDuration(92, "air-bike", "Air bike", "Bicicleta de resistencia ao ar para tiros intensos ou protocolos intervalados.", "cardio", "assault bike", "fan bike"),
+		catalogMachineDuration(93, "bicicleta-spinning", "Bicicleta de spinning", "Modalidade de bike indoor com foco em cadencia, resistencia e condicionamento.", "cardio", "spin bike", "spinning"),
+		catalogMachineDuration(94, "bicicleta-horizontal", "Bicicleta horizontal", "Bike reclinada de baixo impacto, boa para volume cardio com mais conforto.", "cardio", "recumbent bike", "bike horizontal"),
+		catalogMachineDuration(95, "caminhada-inclinada-esteira", "Caminhada inclinada na esteira", "Variacao de cardio com foco em intensidade moderada e trabalho de gluteos e panturrilhas.", "cardio", "incline walk", "caminhada inclinada"),
+		catalogMachineDuration(96, "corrida-intervalada-esteira", "Corrida intervalada na esteira", "Protocolo de tiros na esteira para ganho de capacidade cardiovascular.", "cardio", "hiit treadmill", "tiros na esteira"),
+		catalogMachineDuration(97, "ski-erg", "Ski erg", "Cardio de tracao vertical com forte demanda de tronco, ombros e condicionamento.", "cardio", "skierg", "ski machine"),
+		catalogMachineDuration(98, "transport", "Transport", "Equipamento de cardio com passada guiada e baixo impacto articular.", "cardio", "glider", "simulador de caminhada"),
+		catalogMachineDuration(99, "pular-corda", "Pular corda", "Cardio dinamico para coordenacao, agilidade e resistencia.", "cardio", "jump rope", "corda"),
+		catalogMachineDuration(100, "battle-rope", "Battle rope", "Condicionamento metabolico com cordas, exigindo potencia e ritmo de membros superiores.", "cardio", "corda naval", "ropes"),
 	})
 }
 
 func catalogMachine(id int, slug, name, description, categoryKey string, aliases ...string) models.Machine {
 	return models.Machine{
-		ID:          fmt.Sprintf("mach%012d", id),
-		Slug:        slug,
-		Name:        name,
-		Description: description,
-		CategoryKey: categoryKey,
-		Aliases:     models.StringList(aliases),
+		ID:             fmt.Sprintf("mach%012d", id),
+		Slug:           slug,
+		Name:           name,
+		Description:    description,
+		CategoryKey:    categoryKey,
+		TrackingType:   string(models.MachineTrackingTypeSets),
+		RequiresWeight: true,
+		Aliases:        models.StringList(aliases),
 	}
+}
+
+func catalogMachineNoWeight(id int, slug, name, description, categoryKey string, aliases ...string) models.Machine {
+	machine := catalogMachine(id, slug, name, description, categoryKey, aliases...)
+	machine.RequiresWeight = false
+	return machine
+}
+
+func catalogMachineDuration(id int, slug, name, description, categoryKey string, aliases ...string) models.Machine {
+	machine := catalogMachine(id, slug, name, description, categoryKey, aliases...)
+	machine.TrackingType = string(models.MachineTrackingTypeDuration)
+	machine.RequiresWeight = false
+	return machine
 }

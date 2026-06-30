@@ -10,6 +10,8 @@ export type WorkoutMachineInput = {
     description?: string
     photo?: string
     categoryKey?: Machine['categoryKey']
+    trackingType?: Machine['trackingType']
+    requiresWeight?: Machine['requiresWeight']
 }
 
 export type CreateWorkoutInput = {

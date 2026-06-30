@@ -5,7 +5,7 @@ import { Text, View } from 'react-native'
 import { HistoryProps } from './types'
 
 export const History = (props: HistoryProps) => {
-    const { item, index } = props
+    const { item, index, machine } = props
 
     const { t } = useTheme()
 
@@ -40,7 +40,7 @@ export const History = (props: HistoryProps) => {
                         fontWeight: '700',
                     }}
                 >
-                    {formatSetSequence(item.sets, ' / ')}
+                    {formatSetSequence(item.sets, ' / ', machine)}
                 </Text>
             </View>
         </AnimatedCard>

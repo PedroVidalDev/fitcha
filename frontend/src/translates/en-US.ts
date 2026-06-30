@@ -260,12 +260,14 @@ export const enUS: TranslationDictionary = {
         'Sequence with the highest saved volume for this machine.',
     'detail.record.empty': 'There is no saved record for this machine yet.',
     'detail.record.volume': 'volume {volume}',
+    'detail.record.reps': '{value} reps',
+    'detail.record.duration': '{value} duration',
     'detail.history.title': 'history',
     'detail.history.empty':
-        'No records yet. Start a workout to log weights and reps.',
+        'No records yet. Start a workout to save your progress.',
     'home.greetingFallback': 'athlete',
     'home.delta.noBase': 'No baseline',
-    'home.delta.zero': '0 kg',
+    'home.delta.zero': '0',
     'home.relative.daysAgo': '{count} days',
     'home.featured.emptyTitle': 'progress by machine',
     'home.featured.emptySubtitle':
@@ -285,7 +287,7 @@ export const enUS: TranslationDictionary = {
     'home.machine.comparison.needMore':
         'Save one more workout to compare your progress.',
     'home.machine.comparison.default':
-        'Current load compared with the first saved record.',
+        'Current performance compared with the first saved record.',
     'home.machine.previous.noHistory': 'no history',
     'home.machine.previous.oneRecord': '1 saved record',
     'home.machine.previous.noComparison': 'no comparison',
@@ -296,6 +298,7 @@ export const enUS: TranslationDictionary = {
     'home.machine.metric.initial': 'initial',
     'home.machine.metric.record': 'record',
     'home.machine.recordVolume': '{volume} volume',
+    'home.machine.recordMetric': '{value} record',
     'home.machine.noHistoryCard':
         'This machine is already planned for the day, but it still has no saved history.',
     'home.machine.recordsTitle': 'latest records',
@@ -394,17 +397,17 @@ export const enUS: TranslationDictionary = {
     'workout.saved.message':
         '{count} machine{machineSuffix} recorded{registeredSuffix} in {elapsed}',
     'workout.empty.title': 'Empty workout',
-    'workout.empty.message': 'No sets were recorded.',
+    'workout.empty.message': 'No exercise was recorded.',
     'workout.error.title': 'Save error',
     'workout.error.message':
         'Unable to save the workout right now. Please try again shortly.',
-    'workout.incomplete.title': 'No complete machine',
+    'workout.incomplete.title': 'No complete exercise',
     'workout.incomplete.message':
-        'There is still no exercise with all 3 sets completed. If you leave now, your drafts will be discarded.',
+        'There is still no exercise ready to save. If you leave now, your drafts will be discarded.',
     'workout.incomplete.confirm': 'Leave without saving',
-    'workout.pending.title': 'Finish with pending sets?',
+    'workout.pending.title': 'Finish with pending items?',
     'workout.pending.message':
-        '{count} machine{machineSuffix} without all 3 sets completed. You can save now or keep reviewing.',
+        '{count} machine{machineSuffix} still needs review. You can save now or keep reviewing.',
     'workout.quit.title': 'Quit workout?',
     'workout.quit.message':
         'If you leave now, the workout will end and nothing will be saved.',
@@ -420,15 +423,27 @@ export const enUS: TranslationDictionary = {
     'workout.status.draftTitle': 'Draft saved',
     'workout.status.skipTitle': 'You can skip without breaking the flow',
     'workout.status.registeredMessage':
-        'You can move on now or come back later to adjust the weights.',
+        'You can move on now or come back later to review this exercise.',
     'workout.status.draftMessage':
         'Values stay saved when switching machines. Finish it when the machine is free.',
     'workout.status.skipMessage':
         'If the machine is busy, move on now and come back whenever you want using the cards above.',
     'workout.rest.title': 'rest',
-    'workout.rest.idle': 'The timer starts as soon as you confirm a set.',
+    'workout.rest.idle':
+        'The timer starts as soon as you confirm a set or finish a timed exercise.',
     'workout.rest.active': 'Counting since the last confirmed set.',
-    'workout.fillSeries': 'fill in weight and reps for all 3 sets',
+    'workout.duration.title': 'timed log',
+    'workout.duration.idle':
+        'Tap to start and count how long you stay on this exercise.',
+    'workout.duration.active':
+        'The timer is running. Finish when you are done with the exercise.',
+    'workout.duration.done':
+        'Time recorded. Tap to restart if you want to do it again.',
+    'workout.duration.startCta': 'Start',
+    'workout.duration.stopCta': 'Finish',
+    'workout.duration.restartCta': 'Restart',
+    'workout.duration.lastRecord': 'Last {value}',
+    'workout.fillSeries': 'fill in the exercise sets',
     'workout.series.confirmCta': 'Confirm',
     'workout.series.confirmedCta': 'Confirmed',
     'workout.series.readyState': 'Ready',

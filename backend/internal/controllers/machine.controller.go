@@ -57,10 +57,12 @@ func (c *MachineController) Update(ctx *gin.Context) {
 	}
 
 	machine, err := c.service.Update(userID, ctx.Param("machineId"), services.UpdateMachineInput{
-		Name:        input.Name,
-		Description: input.Description,
-		Photo:       input.Photo,
-		CategoryKey: input.CategoryKey,
+		Name:           input.Name,
+		Description:    input.Description,
+		Photo:          input.Photo,
+		CategoryKey:    input.CategoryKey,
+		TrackingType:   input.TrackingType,
+		RequiresWeight: input.RequiresWeight,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

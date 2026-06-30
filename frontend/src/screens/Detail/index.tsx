@@ -12,7 +12,9 @@ import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import {
     formatSetSequence,
-    getHistoryEntryVolume,
+    formatHistoryMetricValue,
+    getHistoryEntryPrimaryMetric,
+    getHistoryMetricKind,
     getRecordHistoryEntry,
 } from '../../utils/workoutRecords'
 import { History } from './components/History'
@@ -182,13 +184,21 @@ export default function MachineDetailScreen() {
     }
 
     useEffect(() => {
-        if (machine) navigation.setOptions({ title: machine.name })
+        if (machine?.name) {
+            navigation.setOptions({ title: machine.name })
+        }
     }, [machine?.name, navigation])
 
     if (!machine) return null
 
-    const recordEntry = getRecordHistoryEntry(history)
-    const recordVolume = recordEntry ? getHistoryEntryVolume(recordEntry) : null
+    const recordEntry = getRecordHistoryEntry(history, machine)
+    const recordMetricKind = getHistoryMetricKind(
+        machine,
+        recordEntry?.sets ?? [],
+    )
+    const recordMetric = recordEntry
+        ? getHistoryEntryPrimaryMetric(recordEntry, machine)
+        : null
     const recordOverlayColor =
         t.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.44)'
     const recordStripeColors =
@@ -377,7 +387,7 @@ export default function MachineDetailScreen() {
                             </Text>
                         </View>
 
-                        {recordVolume !== null && (
+                        {recordMetric !== null && (
                             <View
                                 style={{
                                     backgroundColor: t.chipBg,
@@ -395,9 +405,21 @@ export default function MachineDetailScreen() {
                                         fontWeight: '800',
                                     }}
                                 >
-                                    {translate('detail.record.volume', {
-                                        volume: recordVolume,
-                                    })}
+                                    {recordMetricKind === 'weight'
+                                        ? translate('detail.record.volume', {
+                                              volume: recordMetric,
+                                          })
+                                        : translate(
+                                              recordMetricKind === 'duration'
+                                                  ? 'detail.record.duration'
+                                                  : 'detail.record.reps',
+                                              {
+                                                  value: formatHistoryMetricValue(
+                                                      recordMetric,
+                                                      recordMetricKind,
+                                                  ),
+                                              },
+                                          )}
                                 </Text>
                             </View>
                         )}
@@ -424,7 +446,11 @@ export default function MachineDetailScreen() {
                                     fontWeight: '900',
                                 }}
                             >
-                                {formatSetSequence(recordEntry.sets, ' / ')}
+                                {formatSetSequence(
+                                    recordEntry.sets,
+                                    ' / ',
+                                    machine,
+                                )}
                             </Text>
                             <Text
                                 style={{
@@ -459,7 +485,12 @@ export default function MachineDetailScreen() {
                 ) : (
                     <View style={{ gap: 8 }}>
                         {history.map((item, index) => (
-                            <History key={item.id} item={item} index={index} />
+                            <History
+                                key={item.id}
+                                item={item}
+                                index={index}
+                                machine={machine}
+                            />
                         ))}
                     </View>
                 )}

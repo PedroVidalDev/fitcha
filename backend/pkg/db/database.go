@@ -59,6 +59,7 @@ func InitDB() (*gorm.DB, error) {
 		&models.Workout{},
 		&models.WorkoutMachine{},
 		&models.HistoryEntry{},
+		&models.HistorySet{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("erro na migracao")
