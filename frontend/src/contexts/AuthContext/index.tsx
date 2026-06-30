@@ -31,10 +31,10 @@ import { resetWorkoutSyncState } from '../../services/workoutData'
 
 const AUTH_KEY = 'auth_session'
 const LEGACY_AUTH_KEY = 'auth_user'
-const ALWAYS_LOGGED_IN_FOR_TESTS = false
 const SERVICE_UNAVAILABLE_MESSAGE =
     'O servico pode estar indisponivel no momento. Tente novamente em instantes.'
 const SERVICE_UNAVAILABLE_CODE = 'AUTH_SERVICE_UNAVAILABLE'
+const ACCESS_TOKEN_PURPOSE = 'auth_access'
 const BASE64_ALPHABET =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
@@ -43,15 +43,7 @@ type ApiErrorResponse = {
     error?: string
     code?: string
 }
-type SessionTokenStatus = 'valid' | 'expired' | 'invalid'
-
-const TEST_USER: User = {
-    id: 0,
-    name: 'Usuario Teste',
-    email: 'teste@fitcha.app',
-    credits: 3,
-    verified: true,
-}
+type SessionTokenStatus = 'valid' | 'invalid'
 
 const AuthContext = createContext<AuthContextValue>({
     user: null,
@@ -96,10 +88,6 @@ function buildSession(token: string, user: User): StoredAuthSession {
         token,
         user,
     }
-}
-
-function buildTestSession() {
-    return buildSession('test-session-token', TEST_USER)
 }
 
 function parseStoredSession(raw: string): StoredAuthSession | null {
@@ -174,11 +162,12 @@ function decodeBase64Latin1(value: string) {
 
 function getSessionTokenStatus(token: string): SessionTokenStatus {
     const parts = token.split('.')
-    if (parts.length !== 3) {
+    if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) {
         return 'invalid'
     }
 
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    let payload: string = parts[1]
+    payload = payload.replace(/-/g, '+').replace(/_/g, '/')
     const remainder = payload.length % 4
     const paddedPayload =
         payload + (remainder === 0 ? '' : '='.repeat(4 - remainder))
@@ -190,24 +179,26 @@ function getSessionTokenStatus(token: string): SessionTokenStatus {
 
     try {
         const parsed = JSON.parse(decodedPayload) as {
-            exp?: number | string
+            purpose?: unknown
+            sub?: unknown
         } | null
         if (!parsed || typeof parsed !== 'object') {
             return 'invalid'
         }
 
-        const expSeconds =
-            typeof parsed.exp === 'number'
-                ? parsed.exp
-                : typeof parsed.exp === 'string'
-                  ? Number(parsed.exp)
-                  : Number.NaN
+        const hasValidSubject =
+            (typeof parsed.sub === 'number' &&
+                Number.isInteger(parsed.sub) &&
+                parsed.sub > 0) ||
+            (typeof parsed.sub === 'string' &&
+                /^\d+$/.test(parsed.sub) &&
+                Number(parsed.sub) > 0)
 
-        if (!Number.isFinite(expSeconds)) {
+        if (parsed.purpose !== ACCESS_TOKEN_PURPOSE || !hasValidSubject) {
             return 'invalid'
         }
 
-        return expSeconds * 1000 <= Date.now() ? 'expired' : 'valid'
+        return 'valid'
     } catch {
         return 'invalid'
     }
@@ -336,11 +327,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const restoreSession = async () => {
             try {
-                if (ALWAYS_LOGGED_IN_FOR_TESTS) {
-                    await persistSession(buildTestSession())
-                    return
-                }
-
                 const raw = await AsyncStorage.getItem(AUTH_KEY)
 
                 if (!raw) {
@@ -358,11 +344,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const tokenStatus = getSessionTokenStatus(storedSession.token)
                 if (tokenStatus !== 'valid') {
                     await clearSession()
-
-                    if (tokenStatus === 'expired') {
-                        setIsSessionExpiredNoticeVisible(true)
-                    }
-
                     return
                 }
 
@@ -481,13 +462,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
 
     const logout = useCallback(async () => {
-        if (ALWAYS_LOGGED_IN_FOR_TESTS) {
-            await persistSession(session ?? buildTestSession())
-            return
-        }
-
         await clearSession()
-    }, [clearSession, persistSession, session])
+    }, [clearSession])
 
     const dismissSessionExpiredNotice = useCallback(() => {
         setIsSessionExpiredNoticeVisible(false)

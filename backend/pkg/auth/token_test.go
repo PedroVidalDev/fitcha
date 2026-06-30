@@ -2,29 +2,40 @@ package auth
 
 import (
 	"testing"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func TestValidateAccessTokenAcceptsLegacyTokenWithoutPurpose(t *testing.T) {
+func TestValidateAccessTokenRejectsTokenWithoutPurpose(t *testing.T) {
 	t.Setenv("JWT_SECRET", "test-secret")
 
-	legacyToken, err := signToken(jwt.MapClaims{
-		"sub": 7,
-		"exp": time.Now().Add(time.Hour).Unix(),
+	tokenWithoutPurpose, err := signToken(tokenClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "7",
+		},
 	})
 	if err != nil {
-		t.Fatalf("failed to sign legacy token: %v", err)
+		t.Fatalf("failed to sign token without purpose: %v", err)
 	}
 
-	userID, err := ValidateAccessToken(legacyToken)
+	if _, err := ValidateAccessToken(tokenWithoutPurpose); err == nil {
+		t.Fatal("expected token without purpose to be rejected")
+	}
+}
+
+func TestValidateAccessTokenRejectsTokenWithInvalidSubjectType(t *testing.T) {
+	t.Setenv("JWT_SECRET", "test-secret")
+
+	tokenWithNumericSubject, err := signToken(jwt.MapClaims{
+		"sub":     7,
+		"purpose": PurposeAuthAccess,
+	})
 	if err != nil {
-		t.Fatalf("expected legacy token to be accepted, got error: %v", err)
+		t.Fatalf("failed to sign token with numeric subject: %v", err)
 	}
 
-	if userID != 7 {
-		t.Fatalf("expected userID 7, got %d", userID)
+	if _, err := ValidateAccessToken(tokenWithNumericSubject); err == nil {
+		t.Fatal("expected token with numeric subject to be rejected")
 	}
 }
 

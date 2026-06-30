@@ -15,94 +15,93 @@ const (
 	PurposeEmailVerification = "email_verification"
 )
 
+type tokenClaims struct {
+	Purpose string `json:"purpose"`
+	jwt.RegisteredClaims
+}
+
 func GenerateToken(userId uint) (string, error) {
-	return signToken(jwt.MapClaims{
-		"sub":     userId,
-		"purpose": PurposeAuthAccess,
-	})
+	return signToken(newTokenClaims(userId, PurposeAuthAccess, nil))
 }
 
 func GenerateEmailVerificationToken(userID uint) (string, error) {
-	return signToken(jwt.MapClaims{
-		"sub":     userID,
-		"purpose": PurposeEmailVerification,
-		"exp":     time.Now().Add(72 * time.Hour).Unix(),
-	})
+	expiresAt := time.Now().Add(72 * time.Hour)
+	return signToken(newTokenClaims(userID, PurposeEmailVerification, &expiresAt))
 }
 
-func ValidateToken(tokenString string) (*jwt.Token, error) {
+func ValidateToken(tokenString string) (*tokenClaims, error) {
 	secret := os.Getenv("JWT_SECRET")
+	claims := &tokenClaims{}
 
-	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Metodo esperado: %v", token.Header["alg"])
 		}
 
 		return []byte(secret), nil
 	})
+	if err != nil || token == nil || !token.Valid {
+		return nil, errors.New("token invalido")
+	}
+
+	return claims, nil
 }
 
 func ValidateAccessToken(tokenString string) (uint, error) {
-	token, err := ValidateToken(tokenString)
-	if err != nil || token == nil || !token.Valid {
+	claims, err := ValidateToken(tokenString)
+	if err != nil {
+		return 0, err
+	}
+
+	if claims.Purpose != PurposeAuthAccess {
 		return 0, errors.New("token invalido")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, errors.New("claims invalidos")
-	}
-
-	if purposeValue, hasPurpose := claims["purpose"]; hasPurpose {
-		purpose, ok := purposeValue.(string)
-		if !ok || purpose != PurposeAuthAccess {
-			return 0, errors.New("token invalido")
-		}
-	}
-
-	return extractSubjectUserID(claims)
+	return extractSubjectUserID(claims.Subject)
 }
 
 func ValidateEmailVerificationToken(tokenString string) (uint, error) {
-	token, err := ValidateToken(tokenString)
-	if err != nil || token == nil || !token.Valid {
+	claims, err := ValidateToken(tokenString)
+	if err != nil {
+		return 0, err
+	}
+
+	if claims.Purpose != PurposeEmailVerification {
 		return 0, errors.New("token invalido")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, errors.New("claims invalidos")
-	}
-
-	if claims["purpose"] != PurposeEmailVerification {
-		return 0, errors.New("token invalido")
-	}
-
-	return extractSubjectUserID(claims)
+	return extractSubjectUserID(claims.Subject)
 }
 
-func extractSubjectUserID(claims jwt.MapClaims) (uint, error) {
-	sub, ok := claims["sub"]
-	if !ok {
+func extractSubjectUserID(subject string) (uint, error) {
+	if subject == "" {
 		return 0, errors.New("token invalido")
 	}
 
-	switch typed := sub.(type) {
-	case float64:
-		return uint(typed), nil
-	case string:
-		parsed, err := strconv.ParseUint(typed, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-
-		return uint(parsed), nil
-	default:
+	parsed, err := strconv.ParseUint(subject, 10, 64)
+	if err != nil || parsed == 0 {
 		return 0, errors.New("token invalido")
 	}
+
+	return uint(parsed), nil
 }
 
-func signToken(claims jwt.MapClaims) (string, error) {
+func newTokenClaims(userID uint, purpose string, expiresAt *time.Time) tokenClaims {
+	claims := tokenClaims{
+		Purpose: purpose,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: strconv.FormatUint(uint64(userID), 10),
+		},
+	}
+
+	if expiresAt != nil {
+		claims.ExpiresAt = jwt.NewNumericDate(*expiresAt)
+	}
+
+	return claims
+}
+
+func signToken(claims jwt.Claims) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
