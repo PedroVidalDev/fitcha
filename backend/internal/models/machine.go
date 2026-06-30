@@ -80,7 +80,7 @@ type Machine struct {
 	Photo          string     `gorm:"type:text" json:"photo"`
 	CategoryKey    string     `gorm:"size:30;not null;index" json:"categoryKey"`
 	TrackingType   string     `gorm:"size:30;not null;default:'sets'" json:"trackingType"`
-	RequiresWeight bool       `gorm:"not null;default:true" json:"requiresWeight"`
+	RequiresWeight bool       `gorm:"not null" json:"requiresWeight"`
 	Aliases        StringList `gorm:"type:jsonb;not null;default:'[]'" json:"aliases"`
 }
 

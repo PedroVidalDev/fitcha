@@ -13,7 +13,7 @@ type UserMachine struct {
 	Photo          string           `gorm:"type:text" json:"photo"`
 	CategoryKey    string           `gorm:"size:30;index" json:"categoryKey"`
 	TrackingType   string           `gorm:"size:30;not null;default:'sets'" json:"trackingType"`
-	RequiresWeight bool             `gorm:"not null;default:true" json:"requiresWeight"`
+	RequiresWeight bool             `gorm:"not null" json:"requiresWeight"`
 	Machine        *Machine         `gorm:"foreignKey:MachineID;references:ID;constraint:OnDelete:SET NULL;" json:"-"`
 	User           User             `gorm:"constraint:OnDelete:CASCADE;" json:"-"`
 	Assignments    []WorkoutMachine `gorm:"foreignKey:UserMachineID;references:ID" json:"-"`
