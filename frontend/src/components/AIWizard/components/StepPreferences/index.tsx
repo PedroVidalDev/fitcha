@@ -1,8 +1,8 @@
-import { useTheme } from "@/src/contexts/ThemeContext";
-import { useI18n } from "@/src/contexts/I18nContext";
-import { Ionicons } from "@expo/vector-icons";
-import { Text, TextInput, View } from "react-native";
-import { StepPreferencesProps } from "./types";
+import { useTheme } from '@/src/contexts/ThemeContext'
+import { useI18n } from '@/src/contexts/I18nContext'
+import { Ionicons } from '@expo/vector-icons'
+import { Text, TextInput, View } from 'react-native'
+import { StepPreferencesProps } from './types'
 
 export const StepPreferences = (props: StepPreferencesProps) => {
     const {
@@ -12,10 +12,10 @@ export const StepPreferences = (props: StepPreferencesProps) => {
         onHoursPerDayChange,
         onMachinesPerDayChange,
         onWorkoutSplitChange,
-    } = props;
+    } = props
 
-    const { t } = useTheme();
-    const { t: translate } = useI18n();
+    const { t } = useTheme()
+    const { t: translate } = useI18n()
 
     return (
         <View style={{ gap: 16 }}>
@@ -26,19 +26,24 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                     lineHeight: 20,
                 }}
             >
-                {translate("aiWizard.preferences.description")}
+                {translate('aiWizard.preferences.description')}
             </Text>
 
             <View>
                 <Text
-                    style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 12,
+                        fontWeight: '700',
+                        marginBottom: 8,
+                    }}
                 >
-                    {translate("aiWizard.preferences.hoursLabel")}
+                    {translate('aiWizard.preferences.hoursLabel')}
                 </Text>
                 <View
                     style={{
-                        flexDirection: "row",
-                        alignItems: "center",
+                        flexDirection: 'row',
+                        alignItems: 'center',
                         gap: 10,
                         backgroundColor: t.inputBg,
                         borderRadius: 14,
@@ -47,18 +52,20 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                         borderColor: t.border,
                     }}
                 >
-                    <Ionicons name="time-outline" size={18} color={t.textDim} />
+                    <Ionicons name='time-outline' size={18} color={t.textDim} />
                     <TextInput
                         style={{
                             flex: 1,
                             padding: 16,
                             color: t.textPrimary,
                             fontSize: 18,
-                            fontWeight: "700",
+                            fontWeight: '700',
                         }}
-                        placeholder={translate("aiWizard.preferences.hoursPlaceholder")}
+                        placeholder={translate(
+                            'aiWizard.preferences.hoursPlaceholder',
+                        )}
                         placeholderTextColor={t.textDim}
-                        keyboardType="decimal-pad"
+                        keyboardType='decimal-pad'
                         value={hoursPerDay}
                         onChangeText={onHoursPerDayChange}
                     />
@@ -67,14 +74,19 @@ export const StepPreferences = (props: StepPreferencesProps) => {
 
             <View>
                 <Text
-                    style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 12,
+                        fontWeight: '700',
+                        marginBottom: 8,
+                    }}
                 >
-                    {translate("aiWizard.preferences.machinesLabel")}
+                    {translate('aiWizard.preferences.machinesLabel')}
                 </Text>
                 <View
                     style={{
-                        flexDirection: "row",
-                        alignItems: "center",
+                        flexDirection: 'row',
+                        alignItems: 'center',
                         gap: 10,
                         backgroundColor: t.inputBg,
                         borderRadius: 14,
@@ -83,18 +95,24 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                         borderColor: t.border,
                     }}
                 >
-                    <Ionicons name="barbell-outline" size={18} color={t.textDim} />
+                    <Ionicons
+                        name='barbell-outline'
+                        size={18}
+                        color={t.textDim}
+                    />
                     <TextInput
                         style={{
                             flex: 1,
                             padding: 16,
                             color: t.textPrimary,
                             fontSize: 18,
-                            fontWeight: "700",
+                            fontWeight: '700',
                         }}
-                        placeholder={translate("aiWizard.preferences.machinesPlaceholder")}
+                        placeholder={translate(
+                            'aiWizard.preferences.machinesPlaceholder',
+                        )}
                         placeholderTextColor={t.textDim}
-                        keyboardType="numeric"
+                        keyboardType='numeric'
                         value={machinesPerDay}
                         onChangeText={onMachinesPerDayChange}
                     />
@@ -103,14 +121,19 @@ export const StepPreferences = (props: StepPreferencesProps) => {
 
             <View>
                 <Text
-                    style={{ color: t.textMuted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}
+                    style={{
+                        color: t.textMuted,
+                        fontSize: 12,
+                        fontWeight: '700',
+                        marginBottom: 8,
+                    }}
                 >
-                    {translate("aiWizard.preferences.splitLabel")}
+                    {translate('aiWizard.preferences.splitLabel')}
                 </Text>
                 <View
                     style={{
-                        flexDirection: "row",
-                        alignItems: "center",
+                        flexDirection: 'row',
+                        alignItems: 'center',
                         gap: 10,
                         backgroundColor: t.inputBg,
                         borderRadius: 14,
@@ -119,23 +142,29 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                         borderColor: t.border,
                     }}
                 >
-                    <Ionicons name="git-network-outline" size={18} color={t.textDim} />
+                    <Ionicons
+                        name='git-network-outline'
+                        size={18}
+                        color={t.textDim}
+                    />
                     <TextInput
                         style={{
                             flex: 1,
                             padding: 16,
                             color: t.textPrimary,
                             fontSize: 18,
-                            fontWeight: "700",
+                            fontWeight: '700',
                         }}
-                        placeholder={translate("aiWizard.preferences.splitPlaceholder")}
+                        placeholder={translate(
+                            'aiWizard.preferences.splitPlaceholder',
+                        )}
                         placeholderTextColor={t.textDim}
-                        autoCapitalize="none"
+                        autoCapitalize='none'
                         value={workoutSplit}
                         onChangeText={onWorkoutSplitChange}
                     />
                 </View>
             </View>
         </View>
-    );
-};
+    )
+}

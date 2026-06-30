@@ -1,13 +1,25 @@
 import { Ionicons } from '@expo/vector-icons'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import {
+    ActivityIndicator,
+    Linking,
+    TouchableOpacity,
+    View,
+} from 'react-native'
 
 import { ConfirmModal } from '../components/ConfirmModal'
 import { ProfileShortcutButton } from '../components/ProfileShortcutButton'
 import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
 import { useTheme } from '../contexts/ThemeContext'
+import {
+    AppReleaseInfo,
+    fetchCurrentAppRelease,
+    getInstalledAppVersion,
+    isRemoteVersionNewer,
+} from '../services/appRelease'
 
 import DayScreen from '../screens/Day'
 import HomeScreen from '../screens/Home'
@@ -32,19 +44,96 @@ export function AppNavigator() {
     } = useAuth()
     const { t, toggle } = useTheme()
     const { t: translate } = useI18n()
+    const [availableUpdate, setAvailableUpdate] =
+        useState<AppReleaseInfo | null>(null)
+    const currentVersion = getInstalledAppVersion()
+
+    useEffect(() => {
+        let isMounted = true
+
+        const checkForAppUpdate = async () => {
+            try {
+                const release = await fetchCurrentAppRelease()
+                if (
+                    !isMounted ||
+                    !release ||
+                    !isRemoteVersionNewer(release.latestVersion, currentVersion)
+                ) {
+                    return
+                }
+
+                setAvailableUpdate(release)
+            } catch {
+                if (!isMounted) return
+                setAvailableUpdate(null)
+            }
+        }
+
+        void checkForAppUpdate()
+
+        return () => {
+            isMounted = false
+        }
+    }, [currentVersion])
+
+    const isUpdateRequired =
+        !!availableUpdate?.minimumVersion &&
+        isRemoteVersionNewer(availableUpdate.minimumVersion, currentVersion)
+
+    const closeAvailableUpdate = () => {
+        if (isUpdateRequired) return
+        setAvailableUpdate(null)
+    }
+
+    const openAvailableUpdate = async () => {
+        if (!availableUpdate?.releaseUrl) return
+
+        try {
+            await Linking.openURL(availableUpdate.releaseUrl)
+        } catch (error) {
+            console.warn('Nao foi possivel abrir a pagina de release.', error)
+        }
+    }
+
+    const updateNoticeModal = (
+        <ConfirmModal
+            visible={!!availableUpdate}
+            title={translate('appUpdate.title')}
+            message={translate(
+                isUpdateRequired
+                    ? 'appUpdate.requiredMessage'
+                    : 'appUpdate.message',
+                {
+                    latestVersion:
+                        availableUpdate?.latestVersion ?? currentVersion,
+                    currentVersion,
+                },
+            )}
+            confirmLabel={translate('appUpdate.confirm')}
+            cancelLabel={translate('appUpdate.cancel')}
+            hideCancel={isUpdateRequired}
+            confirmVariant='accent'
+            onClose={closeAvailableUpdate}
+            onConfirm={() => void openAvailableUpdate()}
+        />
+    )
 
     if (isLoading) {
         return (
-            <View
-                style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: t.bg,
-                }}
-            >
-                <ActivityIndicator size='large' color={t.accent} />
-            </View>
+            <>
+                <View
+                    style={{
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: t.bg,
+                    }}
+                >
+                    <ActivityIndicator size='large' color={t.accent} />
+                </View>
+
+                {updateNoticeModal}
+            </>
         )
     }
 
@@ -204,6 +293,8 @@ export function AppNavigator() {
                 onClose={dismissSessionExpiredNotice}
                 onConfirm={dismissSessionExpiredNotice}
             />
+
+            {updateNoticeModal}
         </>
     )
 }

@@ -1,52 +1,68 @@
-import { isAxiosError } from "axios";
-import { Machine } from "../dtos/Machine";
-import { translateRuntime } from "../translates/runtime";
-import { axiosApp, ensureApiUrlConfigured } from "./axios";
+import { isAxiosError } from 'axios'
+import { Machine } from '../dtos/Machine'
+import { translateRuntime } from '../translates/runtime'
+import { axiosApp, ensureApiUrlConfigured } from './axios'
 
-type UpdateMachineInput = Partial<Pick<Machine, "name" | "description" | "photo" | "categoryKey">>;
+type UpdateMachineInput = Partial<
+    Pick<Machine, 'name' | 'description' | 'photo' | 'categoryKey'>
+>
 
 function getMachineErrorMessage(error: unknown, fallback: string) {
     if (isAxiosError(error)) {
-        const responseData = error.response?.data;
+        const responseData = error.response?.data
 
         if (
             responseData &&
-            typeof responseData === "object" &&
-            "error" in responseData &&
-            typeof responseData.error === "string" &&
+            typeof responseData === 'object' &&
+            'error' in responseData &&
+            typeof responseData.error === 'string' &&
             responseData.error.trim()
         ) {
-            return responseData.error;
+            return responseData.error
         }
     }
 
     if (error instanceof Error && error.message.trim()) {
-        return error.message;
+        return error.message
     }
 
-    return fallback;
+    return fallback
 }
 
 export async function getMyMachines() {
-    ensureApiUrlConfigured();
+    ensureApiUrlConfigured()
 
     try {
-        const response = await axiosApp.get<Machine[]>("/me/machines");
-        return response.data;
+        const response = await axiosApp.get<Machine[]>('/me/machines')
+        return response.data
     } catch (error) {
-        throw new Error(getMachineErrorMessage(error, translateRuntime("services.machines.loadError")));
+        throw new Error(
+            getMachineErrorMessage(
+                error,
+                translateRuntime('services.machines.loadError'),
+            ),
+        )
     }
 }
 
-export async function updateMachine(machineId: string, input: UpdateMachineInput) {
-    ensureApiUrlConfigured();
+export async function updateMachine(
+    machineId: string,
+    input: UpdateMachineInput,
+) {
+    ensureApiUrlConfigured()
 
     try {
-        const response = await axiosApp.patch<Machine>(`/me/machines/${machineId}`, input);
-        return response.data;
+        const response = await axiosApp.patch<Machine>(
+            `/me/machines/${machineId}`,
+            input,
+        )
+        return response.data
     } catch (error) {
         throw new Error(
-            getMachineErrorMessage(error, translateRuntime("services.machines.updateError")),
-        );
+            getMachineErrorMessage(
+                error,
+                translateRuntime('services.machines.updateError'),
+            ),
+        )
     }
 }

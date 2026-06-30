@@ -49,6 +49,7 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	err = db.AutoMigrate(
+		&models.AppRelease{},
 		&models.User{},
 		&models.EmailVerificationToken{},
 		&models.PasswordResetToken{},

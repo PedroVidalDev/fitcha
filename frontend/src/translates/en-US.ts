@@ -2,6 +2,13 @@ import type { TranslationDictionary } from './index'
 
 export const enUS: TranslationDictionary = {
     'app.tagline': 'Your digital workout log',
+    'appUpdate.title': 'New version available',
+    'appUpdate.message':
+        'Fitcha version {latestVersion} is now available. You are currently using version {currentVersion}.',
+    'appUpdate.requiredMessage':
+        'A required update is available to keep using the app. Current version: {currentVersion}. New version: {latestVersion}.',
+    'appUpdate.confirm': 'Download now',
+    'appUpdate.cancel': 'Later',
     'common.or': 'or',
     'common.actions.back': 'Back',
     'common.actions.close': 'Close',

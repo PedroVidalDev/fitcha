@@ -1,12 +1,12 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { Platform, TouchableOpacity, View } from "react-native";
-import { useTheme } from "../../contexts/ThemeContext";
-import { GradientCardProps } from "./types";
+import { LinearGradient } from 'expo-linear-gradient'
+import { Platform, TouchableOpacity, View } from 'react-native'
+import { useTheme } from '../../contexts/ThemeContext'
+import { GradientCardProps } from './types'
 
 export const GradientCard = (props: GradientCardProps) => {
-    const { children, onPress, onLongPress } = props;
+    const { children, onPress, onLongPress } = props
 
-    const { t } = useTheme();
+    const { t } = useTheme()
     return (
         <TouchableOpacity
             activeOpacity={0.75}
@@ -31,20 +31,20 @@ export const GradientCard = (props: GradientCardProps) => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
-                    position: "relative",
-                    flexDirection: "row",
-                    alignItems: "center",
+                    position: 'relative',
+                    flexDirection: 'row',
+                    alignItems: 'center',
                     borderRadius: 16,
                     padding: 16,
                     gap: 14,
-                    overflow: "hidden",
+                    overflow: 'hidden',
                     borderWidth: 1,
                     borderColor: t.border,
                 }}
             >
                 <View
                     style={{
-                        position: "absolute",
+                        position: 'absolute',
                         top: -20,
                         right: -14,
                         width: 82,
@@ -55,7 +55,7 @@ export const GradientCard = (props: GradientCardProps) => {
                 />
                 <View
                     style={{
-                        position: "absolute",
+                        position: 'absolute',
                         bottom: -26,
                         left: -18,
                         width: 70,
@@ -68,5 +68,5 @@ export const GradientCard = (props: GradientCardProps) => {
                 {children}
             </LinearGradient>
         </TouchableOpacity>
-    );
-};
+    )
+}

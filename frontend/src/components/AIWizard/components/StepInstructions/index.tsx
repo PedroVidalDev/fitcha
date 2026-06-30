@@ -1,12 +1,12 @@
-import { useTheme } from "@/src/contexts/ThemeContext";
-import { useI18n } from "@/src/contexts/I18nContext";
-import { Text, TextInput, View } from "react-native";
-import { StepInstructionsProps } from "./types";
+import { useI18n } from '@/src/contexts/I18nContext'
+import { useTheme } from '@/src/contexts/ThemeContext'
+import { Text, TextInput, View } from 'react-native'
+import { StepInstructionsProps } from './types'
 
 export const StepInstructions = (props: StepInstructionsProps) => {
-    const { value, onChange } = props;
-    const { t } = useTheme();
-    const { t: translate } = useI18n();
+    const { value, onChange } = props
+    const { t } = useTheme()
+    const { t: translate } = useI18n()
 
     return (
         <View>
@@ -18,7 +18,7 @@ export const StepInstructions = (props: StepInstructionsProps) => {
                     marginBottom: 12,
                 }}
             >
-                {translate("aiWizard.instructions.description")}
+                {translate('aiWizard.instructions.description')}
             </Text>
 
             <View
@@ -37,9 +37,9 @@ export const StepInstructions = (props: StepInstructionsProps) => {
                         color: t.textPrimary,
                         fontSize: 15,
                         lineHeight: 22,
-                        textAlignVertical: "top",
+                        textAlignVertical: 'top',
                     }}
-                    placeholder={translate("aiWizard.instructions.placeholder")}
+                    placeholder={translate('aiWizard.instructions.placeholder')}
                     placeholderTextColor={t.textDim}
                     multiline
                     value={value}
@@ -47,5 +47,5 @@ export const StepInstructions = (props: StepInstructionsProps) => {
                 />
             </View>
         </View>
-    );
-};
+    )
+}

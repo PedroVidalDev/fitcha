@@ -29,7 +29,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ./frontend
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
@@ -37,38 +36,66 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build APK
-        run: eas build --platform android --profile preview --non-interactive --wait --json
-        working-directory: ./frontend
-
-      - name: Download APK from EAS
+      - name: Resolve app version
+        id: app_version
         run: |
-          # Pega a URL do último build finalizado
-          BUILD_URL=$(eas build:list --platform android --status finished --limit 1 --non-interactive --json | jq -r '.[0].artifacts.buildUrl')
+          APP_VERSION=$(node -p "require('./app.json').expo.version")
+          echo "version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved app version: $APP_VERSION"
+
+      - name: Build APK
+        run: eas build --platform android --profile preview --non-interactive --wait --json > build.json
+
+      - name: Download APK artifact
+        run: |
+          BUILD_URL=$(node -e "const fs=require('fs'); const raw=JSON.parse(fs.readFileSync('build.json','utf8')); const build=Array.isArray(raw)?raw[0]:raw; if(!build?.artifacts?.buildUrl){process.exit(1)}; process.stdout.write(build.artifacts.buildUrl)")
           echo "Downloading APK from: $BUILD_URL"
           curl -L -o app-release.apk "$BUILD_URL"
 
       - name: Generate version tag
         id: version
         run: |
-          # Gera tag baseada na data + short SHA
-          TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          TAG="v${{ steps.app_version.outputs.version }}-$SHORT_SHA"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Generated tag: $TAG"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: "Build ${{ steps.version.outputs.tag }}"
+          name: Fitcha ${{ steps.app_version.outputs.version }}
           body: |
-            **Build automático** gerado a partir do commit `${{ github.sha }}`.
+            Release automatica da versao `${{ steps.app_version.outputs.version }}` gerada a partir do commit `${{ github.sha }}`.
 
-            📱 Baixe o APK abaixo e instale no seu Android.
+            Baixe o APK abaixo e instale no seu Android.
 
-            > Pode ser necessário habilitar "Instalar de fontes desconhecidas" nas configurações do celular.
+            Pode ser necessario habilitar "Instalar de fontes desconhecidas" nas configuracoes do celular.
           files: frontend/app-release.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Warn when release sync secrets are missing
+        if: ${{ secrets.APP_RELEASE_SYNC_URL == '' || secrets.APP_UPDATE_TOKEN == '' }}
+        run: |
+          echo "APP_RELEASE_SYNC_URL and APP_UPDATE_TOKEN were not configured."
+          echo "The GitHub release was created, but the API release metadata was not synchronized."
+
+      - name: Sync release metadata to API
+        if: ${{ secrets.APP_RELEASE_SYNC_URL != '' && secrets.APP_UPDATE_TOKEN != '' }}
+        env:
+          APP_RELEASE_SYNC_URL: ${{ secrets.APP_RELEASE_SYNC_URL }}
+          APP_UPDATE_TOKEN: ${{ secrets.APP_UPDATE_TOKEN }}
+          APP_VERSION: ${{ steps.app_version.outputs.version }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_URL: https://github.com/${{ github.repository }}/releases/latest
+        run: |
+          RELEASED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          PAYLOAD=$(printf '{"latestVersion":"%s","releaseTag":"%s","releaseUrl":"%s","releasedAt":"%s"}' "$APP_VERSION" "$RELEASE_TAG" "$RELEASE_URL" "$RELEASED_AT")
+
+          curl --fail-with-body \
+            -X PUT "$APP_RELEASE_SYNC_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-App-Update-Token: $APP_UPDATE_TOKEN" \
+            -d "$PAYLOAD"

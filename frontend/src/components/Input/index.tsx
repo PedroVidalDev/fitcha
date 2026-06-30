@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
-import { Animated, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { useTheme } from "../../contexts/ThemeContext";
-import { InputProps } from "./types";
+import { Ionicons } from '@expo/vector-icons'
+import { useEffect, useRef, useState } from 'react'
+import { Animated, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useTheme } from '../../contexts/ThemeContext'
+import { InputProps } from './types'
 
-const ERROR_COLOR = "#EF5350";
+const ERROR_COLOR = '#EF5350'
 
 export const Input = (props: InputProps) => {
     const {
@@ -12,43 +12,63 @@ export const Input = (props: InputProps) => {
         value,
         onChangeText,
         placeholder,
-        keyboardType = "default",
+        keyboardType = 'default',
         icon,
         secure = false,
-        autoCapitalize = "none",
+        autoCapitalize = 'none',
         error,
-    } = props;
+    } = props
 
-    const { t } = useTheme();
+    const { t } = useTheme()
 
-    const [hidden, setHidden] = useState(true);
-    const shakeAnim = useRef(new Animated.Value(0)).current;
-    const errorFade = useRef(new Animated.Value(0)).current;
+    const [hidden, setHidden] = useState(true)
+    const shakeAnim = useRef(new Animated.Value(0)).current
+    const errorFade = useRef(new Animated.Value(0)).current
 
-    const hasError = !!error;
+    const hasError = !!error
 
     useEffect(() => {
         if (hasError) {
             Animated.sequence([
-                Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
-                Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
-                Animated.timing(shakeAnim, { toValue: 5, duration: 50, useNativeDriver: true }),
-                Animated.timing(shakeAnim, { toValue: -5, duration: 50, useNativeDriver: true }),
-                Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
-            ]).start();
+                Animated.timing(shakeAnim, {
+                    toValue: 8,
+                    duration: 50,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(shakeAnim, {
+                    toValue: -8,
+                    duration: 50,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(shakeAnim, {
+                    toValue: 5,
+                    duration: 50,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(shakeAnim, {
+                    toValue: -5,
+                    duration: 50,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(shakeAnim, {
+                    toValue: 0,
+                    duration: 50,
+                    useNativeDriver: true,
+                }),
+            ]).start()
             Animated.timing(errorFade, {
                 toValue: 1,
                 duration: 200,
                 useNativeDriver: true,
-            }).start();
+            }).start()
         } else {
             Animated.timing(errorFade, {
                 toValue: 0,
                 duration: 150,
                 useNativeDriver: true,
-            }).start();
+            }).start()
         }
-    }, [error]);
+    }, [error])
 
     return (
         <View style={{ marginBottom: hasError ? 8 : 16 }}>
@@ -56,7 +76,7 @@ export const Input = (props: InputProps) => {
                 style={{
                     color: hasError ? ERROR_COLOR : t.textMuted,
                     fontSize: 12,
-                    fontWeight: "700",
+                    fontWeight: '700',
                     marginBottom: 8,
                     marginLeft: 4,
                 }}
@@ -66,8 +86,8 @@ export const Input = (props: InputProps) => {
 
             <Animated.View
                 style={{
-                    flexDirection: "row",
-                    alignItems: "center",
+                    flexDirection: 'row',
+                    alignItems: 'center',
                     backgroundColor: t.inputBg,
                     borderRadius: 14,
                     borderWidth: hasError ? 1 : 0.5,
@@ -76,14 +96,18 @@ export const Input = (props: InputProps) => {
                     transform: [{ translateX: shakeAnim }],
                 }}
             >
-                <Ionicons name={icon as any} size={18} color={hasError ? ERROR_COLOR : t.textDim} />
+                <Ionicons
+                    name={icon as any}
+                    size={18}
+                    color={hasError ? ERROR_COLOR : t.textDim}
+                />
                 <TextInput
                     style={{
                         flex: 1,
                         padding: 16,
                         color: t.textPrimary,
                         fontSize: 16,
-                        fontWeight: "600",
+                        fontWeight: '600',
                         marginLeft: 10,
                     }}
                     placeholder={placeholder}
@@ -96,9 +120,12 @@ export const Input = (props: InputProps) => {
                     onChangeText={onChangeText}
                 />
                 {secure && (
-                    <TouchableOpacity onPress={() => setHidden(!hidden)} style={{ padding: 4 }}>
+                    <TouchableOpacity
+                        onPress={() => setHidden(!hidden)}
+                        style={{ padding: 4 }}
+                    >
                         <Ionicons
-                            name={hidden ? "eye-outline" : "eye-off-outline"}
+                            name={hidden ? 'eye-outline' : 'eye-off-outline'}
                             size={20}
                             color={t.textDim}
                         />
@@ -111,7 +138,7 @@ export const Input = (props: InputProps) => {
                     style={{
                         color: ERROR_COLOR,
                         fontSize: 12,
-                        fontWeight: "600",
+                        fontWeight: '600',
                         marginTop: 6,
                         marginLeft: 4,
                         opacity: errorFade,
@@ -121,5 +148,5 @@ export const Input = (props: InputProps) => {
                 </Animated.Text>
             )}
         </View>
-    );
-};
+    )
+}
