@@ -2,6 +2,13 @@ import type { TranslationDictionary } from './index'
 
 export const esES: TranslationDictionary = {
     'app.tagline': 'Tu ficha de entrenamiento digital',
+    'appUpdate.title': 'Nueva version disponible',
+    'appUpdate.message':
+        'La version {latestVersion} de Fitcha ya esta disponible. Actualmente estas usando la version {currentVersion}.',
+    'appUpdate.requiredMessage':
+        'Hay una actualizacion obligatoria disponible para seguir usando la app. Version actual: {currentVersion}. Nueva version: {latestVersion}.',
+    'appUpdate.confirm': 'Descargar ahora',
+    'appUpdate.cancel': 'Despues',
     'common.or': 'o',
     'common.actions.back': 'Volver',
     'common.actions.close': 'Cerrar',

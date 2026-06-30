@@ -7,6 +7,7 @@ import (
 	"fitcha/internal/services"
 	"fitcha/pkg/mercadopago"
 	"fitcha/pkg/queue"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -15,6 +16,13 @@ import (
 func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	queueClient := queue.NewClientFromEnv()
 	emailJobs := jobs.NewEmailJobs(queueClient)
+
+	appReleaseRepo := repositories.NewAppReleaseRepository(db)
+	appReleaseService := services.NewAppReleaseService(appReleaseRepo)
+	appReleaseController := controllers.NewAppReleaseController(
+		appReleaseService,
+		os.Getenv("APP_UPDATE_TOKEN"),
+	)
 
 	authRepo := repositories.NewUserRepository(db)
 	verificationTokenRepo := repositories.NewEmailVerificationTokenRepository(db)
@@ -48,6 +56,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	historyController := controllers.NewHistoryController(historyService)
 
 	RegisterAuthRoutes(r, authController)
+	RegisterAppReleaseRoutes(r, appReleaseController)
 	RegisterCreditRoutes(r, creditController)
 	RegisterAIWorkoutRoutes(r, aiWorkoutController)
 	RegisterMachineRoutes(r, machineController)

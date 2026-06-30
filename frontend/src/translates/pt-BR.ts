@@ -1,5 +1,12 @@
 export const ptBR = {
     'app.tagline': 'Sua ficha de treino digital',
+    'appUpdate.title': 'Nova versao disponivel',
+    'appUpdate.message':
+        'A versao {latestVersion} do Fitcha ja esta disponivel. Voce esta usando a versao {currentVersion}.',
+    'appUpdate.requiredMessage':
+        'Existe uma atualizacao obrigatoria disponivel para continuar usando o app. Versao atual: {currentVersion}. Nova versao: {latestVersion}.',
+    'appUpdate.confirm': 'Baixar agora',
+    'appUpdate.cancel': 'Depois',
     'common.or': 'ou',
     'common.actions.back': 'Voltar',
     'common.actions.close': 'Fechar',
