@@ -11,6 +11,7 @@ import {
 import {
     buildWorkoutResults,
     formatTime,
+    getDurationElapsedSeconds,
     getWorkoutDraft,
     hasDraftValue,
     isDraftComplete,
@@ -21,6 +22,7 @@ import { useSaveWorkout } from './hooks/useSaveWorkout'
 import {
     type UseWorkoutScreenParams,
     type WorkoutDraftFieldKey,
+    type WorkoutDurationConfig,
     type WorkoutDraftMap,
     type WorkoutMachineProgressItem,
     type WorkoutModalConfig,
@@ -59,20 +61,26 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         ? getWorkoutDraft(drafts[machine.id])
         : getWorkoutDraft()
     const completedCount = machines.filter((item) =>
-        isDraftComplete(drafts[item.id]),
+        isDraftComplete(item, drafts[item.id]),
     ).length
     const pendingCount = machines.length - completedCount
-    const hasAnyDrafts = machines.some((item) => hasDraftValue(drafts[item.id]))
-    const currentHasDraft = hasDraftValue(currentDraft)
-    const currentIsComplete = isDraftComplete(currentDraft)
+    const hasAnyDrafts = machines.some((item) =>
+        hasDraftValue(item, drafts[item.id]),
+    )
+    const currentHasDraft = machine
+        ? hasDraftValue(machine, currentDraft)
+        : false
+    const currentIsComplete = machine
+        ? isDraftComplete(machine, currentDraft)
+        : false
 
     const machineProgressItems: WorkoutMachineProgressItem[] = machines.map(
         (item, index) => ({
             id: item.id,
             position: index + 1,
             isCurrent: index === currentIdx,
-            hasDraft: hasDraftValue(drafts[item.id]),
-            isComplete: isDraftComplete(drafts[item.id]),
+            hasDraft: hasDraftValue(item, drafts[item.id]),
+            isComplete: isDraftComplete(item, drafts[item.id]),
         }),
     )
 
@@ -111,7 +119,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
             draftField: WorkoutDraftFieldKey,
             value: string,
         ) => {
-            if (!machine) return
+            if (!machine || machine.trackingType !== 'sets') return
 
             setDrafts((prev) => {
                 const machineDraft = getWorkoutDraft(prev[machine.id])
@@ -144,13 +152,14 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
 
     const confirmDraftField = useCallback(
         (field: WorkoutSetKey) => {
-            if (!machine) return
+            if (!machine || machine.trackingType !== 'sets') return
 
             const machineDraft = getWorkoutDraft(drafts[machine.id])
             const currentSet = machineDraft.sets[field]
 
             if (
-                !isValidWeightValue(currentSet.weight) ||
+                (machine.requiresWeight &&
+                    !isValidWeightValue(currentSet.weight)) ||
                 !isValidRepsValue(currentSet.reps)
             ) {
                 return
@@ -194,6 +203,53 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         [drafts, machine],
     )
 
+    const handleDurationAction = useCallback(() => {
+        if (!machine || machine.trackingType !== 'duration') return
+
+        const now = Date.now()
+        const draft = getWorkoutDraft(drafts[machine.id])
+        const isRunning = draft.duration.startedAt !== null
+
+        setDrafts((prev) => {
+            const nextDraft = getWorkoutDraft(prev[machine.id])
+
+            if (nextDraft.duration.startedAt !== null) {
+                const elapsedSeconds = getDurationElapsedSeconds(nextDraft)
+
+                return {
+                    ...prev,
+                    [machine.id]: {
+                        ...nextDraft,
+                        duration: {
+                            startedAt: null,
+                            accumulatedSeconds: elapsedSeconds,
+                        },
+                    },
+                }
+            }
+
+            return {
+                ...prev,
+                [machine.id]: {
+                    ...nextDraft,
+                    duration: {
+                        startedAt: now,
+                        accumulatedSeconds: 0,
+                    },
+                },
+            }
+        })
+
+        if (isRunning) {
+            setRestStartedAt(now)
+            setRestElapsed(0)
+            return
+        }
+
+        setRestStartedAt(null)
+        setRestElapsed(0)
+    }, [drafts, machine])
+
     const goToMachine = useCallback(
         (index: number) => {
             if (index < 0 || index >= machines.length || index === currentIdx) {
@@ -216,11 +272,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     }, [canGoNext])
 
     const buildResults = useCallback(
-        (): WorkoutResult[] =>
-            buildWorkoutResults(
-                machines.map((item) => item.id),
-                drafts,
-            ),
+        (): WorkoutResult[] => buildWorkoutResults(machines, drafts),
         [drafts, machines],
     )
 
@@ -470,71 +522,107 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         }, [refresh]),
     )
 
-    const seriesFields: WorkoutSeriesField[] = machine
-        ? [
-              {
-                  key: 'set1' as const,
-                  label: translate('workout.series.one'),
-                  weightValue: currentDraft.sets.set1.weight,
-                  repsValue: currentDraft.sets.set1.reps,
-                  weightPlaceholder:
-                      machine.recordSets?.[0]?.weight?.toString() ?? '',
-                  repsPlaceholder:
-                      machine.recordSets?.[0]?.reps &&
-                      machine.recordSets[0].reps > 0
-                          ? machine.recordSets[0].reps.toString()
-                          : '',
-              },
-              {
-                  key: 'set2' as const,
-                  label: translate('workout.series.two'),
-                  weightValue: currentDraft.sets.set2.weight,
-                  repsValue: currentDraft.sets.set2.reps,
-                  weightPlaceholder:
-                      machine.recordSets?.[1]?.weight?.toString() ?? '',
-                  repsPlaceholder:
-                      machine.recordSets?.[1]?.reps &&
-                      machine.recordSets[1].reps > 0
-                          ? machine.recordSets[1].reps.toString()
-                          : '',
-              },
-              {
-                  key: 'set3' as const,
-                  label: translate('workout.series.three'),
-                  weightValue: currentDraft.sets.set3.weight,
-                  repsValue: currentDraft.sets.set3.reps,
-                  weightPlaceholder:
-                      machine.recordSets?.[2]?.weight?.toString() ?? '',
-                  repsPlaceholder:
-                      machine.recordSets?.[2]?.reps &&
-                      machine.recordSets[2].reps > 0
-                          ? machine.recordSets[2].reps.toString()
-                          : '',
-              },
-          ].map((item, index, allFields) => {
-              const previousSetsComplete =
-                  index === 0 ||
-                  allFields
-                      .slice(0, index)
-                      .every((field) => currentDraft.confirmed[field.key])
-              const isConfirmed = currentDraft.confirmed[item.key]
-              const isWeightValid = isValidWeightValue(item.weightValue)
-              const isRepsValid = isValidRepsValue(item.repsValue)
+    const seriesFields: WorkoutSeriesField[] =
+        machine && machine.trackingType === 'sets'
+            ? [
+                  {
+                      key: 'set1' as const,
+                      label: translate('workout.series.one'),
+                      requiresWeight: machine.requiresWeight,
+                      weightValue: currentDraft.sets.set1.weight,
+                      repsValue: currentDraft.sets.set1.reps,
+                      weightPlaceholder:
+                          machine.requiresWeight &&
+                          machine.recordSets?.[0]?.weight &&
+                          machine.recordSets[0].weight > 0
+                              ? machine.recordSets[0].weight.toString()
+                              : '',
+                      repsPlaceholder:
+                          machine.recordSets?.[0]?.reps &&
+                          machine.recordSets[0].reps > 0
+                              ? machine.recordSets[0].reps.toString()
+                              : '',
+                  },
+                  {
+                      key: 'set2' as const,
+                      label: translate('workout.series.two'),
+                      requiresWeight: machine.requiresWeight,
+                      weightValue: currentDraft.sets.set2.weight,
+                      repsValue: currentDraft.sets.set2.reps,
+                      weightPlaceholder:
+                          machine.requiresWeight &&
+                          machine.recordSets?.[1]?.weight &&
+                          machine.recordSets[1].weight > 0
+                              ? machine.recordSets[1].weight.toString()
+                              : '',
+                      repsPlaceholder:
+                          machine.recordSets?.[1]?.reps &&
+                          machine.recordSets[1].reps > 0
+                              ? machine.recordSets[1].reps.toString()
+                              : '',
+                  },
+                  {
+                      key: 'set3' as const,
+                      label: translate('workout.series.three'),
+                      requiresWeight: machine.requiresWeight,
+                      weightValue: currentDraft.sets.set3.weight,
+                      repsValue: currentDraft.sets.set3.reps,
+                      weightPlaceholder:
+                          machine.requiresWeight &&
+                          machine.recordSets?.[2]?.weight &&
+                          machine.recordSets[2].weight > 0
+                              ? machine.recordSets[2].weight.toString()
+                              : '',
+                      repsPlaceholder:
+                          machine.recordSets?.[2]?.reps &&
+                          machine.recordSets[2].reps > 0
+                              ? machine.recordSets[2].reps.toString()
+                              : '',
+                  },
+              ].map((item, index, allFields) => {
+                  const previousSetsComplete =
+                      index === 0 ||
+                      allFields
+                          .slice(0, index)
+                          .every((field) => currentDraft.confirmed[field.key])
+                  const isConfirmed = currentDraft.confirmed[item.key]
+                  const isWeightValid =
+                      !machine.requiresWeight ||
+                      isValidWeightValue(item.weightValue)
+                  const isRepsValid = isValidRepsValue(item.repsValue)
 
-              return {
-                  ...item,
-                  isConfirmed,
-                  isLocked: !previousSetsComplete,
-                  canConfirm:
-                      previousSetsComplete &&
-                      isWeightValid &&
-                      isRepsValid &&
-                      !isConfirmed,
-              }
-          })
-        : []
+                  return {
+                      ...item,
+                      isConfirmed,
+                      isLocked: !previousSetsComplete,
+                      canConfirm:
+                          previousSetsComplete &&
+                          isWeightValid &&
+                          isRepsValid &&
+                          !isConfirmed,
+                  }
+              })
+            : []
 
     const hasLockedSeries = seriesFields.slice(1).some((item) => item.isLocked)
+    const durationConfig: WorkoutDurationConfig | null =
+        machine && machine.trackingType === 'duration'
+            ? {
+                  trackingType: machine.trackingType,
+                  elapsedSeconds: getDurationElapsedSeconds(currentDraft),
+                  state:
+                      currentDraft.duration.startedAt !== null
+                          ? 'running'
+                          : currentDraft.duration.accumulatedSeconds > 0
+                            ? 'completed'
+                            : 'idle',
+                  lastDurationSeconds:
+                      machine.recordSets?.[0]?.durationSeconds &&
+                      machine.recordSets[0].durationSeconds > 0
+                          ? machine.recordSets[0].durationSeconds
+                          : null,
+              }
+            : null
 
     return {
         machine,
@@ -552,6 +640,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         modal,
         machineProgressItems,
         seriesFields,
+        durationConfig,
         hasLockedSeries,
         fadeAnim,
         slideAnim,
@@ -565,5 +654,6 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         handleSelectMachine: goToMachine,
         handleUpdateDraftField: updateDraftField,
         handleConfirmDraftField: confirmDraftField,
+        handleDurationAction,
     }
 }

@@ -10,6 +10,7 @@ type CreateWorkoutResultType struct {
 }
 
 type CreateWorkoutSetType struct {
-	Weight float64 `json:"weight" binding:"required"`
-	Reps   int     `json:"reps" binding:"required"`
+	Weight          float64 `json:"weight"`
+	Reps            int     `json:"reps"`
+	DurationSeconds int     `json:"durationSeconds"`
 }

@@ -13,16 +13,18 @@ type HistoryEntryResponseType struct {
 }
 
 type HistoryEntrySetResponseType struct {
-	Weight float64 `json:"weight"`
-	Reps   int     `json:"reps"`
+	Weight          float64 `json:"weight"`
+	Reps            int     `json:"reps"`
+	DurationSeconds int     `json:"durationSeconds"`
 }
 
 func FromHistoryEntryModel(entry models.HistoryEntry) HistoryEntryResponseType {
 	sets := make([]HistoryEntrySetResponseType, 0, len(entry.Sets))
 	for _, set := range entry.Sets {
 		sets = append(sets, HistoryEntrySetResponseType{
-			Weight: set.Weight,
-			Reps:   set.Reps,
+			Weight:          set.Weight,
+			Reps:            set.Reps,
+			DurationSeconds: set.DurationSeconds,
 		})
 	}
 

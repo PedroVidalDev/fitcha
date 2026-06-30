@@ -258,12 +258,14 @@ export const ptBR = {
         'Sequência com maior volume já salva nessa máquina.',
     'detail.record.empty': 'Ainda não há recorde salvo para essa máquina.',
     'detail.record.volume': 'volume {volume}',
+    'detail.record.reps': '{value} reps',
+    'detail.record.duration': '{value} de duração',
     'detail.history.title': 'histórico',
     'detail.history.empty':
-        'Nenhum registro ainda. Inicie um treino para registrar pesos e repetições.',
+        'Nenhum registro ainda. Inicie um treino para salvar sua evolução.',
     'home.greetingFallback': 'atleta',
     'home.delta.noBase': 'Sem base',
-    'home.delta.zero': '0 kg',
+    'home.delta.zero': '0',
     'home.relative.daysAgo': '{count} dias',
     'home.featured.emptyTitle': 'evolução por máquina',
     'home.featured.emptySubtitle':
@@ -283,7 +285,7 @@ export const ptBR = {
     'home.machine.comparison.needMore':
         'Salve mais um treino para comparar a evolução.',
     'home.machine.comparison.default':
-        'Comparação da carga atual contra o primeiro registro salvo.',
+        'Comparação do desempenho atual contra o primeiro registro salvo.',
     'home.machine.previous.noHistory': 'sem histórico',
     'home.machine.previous.oneRecord': '1 registro salvo',
     'home.machine.previous.noComparison': 'sem comparação',
@@ -294,6 +296,7 @@ export const ptBR = {
     'home.machine.metric.initial': 'inicial',
     'home.machine.metric.record': 'recorde',
     'home.machine.recordVolume': '{volume} de volume',
+    'home.machine.recordMetric': '{value} no recorde',
     'home.machine.noHistoryCard':
         'Essa máquina já está no dia planejado, mas ainda não tem histórico salvo.',
     'home.machine.recordsTitle': 'últimos registros',
@@ -394,17 +397,17 @@ export const ptBR = {
     'workout.saved.message':
         '{count} máquina{machineSuffix} registrada{registeredSuffix} em {elapsed}',
     'workout.empty.title': 'Treino vazio',
-    'workout.empty.message': 'Nenhuma série foi registrada.',
+    'workout.empty.message': 'Nenhum exercício foi registrado.',
     'workout.error.title': 'Erro ao salvar',
     'workout.error.message':
         'Não foi possível salvar o treino agora. Tente novamente em instantes.',
-    'workout.incomplete.title': 'Nenhuma máquina completa',
+    'workout.incomplete.title': 'Nenhum exercício completo',
     'workout.incomplete.message':
-        'Ainda não há exercício com as 3 séries completas. Se sair agora, os rascunhos serão descartados.',
+        'Ainda não há exercício pronto para salvar. Se sair agora, os rascunhos serão descartados.',
     'workout.incomplete.confirm': 'Sair sem salvar',
     'workout.pending.title': 'Finalizar com pendências?',
     'workout.pending.message':
-        '{count} máquina{machineSuffix} sem as 3 séries completas. Você pode salvar agora ou continuar revisando.',
+        '{count} máquina{machineSuffix} ainda precisa de revisão. Você pode salvar agora ou continuar revisando.',
     'workout.quit.title': 'Encerrar treino?',
     'workout.quit.message':
         'Se você sair agora, o treino será encerrado e nada será salvo.',
@@ -420,15 +423,27 @@ export const ptBR = {
     'workout.status.draftTitle': 'Rascunho salvo',
     'workout.status.skipTitle': 'Pode pular sem perder o fluxo',
     'workout.status.registeredMessage':
-        'Você pode seguir adiante ou voltar depois para ajustar os pesos.',
+        'Você pode seguir adiante ou voltar depois para revisar esse exercício.',
     'workout.status.draftMessage':
         'Os valores ficam guardados ao trocar de máquina. Complete quando ela estiver livre.',
     'workout.status.skipMessage':
         'Se a máquina estiver ocupada, avance agora e volte quando quiser pelos cartões acima.',
     'workout.rest.title': 'descanso',
-    'workout.rest.idle': 'O timer começa assim que você confirmar uma série.',
+    'workout.rest.idle':
+        'O timer começa assim que você confirmar uma série ou finalizar um exercício por tempo.',
     'workout.rest.active': 'Contando desde a última série confirmada.',
-    'workout.fillSeries': 'preencha carga e repetições nas 3 séries',
+    'workout.duration.title': 'registro por tempo',
+    'workout.duration.idle':
+        'Toque para iniciar e contar quanto tempo você fica nesse exercício.',
+    'workout.duration.active':
+        'O cronômetro está rodando. Finalize quando encerrar o exercício.',
+    'workout.duration.done':
+        'Tempo registrado. Toque para reiniciar se quiser refazer.',
+    'workout.duration.startCta': 'Iniciar',
+    'workout.duration.stopCta': 'Finalizar',
+    'workout.duration.restartCta': 'Reiniciar',
+    'workout.duration.lastRecord': 'Último {value}',
+    'workout.fillSeries': 'preencha as séries do exercício',
     'workout.series.confirmCta': 'Confirmar',
     'workout.series.confirmedCta': 'Confirmada',
     'workout.series.readyState': 'Pronta',

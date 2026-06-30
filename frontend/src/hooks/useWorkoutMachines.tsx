@@ -37,10 +37,13 @@ export function useWorkoutMachines(workoutId: number) {
                     if (!machine) return null
                     const hist = data.history[id] ?? []
                     const lastSets = hist[0]?.sets ?? null
-                    const recordSets = getRecordHistoryEntry(hist)?.sets ?? null
+                    const recordSets =
+                        getRecordHistoryEntry(hist, machine)?.sets ?? null
                     const lastWeight =
                         lastSets && lastSets.length > 0
-                            ? Math.max(...lastSets.map((set) => set.weight))
+                            ? Math.max(...lastSets.map((set) => set.weight)) > 0
+                                ? Math.max(...lastSets.map((set) => set.weight))
+                                : null
                             : null
                     return { ...machine, lastWeight, lastSets, recordSets }
                 })

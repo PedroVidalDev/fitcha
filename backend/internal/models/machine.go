@@ -9,6 +9,7 @@ import (
 )
 
 type MachineCategoryKey string
+type MachineTrackingType string
 
 const (
 	MachineCategoryPeito   MachineCategoryKey = "peito"
@@ -19,6 +20,9 @@ const (
 	MachineCategoryTriceps MachineCategoryKey = "triceps"
 	MachineCategoryCore    MachineCategoryKey = "core"
 	MachineCategoryCardio  MachineCategoryKey = "cardio"
+
+	MachineTrackingTypeSets     MachineTrackingType = "sets"
+	MachineTrackingTypeDuration MachineTrackingType = "duration"
 )
 
 type StringList []string
@@ -67,15 +71,17 @@ func (l *StringList) Scan(value any) error {
 }
 
 type Machine struct {
-	ID          string     `gorm:"primaryKey;size:16" json:"id"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	Slug        string     `gorm:"size:120;not null;uniqueIndex" json:"slug"`
-	Name        string     `gorm:"size:120;not null" json:"name"`
-	Description string     `gorm:"type:text" json:"description"`
-	Photo       string     `gorm:"type:text" json:"photo"`
-	CategoryKey string     `gorm:"size:30;not null;index" json:"categoryKey"`
-	Aliases     StringList `gorm:"type:jsonb;not null;default:'[]'" json:"aliases"`
+	ID             string     `gorm:"primaryKey;size:16" json:"id"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
+	Slug           string     `gorm:"size:120;not null;uniqueIndex" json:"slug"`
+	Name           string     `gorm:"size:120;not null" json:"name"`
+	Description    string     `gorm:"type:text" json:"description"`
+	Photo          string     `gorm:"type:text" json:"photo"`
+	CategoryKey    string     `gorm:"size:30;not null;index" json:"categoryKey"`
+	TrackingType   string     `gorm:"size:30;not null;default:'sets'" json:"trackingType"`
+	RequiresWeight bool       `gorm:"not null;default:true" json:"requiresWeight"`
+	Aliases        StringList `gorm:"type:jsonb;not null;default:'[]'" json:"aliases"`
 }
 
 func (Machine) TableName() string {
@@ -96,4 +102,51 @@ func IsValidMachineCategoryKey(key string) bool {
 	default:
 		return false
 	}
+}
+
+func IsValidMachineTrackingType(value string) bool {
+	switch MachineTrackingType(strings.TrimSpace(value)) {
+	case MachineTrackingTypeSets, MachineTrackingTypeDuration:
+		return true
+	default:
+		return false
+	}
+}
+
+func NormalizeMachineTrackingConfig(trackingType string, requiresWeight bool) (string, bool, error) {
+	normalizedTrackingType := strings.TrimSpace(trackingType)
+	if normalizedTrackingType == "" {
+		normalizedTrackingType = string(MachineTrackingTypeSets)
+	}
+
+	if !IsValidMachineTrackingType(normalizedTrackingType) {
+		return "", false, errors.New("tipo de registro da maquina invalido")
+	}
+
+	if normalizedTrackingType == string(MachineTrackingTypeDuration) {
+		return normalizedTrackingType, false, nil
+	}
+
+	return normalizedTrackingType, requiresWeight, nil
+}
+
+func (m Machine) EffectiveTrackingType() string {
+	trackingType := strings.TrimSpace(m.TrackingType)
+	if trackingType == "" {
+		return string(MachineTrackingTypeSets)
+	}
+
+	return trackingType
+}
+
+func (m Machine) EffectiveRequiresWeight() bool {
+	if m.EffectiveTrackingType() == string(MachineTrackingTypeDuration) {
+		return false
+	}
+
+	if strings.TrimSpace(m.TrackingType) == "" {
+		return true
+	}
+
+	return m.RequiresWeight
 }

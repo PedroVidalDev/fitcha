@@ -3,11 +3,13 @@ import { MachineCategoryKey } from '../constants/categories'
 import { useI18n } from '../contexts/I18nContext'
 import { AppData } from '../dtos/AppData'
 import { HistorySet } from '../dtos/HistoryEntry'
+import { MachineTrackingType } from '../dtos/Machine'
 import { getCachedWorkoutData, loadWorkoutData } from '../services/workoutData'
 import { TranslationKey } from '../translates'
 import {
-    getHistoryEntryMaxWeight,
+    getHistoryEntryPrimaryMetric,
     getHistoryEntryVolume,
+    getHistoryMetricKind,
     getRecordHistoryEntry,
 } from '../utils/workoutRecords'
 
@@ -33,18 +35,21 @@ export type DashboardPlanDay = {
 export type DashboardMachineProgressPoint = {
     key: string
     label: string
-    maxWeight: number
+    value: number
 }
 
 export type DashboardMachineProgress = {
     machineId: string
     name: string
     categoryKey: MachineCategoryKey
+    trackingType: MachineTrackingType
+    requiresWeight: boolean
     sessionCount: number
-    latestWeight: number | null
-    previousWeight: number | null
-    firstWeight: number | null
-    bestWeight: number | null
+    metricKind: 'weight' | 'reps' | 'duration'
+    latestMetric: number | null
+    previousMetric: number | null
+    firstMetric: number | null
+    bestMetric: number | null
     bestRecordSets: HistorySet[] | null
     bestVolume: number | null
     deltaFromStart: number | null
@@ -257,38 +262,47 @@ function buildMachineProgress(
     const latestEntry = sortedHistory[sortedHistory.length - 1]
     const previousEntry = sortedHistory[sortedHistory.length - 2]
     const firstEntry = sortedHistory[0]
-    const recordEntry = getRecordHistoryEntry(sortedHistory)
-    const latestWeight = latestEntry
-        ? getHistoryEntryMaxWeight(latestEntry)
+    const recordEntry = getRecordHistoryEntry(sortedHistory, machine)
+    const metricKind = getHistoryMetricKind(machine)
+    const latestMetric = latestEntry
+        ? getHistoryEntryPrimaryMetric(latestEntry, machine)
         : null
-    const previousWeight = previousEntry
-        ? getHistoryEntryMaxWeight(previousEntry)
+    const previousMetric = previousEntry
+        ? getHistoryEntryPrimaryMetric(previousEntry, machine)
         : null
-    const firstWeight = firstEntry ? getHistoryEntryMaxWeight(firstEntry) : null
-    const bestWeight = recordEntry
-        ? getHistoryEntryMaxWeight(recordEntry)
+    const firstMetric = firstEntry
+        ? getHistoryEntryPrimaryMetric(firstEntry, machine)
+        : null
+    const bestMetric = recordEntry
+        ? getHistoryEntryPrimaryMetric(recordEntry, machine)
         : null
 
     return {
         machineId: machine.id,
         name: machine.name,
         categoryKey: machine.categoryKey,
+        trackingType: machine.trackingType,
+        requiresWeight: machine.requiresWeight,
         sessionCount: sortedHistory.length,
-        latestWeight,
-        previousWeight,
-        firstWeight,
-        bestWeight,
+        metricKind,
+        latestMetric,
+        previousMetric,
+        firstMetric,
+        bestMetric,
         bestRecordSets: recordEntry?.sets ?? null,
-        bestVolume: recordEntry ? getHistoryEntryVolume(recordEntry) : null,
+        bestVolume:
+            metricKind === 'weight' && recordEntry
+                ? getHistoryEntryVolume(recordEntry)
+                : null,
         deltaFromStart:
-            latestWeight !== null &&
-            firstWeight !== null &&
+            latestMetric !== null &&
+            firstMetric !== null &&
             sortedHistory.length > 1
-                ? latestWeight - firstWeight
+                ? latestMetric - firstMetric
                 : null,
         deltaFromPrevious:
-            latestWeight !== null && previousWeight !== null
-                ? latestWeight - previousWeight
+            latestMetric !== null && previousMetric !== null
+                ? latestMetric - previousMetric
                 : null,
         lastTrainedLabel: latestEntry
             ? formatRelativeDay(new Date(latestEntry.date), now, locale, t)
@@ -296,7 +310,7 @@ function buildMachineProgress(
         points: sortedHistory.slice(-4).map((entry) => ({
             key: entry.id,
             label: formatRelativeDay(new Date(entry.date), now, locale, t),
-            maxWeight: getHistoryEntryMaxWeight(entry),
+            value: getHistoryEntryPrimaryMetric(entry, machine),
         })),
     }
 }
