@@ -1,10 +1,8 @@
-import {
-    MACHINE_CATEGORIES,
-    type MachineCategoryKey,
-} from '@/src/constants/categories'
+import { MACHINE_CATEGORIES } from '@/src/constants/categories'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Text, View } from 'react-native'
+import { AddMachineCategoryChip } from './components/AddMachineCategoryChip'
 import { type AddMachineCategoryFiltersProps } from './types'
 
 export function AddMachineCategoryFilters(
@@ -13,38 +11,6 @@ export function AddMachineCategoryFilters(
     const { categoryFilter, onSelectFilter } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
-
-    const renderChip = (
-        label: string,
-        active: boolean,
-        onPress: () => void,
-        activeColor = t.accent,
-        key?: MachineCategoryKey | 'all',
-    ) => (
-        <TouchableOpacity
-            key={key ?? label}
-            onPress={onPress}
-            activeOpacity={0.7}
-            style={{
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 10,
-                backgroundColor: active ? activeColor : t.inputBg,
-                borderWidth: 0.5,
-                borderColor: active ? activeColor : t.border,
-            }}
-        >
-            <Text
-                style={{
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color: active ? t.btnColor : t.textMuted,
-                }}
-            >
-                {label}
-            </Text>
-        </TouchableOpacity>
-    )
 
     return (
         <>
@@ -69,23 +35,22 @@ export function AddMachineCategoryFilters(
                     marginBottom: 16,
                 }}
             >
-                {renderChip(
-                    translate('addMachine.allCategories'),
-                    categoryFilter === 'all',
-                    () => onSelectFilter('all'),
-                    t.accent,
-                    'all',
-                )}
+                <AddMachineCategoryChip
+                    label={translate('addMachine.allCategories')}
+                    active={categoryFilter === 'all'}
+                    activeColor={t.accent}
+                    onPress={() => onSelectFilter('all')}
+                />
 
-                {MACHINE_CATEGORIES.map((category) =>
-                    renderChip(
-                        translate(category.labelKey),
-                        categoryFilter === category.key,
-                        () => onSelectFilter(category.key),
-                        category.color,
-                        category.key,
-                    ),
-                )}
+                {MACHINE_CATEGORIES.map((category) => (
+                    <AddMachineCategoryChip
+                        key={category.key}
+                        label={translate(category.labelKey)}
+                        active={categoryFilter === category.key}
+                        activeColor={category.color}
+                        onPress={() => onSelectFilter(category.key)}
+                    />
+                ))}
             </View>
         </>
     )
