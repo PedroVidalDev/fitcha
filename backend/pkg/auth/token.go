@@ -19,7 +19,6 @@ func GenerateToken(userId uint) (string, error) {
 	return signToken(jwt.MapClaims{
 		"sub":     userId,
 		"purpose": PurposeAuthAccess,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 }
 
