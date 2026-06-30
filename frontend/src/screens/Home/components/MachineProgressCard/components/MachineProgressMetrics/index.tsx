@@ -1,7 +1,7 @@
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { Text, View } from 'react-native'
-import { formatRecord, formatWeight } from '../../../../helpers'
+import { formatMetric, formatRecord } from '../../../../helpers'
 import { type MachineProgressMetricsProps } from './types'
 
 export function MachineProgressMetrics(props: MachineProgressMetricsProps) {
@@ -45,7 +45,7 @@ export function MachineProgressMetrics(props: MachineProgressMetricsProps) {
                         marginTop: 6,
                     }}
                 >
-                    {formatWeight(item.latestWeight)}
+                    {formatMetric(item.latestMetric, item.metricKind)}
                 </Text>
             </View>
 
@@ -78,7 +78,7 @@ export function MachineProgressMetrics(props: MachineProgressMetricsProps) {
                         marginTop: 6,
                     }}
                 >
-                    {formatWeight(item.firstWeight)}
+                    {formatMetric(item.firstMetric, item.metricKind)}
                 </Text>
             </View>
 
@@ -112,7 +112,11 @@ export function MachineProgressMetrics(props: MachineProgressMetricsProps) {
                         marginTop: 6,
                     }}
                 >
-                    {formatRecord(item.bestRecordSets)}
+                    {formatRecord(
+                        item.bestRecordSets,
+                        item.trackingType,
+                        item.requiresWeight,
+                    )}
                 </Text>
                 <Text
                     style={{
@@ -123,11 +127,18 @@ export function MachineProgressMetrics(props: MachineProgressMetricsProps) {
                         fontWeight: '700',
                     }}
                 >
-                    {item.bestVolume === null
-                        ? translate('home.machine.previous.noHistory')
-                        : translate('home.machine.recordVolume', {
+                    {item.metricKind === 'weight' && item.bestVolume !== null
+                        ? translate('home.machine.recordVolume', {
                               volume: `${item.bestVolume}`,
-                          })}
+                          })
+                        : item.bestMetric === null
+                          ? translate('home.machine.previous.noHistory')
+                          : translate('home.machine.recordMetric', {
+                                value: formatMetric(
+                                    item.bestMetric,
+                                    item.metricKind,
+                                ),
+                            })}
                 </Text>
                 <View
                     style={{

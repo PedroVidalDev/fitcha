@@ -2,13 +2,14 @@ import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Text, View } from 'react-native'
+import { formatMetric } from '../../../../helpers'
 import { type MachineProgressHistoryProps } from './types'
 
 export function MachineProgressHistory(props: MachineProgressHistoryProps) {
     const { item } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
-    const chartMax = Math.max(...item.points.map((point) => point.maxWeight), 1)
+    const chartMax = Math.max(...item.points.map((point) => point.value), 1)
     const previousDeltaText =
         item.deltaFromPrevious === null
             ? item.sessionCount === 0
@@ -17,7 +18,16 @@ export function MachineProgressHistory(props: MachineProgressHistoryProps) {
                   ? translate('home.machine.previous.oneRecord')
                   : translate('home.machine.previous.noComparison')
             : translate('home.machine.previous.vsLast', {
-                  value: `${item.deltaFromPrevious > 0 ? '+' : ''}${item.deltaFromPrevious} kg`,
+                  value: `${
+                      item.deltaFromPrevious > 0
+                          ? '+'
+                          : item.deltaFromPrevious < 0
+                            ? '-'
+                            : ''
+                  }${formatMetric(
+                      Math.abs(item.deltaFromPrevious),
+                      item.metricKind,
+                  )}`,
               })
 
     return (
@@ -67,7 +77,7 @@ export function MachineProgressHistory(props: MachineProgressHistoryProps) {
                         {item.points.map((point, index) => {
                             const height = Math.max(
                                 24,
-                                Math.round((point.maxWeight / chartMax) * 62),
+                                Math.round((point.value / chartMax) * 62),
                             )
                             const isLatest = index === item.points.length - 1
                             const chartColors = isLatest
@@ -95,7 +105,10 @@ export function MachineProgressHistory(props: MachineProgressHistoryProps) {
                                             marginBottom: 6,
                                         }}
                                     >
-                                        {point.maxWeight}
+                                        {formatMetric(
+                                            point.value,
+                                            item.metricKind,
+                                        )}
                                     </Text>
                                     <LinearGradient
                                         colors={chartColors}

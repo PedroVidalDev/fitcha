@@ -1,6 +1,7 @@
 import {
     WorkoutDraft,
     WorkoutDraftMap,
+    WorkoutMachine,
     WorkoutResult,
     WORKOUT_SET_KEYS,
 } from './types'
@@ -15,6 +16,10 @@ export const EMPTY_WORKOUT_DRAFT: WorkoutDraft = {
         set1: false,
         set2: false,
         set3: false,
+    },
+    duration: {
+        startedAt: null,
+        accumulatedSeconds: 0,
     },
 }
 
@@ -37,19 +42,67 @@ export function parseReps(value: string): number {
 }
 
 export function getWorkoutDraft(draft?: WorkoutDraft): WorkoutDraft {
-    return draft ?? EMPTY_WORKOUT_DRAFT
+    return {
+        sets: {
+            ...EMPTY_WORKOUT_DRAFT.sets,
+            ...(draft?.sets ?? {}),
+        },
+        confirmed: {
+            ...EMPTY_WORKOUT_DRAFT.confirmed,
+            ...(draft?.confirmed ?? {}),
+        },
+        duration: {
+            ...EMPTY_WORKOUT_DRAFT.duration,
+            ...(draft?.duration ?? {}),
+        },
+    }
 }
 
-export function hasDraftValue(draft?: WorkoutDraft): boolean {
+export function getDurationElapsedSeconds(draft?: WorkoutDraft): number {
     const normalizedDraft = getWorkoutDraft(draft)
+    const runningElapsed = normalizedDraft.duration.startedAt
+        ? Math.max(
+              0,
+              Math.floor(
+                  (Date.now() - normalizedDraft.duration.startedAt) / 1000,
+              ),
+          )
+        : 0
+
+    return normalizedDraft.duration.accumulatedSeconds + runningElapsed
+}
+
+export function hasDraftValue(
+    machine: WorkoutMachine,
+    draft?: WorkoutDraft,
+): boolean {
+    const normalizedDraft = getWorkoutDraft(draft)
+
+    if (machine.trackingType === 'duration') {
+        return (
+            normalizedDraft.duration.startedAt !== null ||
+            normalizedDraft.duration.accumulatedSeconds > 0
+        )
+    }
+
     return WORKOUT_SET_KEYS.some((key) => {
         const set = normalizedDraft.sets[key]
         return set.weight.trim().length > 0 || set.reps.trim().length > 0
     })
 }
 
-export function isDraftComplete(draft?: WorkoutDraft): boolean {
+export function isDraftComplete(
+    machine: WorkoutMachine,
+    draft?: WorkoutDraft,
+): boolean {
     const normalizedDraft = getWorkoutDraft(draft)
+
+    if (machine.trackingType === 'duration') {
+        return (
+            normalizedDraft.duration.startedAt === null &&
+            normalizedDraft.duration.accumulatedSeconds > 0
+        )
+    }
 
     return WORKOUT_SET_KEYS.every((key) => {
         const set = normalizedDraft.sets[key]
@@ -58,8 +111,8 @@ export function isDraftComplete(draft?: WorkoutDraft): boolean {
 
         return (
             normalizedDraft.confirmed[key] &&
-            !Number.isNaN(weight) &&
-            weight > 0 &&
+            (!machine.requiresWeight ||
+                (!Number.isNaN(weight) && weight > 0)) &&
             !Number.isNaN(reps) &&
             reps > 0
         )
@@ -67,26 +120,42 @@ export function isDraftComplete(draft?: WorkoutDraft): boolean {
 }
 
 export function draftToResult(
-    machineId: string,
+    machine: WorkoutMachine,
     draft?: WorkoutDraft,
 ): WorkoutResult | null {
-    if (!isDraftComplete(draft)) return null
+    if (!isDraftComplete(machine, draft)) return null
 
-    const { sets } = getWorkoutDraft(draft)
+    const normalizedDraft = getWorkoutDraft(draft)
+    if (machine.trackingType === 'duration') {
+        return {
+            machineId: machine.id,
+            sets: [
+                {
+                    weight: 0,
+                    reps: 0,
+                    durationSeconds:
+                        normalizedDraft.duration.accumulatedSeconds,
+                },
+            ],
+        }
+    }
+
+    const { sets } = normalizedDraft
     return {
-        machineId,
+        machineId: machine.id,
         sets: WORKOUT_SET_KEYS.map((key) => ({
-            weight: parseWeight(sets[key].weight),
+            weight: machine.requiresWeight ? parseWeight(sets[key].weight) : 0,
             reps: parseReps(sets[key].reps),
+            durationSeconds: 0,
         })),
     }
 }
 
 export function buildWorkoutResults(
-    machineIds: string[],
+    machines: WorkoutMachine[],
     drafts: WorkoutDraftMap,
 ): WorkoutResult[] {
-    return machineIds
-        .map((machineId) => draftToResult(machineId, drafts[machineId]))
+    return machines
+        .map((machine) => draftToResult(machine, drafts[machine.id]))
         .filter((result): result is WorkoutResult => result !== null)
 }

@@ -4,7 +4,15 @@ import { translateRuntime } from '../translates/runtime'
 import { axiosApp, ensureApiUrlConfigured } from './axios'
 
 type UpdateMachineInput = Partial<
-    Pick<Machine, 'name' | 'description' | 'photo' | 'categoryKey'>
+    Pick<
+        Machine,
+        | 'name'
+        | 'description'
+        | 'photo'
+        | 'categoryKey'
+        | 'trackingType'
+        | 'requiresWeight'
+    >
 >
 
 function getMachineErrorMessage(error: unknown, fallback: string) {

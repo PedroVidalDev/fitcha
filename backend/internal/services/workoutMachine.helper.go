@@ -15,6 +15,8 @@ type CreateWorkoutMachineInput struct {
 	Description      string
 	Photo            string
 	CategoryKey      string
+	TrackingType     string
+	RequiresWeight   *bool
 }
 
 func normalizeCreateWorkoutMachineInput(input CreateWorkoutMachineInput) (CreateWorkoutMachineInput, error) {
@@ -37,11 +39,23 @@ func normalizeCreateWorkoutMachineInput(input CreateWorkoutMachineInput) (Create
 		return CreateWorkoutMachineInput{}, errors.New("categoria da maquina invalida")
 	}
 
+	requiresWeight := true
+	if input.RequiresWeight != nil {
+		requiresWeight = *input.RequiresWeight
+	}
+
+	trackingType, normalizedRequiresWeight, err := models.NormalizeMachineTrackingConfig(input.TrackingType, requiresWeight)
+	if err != nil {
+		return CreateWorkoutMachineInput{}, err
+	}
+
 	return CreateWorkoutMachineInput{
-		Name:        name,
-		Description: strings.TrimSpace(input.Description),
-		Photo:       strings.TrimSpace(input.Photo),
-		CategoryKey: categoryKey,
+		Name:           name,
+		Description:    strings.TrimSpace(input.Description),
+		Photo:          strings.TrimSpace(input.Photo),
+		CategoryKey:    categoryKey,
+		TrackingType:   trackingType,
+		RequiresWeight: &normalizedRequiresWeight,
 	}, nil
 }
 
@@ -73,6 +87,21 @@ func resolveUserMachineForInput(tx *gorm.DB, userID uint, input CreateWorkoutMac
 				needsUpdate = true
 			}
 
+			if existing.CategoryKey != catalogMachine.CategoryKey {
+				existing.CategoryKey = catalogMachine.CategoryKey
+				needsUpdate = true
+			}
+
+			if existing.TrackingType != catalogMachine.EffectiveTrackingType() {
+				existing.TrackingType = catalogMachine.EffectiveTrackingType()
+				needsUpdate = true
+			}
+
+			if existing.RequiresWeight != catalogMachine.EffectiveRequiresWeight() {
+				existing.RequiresWeight = catalogMachine.EffectiveRequiresWeight()
+				needsUpdate = true
+			}
+
 			if needsUpdate {
 				return userMachineRepo.Update(existing)
 			}
@@ -91,11 +120,14 @@ func resolveUserMachineForInput(tx *gorm.DB, userID uint, input CreateWorkoutMac
 
 		machineID := catalogMachine.ID
 		return userMachineRepo.Create(models.UserMachine{
-			ID:          userMachineID,
-			UserID:      userID,
-			MachineID:   &machineID,
-			Description: input.Description,
-			Photo:       input.Photo,
+			ID:             userMachineID,
+			UserID:         userID,
+			MachineID:      &machineID,
+			Description:    input.Description,
+			Photo:          input.Photo,
+			CategoryKey:    catalogMachine.CategoryKey,
+			TrackingType:   catalogMachine.EffectiveTrackingType(),
+			RequiresWeight: catalogMachine.EffectiveRequiresWeight(),
 		})
 	}
 
@@ -105,12 +137,14 @@ func resolveUserMachineForInput(tx *gorm.DB, userID uint, input CreateWorkoutMac
 	}
 
 	return userMachineRepo.Create(models.UserMachine{
-		ID:          userMachineID,
-		UserID:      userID,
-		Name:        input.Name,
-		Description: input.Description,
-		Photo:       input.Photo,
-		CategoryKey: input.CategoryKey,
+		ID:             userMachineID,
+		UserID:         userID,
+		Name:           input.Name,
+		Description:    input.Description,
+		Photo:          input.Photo,
+		CategoryKey:    input.CategoryKey,
+		TrackingType:   input.TrackingType,
+		RequiresWeight: input.RequiresWeight != nil && *input.RequiresWeight,
 	})
 }
 

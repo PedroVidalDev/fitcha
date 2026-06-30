@@ -51,8 +51,9 @@ func (c *HistoryController) CreateWorkout(ctx *gin.Context) {
 		sets := make([]services.CreateWorkoutSetInput, 0, len(result.Sets))
 		for _, set := range result.Sets {
 			sets = append(sets, services.CreateWorkoutSetInput{
-				Weight: set.Weight,
-				Reps:   set.Reps,
+				Weight:          set.Weight,
+				Reps:            set.Reps,
+				DurationSeconds: set.DurationSeconds,
 			})
 		}
 

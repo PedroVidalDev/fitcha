@@ -16,8 +16,9 @@ type CreateWorkoutResultInput struct {
 }
 
 type CreateWorkoutSetInput struct {
-	Weight float64
-	Reps   int
+	Weight          float64
+	Reps            int
+	DurationSeconds int
 }
 
 type HistoryService struct {
@@ -48,29 +49,9 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 			return []models.HistoryEntry{}, errors.New("maquina nao informada")
 		}
 
-		if len(result.Sets) == 0 {
-			return []models.HistoryEntry{}, errors.New("informe ao menos uma serie por maquina")
-		}
-
-		normalizedSets := make([]CreateWorkoutSetInput, 0, len(result.Sets))
-		for _, set := range result.Sets {
-			if set.Weight <= 0 {
-				return []models.HistoryEntry{}, errors.New("informe um peso valido para todas as series")
-			}
-
-			if set.Reps <= 0 {
-				return []models.HistoryEntry{}, errors.New("informe repeticoes validas para todas as series")
-			}
-
-			normalizedSets = append(normalizedSets, CreateWorkoutSetInput{
-				Weight: set.Weight,
-				Reps:   set.Reps,
-			})
-		}
-
 		normalizedResults = append(normalizedResults, CreateWorkoutResultInput{
 			MachineID: machineID,
-			Sets:      normalizedSets,
+			Sets:      result.Sets,
 		})
 	}
 
@@ -83,11 +64,17 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 		entries := make([]models.HistoryEntry, 0, len(normalizedResults))
 
 		for _, result := range normalizedResults {
-			if _, err := userMachineRepo.FindByIDAndUserID(result.MachineID, userID); err != nil {
+			userMachine, err := userMachineRepo.FindByIDAndUserID(result.MachineID, userID)
+			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errors.New("maquina nao encontrada")
 				}
 
+				return err
+			}
+
+			normalizedSets, err := normalizeWorkoutSetsByMachine(userMachine, result.Sets)
+			if err != nil {
 				return err
 			}
 
@@ -96,13 +83,14 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 				return err
 			}
 
-			sets := make([]models.HistorySet, 0, len(result.Sets))
-			for index, set := range result.Sets {
+			sets := make([]models.HistorySet, 0, len(normalizedSets))
+			for index, set := range normalizedSets {
 				sets = append(sets, models.HistorySet{
-					HistoryEntryID: entryID,
-					Position:       index + 1,
-					Weight:         set.Weight,
-					Reps:           set.Reps,
+					HistoryEntryID:  entryID,
+					Position:        index + 1,
+					Weight:          set.Weight,
+					Reps:            set.Reps,
+					DurationSeconds: set.DurationSeconds,
 				})
 			}
 
@@ -127,4 +115,58 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 	}
 
 	return createdEntries, nil
+}
+
+func normalizeWorkoutSetsByMachine(machine models.UserMachine, sets []CreateWorkoutSetInput) ([]CreateWorkoutSetInput, error) {
+	if len(sets) == 0 {
+		return []CreateWorkoutSetInput{}, errors.New("informe ao menos um registro por maquina")
+	}
+
+	trackingType := machine.EffectiveTrackingType()
+	requiresWeight := machine.EffectiveRequiresWeight()
+	normalizedSets := make([]CreateWorkoutSetInput, 0, len(sets))
+
+	switch trackingType {
+	case string(models.MachineTrackingTypeDuration):
+		if len(sets) != 1 {
+			return []CreateWorkoutSetInput{}, errors.New("exercicios por tempo aceitam apenas um registro")
+		}
+
+		for _, set := range sets {
+			if set.DurationSeconds <= 0 {
+				return []CreateWorkoutSetInput{}, errors.New("informe um tempo valido para o exercicio")
+			}
+
+			normalizedSets = append(normalizedSets, CreateWorkoutSetInput{
+				Weight:          0,
+				Reps:            0,
+				DurationSeconds: set.DurationSeconds,
+			})
+		}
+
+		return normalizedSets, nil
+	default:
+		for _, set := range sets {
+			if requiresWeight && set.Weight <= 0 {
+				return []CreateWorkoutSetInput{}, errors.New("informe um peso valido para todas as series")
+			}
+
+			if set.Reps <= 0 {
+				return []CreateWorkoutSetInput{}, errors.New("informe repeticoes validas para todas as series")
+			}
+
+			weight := 0.0
+			if requiresWeight {
+				weight = set.Weight
+			}
+
+			normalizedSets = append(normalizedSets, CreateWorkoutSetInput{
+				Weight:          weight,
+				Reps:            set.Reps,
+				DurationSeconds: 0,
+			})
+		}
+
+		return normalizedSets, nil
+	}
 }

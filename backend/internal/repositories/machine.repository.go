@@ -66,6 +66,6 @@ func (r *machineRepository) UpsertMany(machines []models.Machine) error {
 
 	return r.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "slug"}},
-		DoUpdates: clause.AssignmentColumns([]string{"name", "description", "photo", "category_key", "aliases", "updated_at"}),
+		DoUpdates: clause.AssignmentColumns([]string{"name", "description", "photo", "category_key", "tracking_type", "requires_weight", "aliases", "updated_at"}),
 	}).Create(&machines).Error
 }

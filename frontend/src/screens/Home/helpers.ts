@@ -1,17 +1,25 @@
 import { HistorySet } from '@/src/dtos/HistoryEntry'
+import { MachineTrackingType } from '@/src/dtos/Machine'
 import { DashboardPlanDay } from '@/src/hooks/useDashboardSummary'
-import { formatSetSequence } from '@/src/utils/workoutRecords'
+import {
+    formatHistoryMetricValue,
+    formatSetSequence,
+    type HistoryMetricKind,
+} from '@/src/utils/workoutRecords'
 
 export function formatDelta(
     value: number | null,
+    metricKind: HistoryMetricKind,
     t: (
         key: 'home.delta.noBase' | 'home.delta.zero',
         params?: Record<string, number | string>,
     ) => string,
 ) {
     if (value === null) return t('home.delta.noBase')
-    if (value > 0) return `+${value} kg`
-    if (value < 0) return `${value} kg`
+    if (value > 0)
+        return `+${formatHistoryMetricValue(value, metricKind).replace('+', '')}`
+    if (value < 0)
+        return `-${formatHistoryMetricValue(Math.abs(value), metricKind)}`
     return t('home.delta.zero')
 }
 
@@ -55,10 +63,19 @@ export function getFirstName(name?: string, fallback = 'athlete') {
     return firstName || fallback
 }
 
-export function formatWeight(value: number | null) {
-    return value === null ? '--' : `${value}kg`
+export function formatMetric(
+    value: number | null,
+    metricKind: HistoryMetricKind,
+) {
+    return formatHistoryMetricValue(value, metricKind)
 }
 
-export function formatRecord(value: HistorySet[] | null) {
-    return value === null ? '--' : formatSetSequence(value)
+export function formatRecord(
+    value: HistorySet[] | null,
+    trackingType: MachineTrackingType,
+    requiresWeight: boolean,
+) {
+    return value === null
+        ? '--'
+        : formatSetSequence(value, ' / ', { trackingType, requiresWeight })
 }

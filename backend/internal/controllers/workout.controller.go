@@ -138,6 +138,8 @@ func (c *WorkoutController) AddMachine(ctx *gin.Context) {
 		Description:      input.Description,
 		Photo:            input.Photo,
 		CategoryKey:      input.CategoryKey,
+		TrackingType:     input.TrackingType,
+		RequiresWeight:   input.RequiresWeight,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
