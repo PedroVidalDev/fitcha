@@ -22,9 +22,8 @@ export type WizardStep = 0 | 1 | 2 | 3 | 4 | 5 | 6
 export type GPTResponse = {
     categories: {
         name: string
-        days: number[]
         machines: {
-            catalogMachineId?: string
+            catalogMachineId: string
             name: string
             sets: [number, number, number]
         }[]

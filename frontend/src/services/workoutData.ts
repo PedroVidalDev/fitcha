@@ -10,12 +10,7 @@ import {
 } from './history'
 import { getMyMachines, updateMachine } from './machines'
 import { clearScheduledNotifications } from './notifications'
-import {
-    createEmptyAppData,
-    getData,
-    getDataCacheKey,
-    saveData,
-} from './storage'
+import { createEmptyAppData, getData, saveData } from './storage'
 import {
     addMachineToWorkout as addMachineToWorkoutRequest,
     createWorkout as createWorkoutRequest,
@@ -27,7 +22,7 @@ import {
 } from './workouts'
 
 let syncPromise: Promise<AppData> | null = null
-let lastSyncedCacheKey: string | null = null
+let isWorkoutDataStale = true
 
 type LegacyAppData = Partial<AppData> & {
     days?: Record<number, string[]>
@@ -35,7 +30,7 @@ type LegacyAppData = Partial<AppData> & {
 
 export function resetWorkoutSyncState() {
     syncPromise = null
-    lastSyncedCacheKey = null
+    isWorkoutDataStale = true
 }
 
 function buildAppData(
@@ -394,10 +389,6 @@ async function getNormalizedData() {
     return normalized.data
 }
 
-async function markSynced() {
-    lastSyncedCacheKey = await getDataCacheKey()
-}
-
 function upsertWorkout(data: AppData, workout: WorkoutPlan) {
     data.workouts[String(workout.id)] = workout
 
@@ -412,9 +403,7 @@ export async function getCachedWorkoutData() {
 
 export async function loadWorkoutData(options?: { forceSync?: boolean }) {
     const cachedData = await getNormalizedData()
-    const currentCacheKey = await getDataCacheKey()
-    const shouldSync =
-        options?.forceSync || lastSyncedCacheKey !== currentCacheKey
+    const shouldSync = options?.forceSync || isWorkoutDataStale
 
     if (!shouldSync) {
         return cachedData
@@ -427,22 +416,33 @@ export async function loadWorkoutData(options?: { forceSync?: boolean }) {
     }
 }
 
-export async function syncWorkoutData() {
+async function syncWorkoutData() {
     if (syncPromise) {
         return syncPromise
     }
 
     syncPromise = (async () => {
+        const cachedData = await getNormalizedData()
         const [machines, workouts, historyEntries] = await Promise.all([
             getMyMachines(),
             getMyWorkouts(),
-            getMyHistory(),
+            getMyHistory().catch(() => null),
         ])
 
-        const nextData = buildAppData(machines, workouts, historyEntries)
+        const nextData = buildAppData(machines, workouts, historyEntries ?? [])
+        if (!historyEntries) {
+            nextData.history = cachedData.history
+        }
+
         await saveData(nextData)
-        await markSynced()
-        await clearScheduledNotifications()
+        isWorkoutDataStale = false
+
+        try {
+            await clearScheduledNotifications()
+        } catch {
+            // Notification cleanup cannot block workout sync.
+        }
+
         return nextData
     })()
 
@@ -460,8 +460,13 @@ export async function createWorkoutPlan(title: string, description?: string) {
     upsertWorkout(data, workout)
 
     await saveData(data)
-    await markSynced()
-    await clearScheduledNotifications()
+    isWorkoutDataStale = true
+
+    try {
+        await clearScheduledNotifications()
+    } catch {
+        // Notification cleanup cannot block local cache updates.
+    }
 
     return workout
 }
@@ -480,14 +485,22 @@ export async function updateWorkoutPlan(
     upsertWorkout(data, workout)
 
     await saveData(data)
-    await markSynced()
+    isWorkoutDataStale = true
 
     return workout
 }
 
 export async function deleteWorkoutPlan(workoutId: number) {
     await deleteWorkoutRequest(workoutId)
-    return syncWorkoutData()
+    const data = await getNormalizedData()
+
+    delete data.workouts[String(workoutId)]
+    data.workoutOrder = data.workoutOrder.filter((id) => id !== workoutId)
+
+    await saveData(data)
+    isWorkoutDataStale = true
+
+    return data
 }
 
 export async function addMachineToWorkout(
@@ -502,7 +515,7 @@ export async function addMachineToWorkout(
     data.history[response.machine.id] = data.history[response.machine.id] ?? []
 
     await saveData(data)
-    await markSynced()
+    isWorkoutDataStale = true
 
     return response.machine
 }
@@ -522,7 +535,7 @@ export async function removeMachineFromWorkout(
     }
 
     await saveData(data)
-    await markSynced()
+    isWorkoutDataStale = true
 }
 
 export async function saveWorkoutResults(results: WorkoutHistoryInput[]) {
@@ -538,7 +551,7 @@ export async function saveWorkoutResults(results: WorkoutHistoryInput[]) {
     })
 
     await saveData(data)
-    await markSynced()
+    isWorkoutDataStale = true
 
     return createdEntries.map(toHistoryEntry)
 }
@@ -555,7 +568,7 @@ export async function updateMachinePhoto(machineId: string, photo?: string) {
     }
     await saveData(data)
 
-    await markSynced()
+    isWorkoutDataStale = true
 
     return machine.photo || undefined
 }

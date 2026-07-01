@@ -76,14 +76,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Warn when release sync secrets are missing
-        if: ${{ secrets.APP_RELEASE_SYNC_URL == '' || secrets.APP_UPDATE_TOKEN == '' }}
-        run: |
-          echo "APP_RELEASE_SYNC_URL and APP_UPDATE_TOKEN were not configured."
-          echo "The GitHub release was created, but the API release metadata was not synchronized."
-
       - name: Sync release metadata to API
-        if: ${{ secrets.APP_RELEASE_SYNC_URL != '' && secrets.APP_UPDATE_TOKEN != '' }}
         env:
           APP_RELEASE_SYNC_URL: ${{ secrets.APP_RELEASE_SYNC_URL }}
           APP_UPDATE_TOKEN: ${{ secrets.APP_UPDATE_TOKEN }}
@@ -91,6 +84,12 @@ jobs:
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
           RELEASE_URL: https://github.com/${{ github.repository }}/releases/latest
         run: |
+          if [ -z "$APP_RELEASE_SYNC_URL" ] || [ -z "$APP_UPDATE_TOKEN" ]; then
+            echo "APP_RELEASE_SYNC_URL and APP_UPDATE_TOKEN were not configured."
+            echo "The GitHub release was created, but the API release metadata was not synchronized."
+            exit 0
+          fi
+
           RELEASED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           PAYLOAD=$(printf '{"latestVersion":"%s","releaseTag":"%s","releaseUrl":"%s","releasedAt":"%s"}' "$APP_VERSION" "$RELEASE_TAG" "$RELEASE_URL" "$RELEASED_AT")
 

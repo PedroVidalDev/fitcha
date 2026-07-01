@@ -6,6 +6,8 @@ type GenerateAIWorkoutResponse = GPTResponse & {
     remainingCredits: number
 }
 
+const aiWorkoutRequestTimeoutMs = 120000
+
 function getAIWorkoutErrorMessage(error: unknown, fallback: string) {
     if (
         typeof error === 'object' &&
@@ -46,6 +48,9 @@ export async function generateAIWorkout(
                 machinesPerDay: data.machinesPerDay.trim(),
                 workoutSplit: data.workoutSplit.trim(),
                 customInstructions: data.customInstructions.trim(),
+            },
+            {
+                timeout: aiWorkoutRequestTimeoutMs,
             },
         )
 
