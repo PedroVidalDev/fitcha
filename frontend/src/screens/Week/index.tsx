@@ -16,10 +16,6 @@ import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useCreditCheckout } from '../../hooks/useCreditCheckout'
 import { generateAIWorkout } from '../../services/aiWorkout'
-import {
-    invalidateWorkoutData,
-    syncWorkoutData,
-} from '../../services/workoutData'
 import { EmptyWorkout } from './components/EmptyWorkout'
 import { Workout } from './components/Workout'
 
@@ -88,11 +84,9 @@ export default function WeekScreen() {
 
     const handleGenerateWorkout = useCallback(
         async (wizardData: WizardData) => {
-            invalidateWorkoutData()
             const response = await generateAIWorkout(wizardData)
-            await syncWorkoutData()
             await setCredits(response.remainingCredits)
-            await refresh()
+            await refresh({ forceSync: true })
             setSuccessVisible(true)
         },
         [refresh, setCredits],

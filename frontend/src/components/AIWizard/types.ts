@@ -23,7 +23,7 @@ export type GPTResponse = {
     categories: {
         name: string
         machines: {
-            catalogMachineId?: string
+            catalogMachineId: string
             name: string
             sets: [number, number, number]
         }[]

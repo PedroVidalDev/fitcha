@@ -31,6 +31,7 @@ const (
 	aiWorkoutSearchMaxLimit        = 12
 	aiWorkoutToolChoiceRequired    = "required"
 	aiWorkoutGenerationTemperature = 0.2
+	generatedWorkoutDescription    = "Gerado automaticamente por IA"
 )
 
 type AIWorkoutService struct {
@@ -345,7 +346,7 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"Convencao fixa dos dias da semana: 0=domingo, 1=segunda, 2=terca, 3=quarta, 4=quinta, 5=sexta, 6=sabado.",
 		"Nao use outra convencao. Segunda-feira nao e 0.",
 		"Considere as observacoes personalizadas do usuario abaixo quando fizer a divisao e a escolha dos exercicios.",
-		fmt.Sprintf("- Observacoes personalizadas: %s", buildCustomInstructionsLine(input.CustomInstructions)),
+		fmt.Sprintf("- Observacoes personalizadas: %s", buildOptionalTextLine(input.CustomInstructions, "nenhuma")),
 		"",
 		"Leve em conta o biotipo do usuario (altura e peso) para calibrar as cargas sugeridas.",
 		fmt.Sprintf("Distribua os grupos musculares de forma equilibrada entre os %d dias selecionados.", input.DaysPerWeek),
@@ -356,7 +357,7 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"Categorias disponiveis no catalogo: peito, costas, pernas, ombros, biceps, triceps, core, cardio.",
 		"Antes de montar o treino, consulte a ferramenta search_catalog_machines em buscas pequenas e direcionadas.",
 		"Use exclusivamente catalogMachineId retornados pela ferramenta.",
-		"Cada exercicio precisa apontar para um catalogMachineId valido e repetir o nome oficial correspondente retornado pela ferramenta.",
+		"Cada exercicio precisa apontar para um catalogMachineId valido retornado pela ferramenta.",
 		"Se o exercicio ideal nao existir exatamente no catalogo, escolha a opcao mais proxima dentre as retornadas pela ferramenta.",
 		"Quando concluir, finalize chamando a ferramenta submit_workout_plan.",
 		"Nao inclua dias na resposta final.",
@@ -364,10 +365,6 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"Monte categorias de treino personalizadas e atribua exercicios de musculacao com peso sugerido para 3 series em kg.",
 		"Cada exercicio precisa ter exatamente 3 pesos em kg.",
 	}, "\n")
-}
-
-func buildCustomInstructionsLine(value string) string {
-	return buildOptionalTextLine(value, "nenhuma")
 }
 
 func buildOptionalTextLine(value, fallback string) string {
@@ -479,16 +476,12 @@ func buildGeneratedWorkoutInputs(response dtos.GenerateAIWorkoutResponse, catalo
 
 		workouts = append(workouts, ReplaceWorkoutInput{
 			Title:       strings.TrimSpace(category.Name),
-			Description: buildGeneratedWorkoutDescription(),
+			Description: generatedWorkoutDescription,
 			Machines:    machines,
 		})
 	}
 
 	return workouts
-}
-
-func buildGeneratedWorkoutDescription() string {
-	return "Gerado automaticamente por IA"
 }
 
 func buildGeneratedMachineDescription(categoryName string, sets []float64) string {
@@ -502,31 +495,6 @@ func buildGeneratedMachineDescription(categoryName string, sets []float64) strin
 		strings.TrimSpace(categoryName),
 		strings.Join(formattedSets, " / "),
 	)
-}
-
-func inferGeneratedMachineCategoryKey(categoryName, machineName string) string {
-	categoryAliases := map[string][]string{
-		"peito":   {"peito", "supino", "crucifixo", "chest", "peitoral"},
-		"costas":  {"costas", "remada", "puxada", "barra", "pulldown", "rowing", "back"},
-		"pernas":  {"perna", "pernas", "quadriceps", "posterior", "gluteo", "gluteos", "leg", "panturrilha", "agachamento", "cadeira", "mesa flexora"},
-		"ombros":  {"ombro", "ombros", "shoulder", "desenvolvimento", "elevacao lateral"},
-		"biceps":  {"biceps", "rosca", "curl"},
-		"triceps": {"triceps", "corda", "testa", "pulley"},
-		"core":    {"core", "abdomen", "abdominal", "prancha", "lombar"},
-		"cardio":  {"cardio", "esteira", "bike", "bicicleta", "eliptico", "corrida"},
-	}
-
-	haystack := normalizeGeneratedWorkoutText(categoryName + " " + machineName)
-
-	for categoryKey, aliases := range categoryAliases {
-		for _, alias := range aliases {
-			if strings.Contains(haystack, normalizeGeneratedWorkoutText(alias)) {
-				return categoryKey
-			}
-		}
-	}
-
-	return "peito"
 }
 
 func normalizeGeneratedWorkoutText(value string) string {
@@ -578,10 +546,6 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogBy
 
 			if _, ok := catalogByID[catalogMachineID]; !ok {
 				return fmt.Errorf("a IA retornou uma maquina fora do catalogo permitido: %s", catalogMachineID)
-			}
-
-			if strings.TrimSpace(machine.Name) == "" {
-				return errors.New("a IA retornou um exercicio sem nome")
 			}
 
 			if _, ok := categoryMachineSet[catalogMachineID]; ok {
@@ -835,15 +799,11 @@ func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machin
 							"items": map[string]any{
 								"type":                 "object",
 								"additionalProperties": false,
-								"required":             []string{"catalogMachineId", "name", "sets"},
+								"required":             []string{"catalogMachineId", "sets"},
 								"properties": map[string]any{
 									"catalogMachineId": map[string]any{
 										"type": "string",
 										"enum": sortedCatalogMachineIDs(surfacedCatalogByID),
-									},
-									"name": map[string]any{
-										"type":      "string",
-										"minLength": 1,
 									},
 									"sets": map[string]any{
 										"type":     "array",

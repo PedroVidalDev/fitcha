@@ -39,13 +39,16 @@ export function useWorkouts() {
         [],
     )
 
-    const refresh = useCallback(async () => {
-        const cachedData = await getCachedWorkoutData()
-        setWorkoutsFromData(cachedData)
+    const refresh = useCallback(
+        async (options?: { forceSync?: boolean }) => {
+            const cachedData = await getCachedWorkoutData()
+            setWorkoutsFromData(cachedData)
 
-        const data = await loadWorkoutData()
-        setWorkoutsFromData(data)
-    }, [setWorkoutsFromData])
+            const data = await loadWorkoutData(options)
+            setWorkoutsFromData(data)
+        },
+        [setWorkoutsFromData],
+    )
 
     const create = useCallback(
         async (title: string, description?: string) => {
