@@ -12,7 +12,7 @@ export const StepDays = (props: StepDaysProps) => {
     const { value, onChange } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
-    const btnColor = t.mode === 'dark' ? '#0d0500' : '#FFF'
+    const btnColor = t.btnColor
 
     const toggleDay = (dayIndex: number) => {
         const isSelected = value.includes(dayIndex)

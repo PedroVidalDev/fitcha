@@ -11,7 +11,7 @@ export const StepGoal = (props: StepGoalProps) => {
     const { t: translate } = useI18n()
     const options: {
         key: 'hipertrofia' | 'forca' | 'resistencia' | 'emagrecimento'
-        icon: string
+        icon: keyof typeof Ionicons.glyphMap
         titleKey:
             | 'aiWizard.goal.hypertrophy.title'
             | 'aiWizard.goal.strength.title'
@@ -70,15 +70,9 @@ export const StepGoal = (props: StepGoalProps) => {
                         }}
                     >
                         <Ionicons
-                            name={opt.icon as any}
+                            name={opt.icon}
                             size={22}
-                            color={
-                                active
-                                    ? t.mode === 'dark'
-                                        ? '#0d0500'
-                                        : '#FFF'
-                                    : t.textMuted
-                            }
+                            color={active ? t.btnColor : t.textMuted}
                         />
                         <View>
                             <Text
@@ -86,11 +80,7 @@ export const StepGoal = (props: StepGoalProps) => {
                                     fontSize: 15,
                                     fontWeight: '800',
                                     textTransform: 'capitalize',
-                                    color: active
-                                        ? t.mode === 'dark'
-                                            ? '#0d0500'
-                                            : '#FFF'
-                                        : t.textPrimary,
+                                    color: active ? t.btnColor : t.textPrimary,
                                 }}
                             >
                                 {translate(opt.titleKey)}
@@ -101,7 +91,7 @@ export const StepGoal = (props: StepGoalProps) => {
                                     marginTop: 2,
                                     color: active
                                         ? t.mode === 'dark'
-                                            ? 'rgba(13,5,0,0.6)'
+                                            ? 'rgba(37, 22, 10, 0.68)'
                                             : 'rgba(255,255,255,0.7)'
                                         : t.textMuted,
                                 }}

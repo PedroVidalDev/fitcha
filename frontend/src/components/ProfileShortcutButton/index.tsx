@@ -13,7 +13,7 @@ export function ProfileShortcutButton() {
     const { user } = useAuth()
     const { t } = useTheme()
 
-    const btnColor = t.mode === 'dark' ? '#0d0500' : '#FFF'
+    const btnColor = t.btnColor
     const initials = getInitials(user?.name ?? '')
 
     return (

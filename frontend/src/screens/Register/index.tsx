@@ -41,7 +41,7 @@ export default function Register() {
     const fade = useRef(new Animated.Value(0)).current
     const slide = useRef(new Animated.Value(40)).current
 
-    const btnColor = theme.mode === 'dark' ? '#0d0500' : '#FFF'
+    const btnColor = theme.btnColor
 
     useEffect(() => {
         Animated.parallel([
@@ -69,14 +69,7 @@ export default function Register() {
     }, [clearSuccessMessage, navigation])
 
     return (
-        <LinearGradient
-            colors={
-                theme.mode === 'dark'
-                    ? ['#1a0a00', '#0d0500', '#060200']
-                    : ['#FAF6F2', '#F5F0EB', '#EDE4DB']
-            }
-            style={{ flex: 1 }}
-        >
+        <LinearGradient colors={theme.gradientScreen} style={{ flex: 1 }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
@@ -126,7 +119,7 @@ export default function Register() {
                             style={{
                                 fontSize: 28,
                                 fontWeight: '900',
-                                color: theme.textPrimary,
+                                color: theme.accent,
                                 marginBottom: 6,
                             }}
                         >

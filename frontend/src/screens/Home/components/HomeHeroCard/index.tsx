@@ -49,7 +49,7 @@ export function HomeHeroCard(props: HomeHeroCardProps) {
                 </Text>
                 <Text
                     style={{
-                        color: t.textPrimary,
+                        color: t.accent,
                         fontSize: 28,
                         fontWeight: '900',
                         marginTop: 8,

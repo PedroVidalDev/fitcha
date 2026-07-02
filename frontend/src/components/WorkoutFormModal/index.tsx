@@ -30,7 +30,7 @@ export function WorkoutFormModal(props: WorkoutFormModalProps) {
     const [description, setDescription] = useState(initialDescription)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
-    const btnColor = t.mode === 'dark' ? '#0d0500' : '#FFF'
+    const btnColor = t.btnColor
 
     useEffect(() => {
         if (!visible) return

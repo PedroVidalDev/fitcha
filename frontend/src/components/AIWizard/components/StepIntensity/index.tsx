@@ -11,7 +11,7 @@ export const StepIntensity = (props: StepIntensityProps) => {
     const { t: translate } = useI18n()
     const options: {
         key: 'leve' | 'moderado' | 'intenso'
-        icon: string
+        icon: keyof typeof Ionicons.glyphMap
         titleKey:
             | 'aiWizard.intensity.light.title'
             | 'aiWizard.intensity.moderate.title'
@@ -62,15 +62,9 @@ export const StepIntensity = (props: StepIntensityProps) => {
                         }}
                     >
                         <Ionicons
-                            name={opt.icon as any}
+                            name={opt.icon}
                             size={22}
-                            color={
-                                active
-                                    ? t.mode === 'dark'
-                                        ? '#0d0500'
-                                        : '#FFF'
-                                    : t.textMuted
-                            }
+                            color={active ? t.btnColor : t.textMuted}
                         />
                         <View>
                             <Text
@@ -78,11 +72,7 @@ export const StepIntensity = (props: StepIntensityProps) => {
                                     fontSize: 15,
                                     fontWeight: '800',
                                     textTransform: 'capitalize',
-                                    color: active
-                                        ? t.mode === 'dark'
-                                            ? '#0d0500'
-                                            : '#FFF'
-                                        : t.textPrimary,
+                                    color: active ? t.btnColor : t.textPrimary,
                                 }}
                             >
                                 {translate(opt.titleKey)}
@@ -93,7 +83,7 @@ export const StepIntensity = (props: StepIntensityProps) => {
                                     marginTop: 2,
                                     color: active
                                         ? t.mode === 'dark'
-                                            ? 'rgba(13,5,0,0.6)'
+                                            ? 'rgba(37, 22, 10, 0.68)'
                                             : 'rgba(255,255,255,0.7)'
                                         : t.textMuted,
                                 }}

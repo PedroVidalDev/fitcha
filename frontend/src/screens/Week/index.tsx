@@ -129,7 +129,7 @@ export default function WeekScreen() {
                 </Text>
                 <Text
                     style={{
-                        color: t.textPrimary,
+                        color: t.accent,
                         fontSize: 24,
                         fontWeight: '900',
                         marginTop: 8,
@@ -171,14 +171,10 @@ export default function WeekScreen() {
                         gap: 10,
                     }}
                 >
-                    <Ionicons
-                        name='add-circle'
-                        size={22}
-                        color={t.mode === 'dark' ? '#0d0500' : '#FFF'}
-                    />
+                    <Ionicons name='add-circle' size={22} color={t.btnColor} />
                     <Text
                         style={{
-                            color: t.mode === 'dark' ? '#0d0500' : '#FFF',
+                            color: t.btnColor,
                             fontSize: 16,
                             fontWeight: '900',
                         }}

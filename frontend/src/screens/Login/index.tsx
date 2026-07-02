@@ -80,14 +80,7 @@ export default function Login() {
     }, [formFade, formSlide, logoFade, logoSlide])
 
     return (
-        <LinearGradient
-            colors={
-                theme.mode === 'dark'
-                    ? ['#1a0a00', '#0d0500', '#060200']
-                    : ['#FAF6F2', '#F5F0EB', '#EDE4DB']
-            }
-            style={{ flex: 1 }}
-        >
+        <LinearGradient colors={theme.gradientScreen} style={{ flex: 1 }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{
@@ -125,7 +118,7 @@ export default function Login() {
                         style={{
                             fontSize: 32,
                             fontWeight: '900',
-                            color: theme.textPrimary,
+                            color: theme.accent,
                             letterSpacing: -1,
                         }}
                     >

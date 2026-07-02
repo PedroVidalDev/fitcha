@@ -111,7 +111,7 @@ export function AIWizard(props: AIWizardProps) {
         step === 5 ||
         step === 6
 
-    const btnColor = t.mode === 'dark' ? '#0d0500' : '#FFF'
+    const btnColor = t.btnColor
 
     useEffect(() => {
         if (visible) {
