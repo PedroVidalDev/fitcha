@@ -16,7 +16,7 @@ export type ThemePalette = {
     chipBg: string
     gradientScreen: [string, string, string]
     gradientCard: [string, string]
-    gradientHero: [string, string, string]
+    gradientHero: [string, string]
     gradientAccent: [string, string]
     gradientModal: [string, string]
     headerBg: string
@@ -60,7 +60,7 @@ export const dark: ThemePalette = {
     chipBg: 'rgba(243, 140, 43, 0.14)',
     gradientScreen: ['#24160C', '#112733', '#25173F'],
     gradientCard: ['#1A2230', '#19172A'],
-    gradientHero: ['#43210F', '#163745', '#2B1A49'],
+    gradientHero: ['#43210F', '#163745'],
     gradientAccent: ['#FFC47D', '#F38C2B'],
     gradientModal: ['#1A2230', '#151A24'],
     headerBg: '#0E151D',
@@ -120,7 +120,7 @@ export const light: ThemePalette = {
     chipBg: 'rgba(217, 110, 30, 0.12)',
     gradientScreen: ['#FFF3E5', '#EAF8F8', '#F2EDFF'],
     gradientCard: ['#FFFFFF', '#EDF2F7'],
-    gradientHero: ['#FFF0E1', '#E5F7F6', '#F1EBFF'],
+    gradientHero: ['#FFF0E1', '#E5F7F6'],
     gradientAccent: ['#FFC07A', '#D96E1E'],
     gradientModal: ['#FFFFFF', '#EEF2F7'],
     headerBg: '#F7FAFC',
