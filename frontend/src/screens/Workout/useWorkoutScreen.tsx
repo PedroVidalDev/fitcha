@@ -361,10 +361,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         if (pendingCount > 0 && finalResults.length > 0) {
             openModal({
                 title: translate('workout.pending.title'),
-                message: translate('workout.pending.message', {
-                    count: pendingCount,
-                    machineSuffix: pendingCount > 1 ? 's ficaram' : ' ficou',
-                }),
+                message: translate('workout.pending.message'),
                 confirmLabel: translate('common.actions.finish'),
                 confirmVariant: 'accent',
                 onConfirm: () => {

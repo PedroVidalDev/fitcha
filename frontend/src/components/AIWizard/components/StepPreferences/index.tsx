@@ -38,7 +38,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                         marginBottom: 8,
                     }}
                 >
-                    {translate('aiWizard.preferences.hoursLabel')}
+                    {translate('aiWizard.preferences.minutesLabel')}
                 </Text>
                 <View
                     style={{
@@ -62,12 +62,14 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                             fontWeight: '700',
                         }}
                         placeholder={translate(
-                            'aiWizard.preferences.hoursPlaceholder',
+                            'aiWizard.preferences.minutesPlaceholder',
                         )}
                         placeholderTextColor={t.textDim}
                         keyboardType='decimal-pad'
                         value={hoursPerDay}
-                        onChangeText={onHoursPerDayChange}
+                        onChangeText={(value) =>
+                            onHoursPerDayChange(parseFloat(value) || 0)
+                        }
                     />
                 </View>
             </View>

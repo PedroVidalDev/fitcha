@@ -353,8 +353,8 @@ export const enUS: TranslationDictionary = {
         '{count} day{daySuffix} selected{selectedSuffix}.',
     'aiWizard.preferences.description':
         'These fields are optional. Fill them in if you want AI to respect a time cap, daily volume, or a specific split model.',
-    'aiWizard.preferences.hoursLabel': 'Hours per day',
-    'aiWizard.preferences.hoursPlaceholder': 'Ex.: 1, 1.5 or 2',
+    'aiWizard.preferences.minutesLabel': 'Minutes per day',
+    'aiWizard.preferences.minutesPlaceholder': 'Ex.: 45, 60, or 90',
     'aiWizard.preferences.machinesLabel': 'Machines per day',
     'aiWizard.preferences.machinesPlaceholder': 'Ex.: 6',
     'aiWizard.preferences.splitLabel': 'Split model',
@@ -407,7 +407,7 @@ export const enUS: TranslationDictionary = {
     'workout.incomplete.confirm': 'Leave without saving',
     'workout.pending.title': 'Finish with pending items?',
     'workout.pending.message':
-        '{count} machine{machineSuffix} still needs review. You can save now or keep reviewing.',
+        'Some machines still needs review. You can save now or keep reviewing.',
     'workout.quit.title': 'Quit workout?',
     'workout.quit.message':
         'If you leave now, the workout will end and nothing will be saved.',

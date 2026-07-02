@@ -110,7 +110,7 @@ func (c *AuthController) VerifyEmail(ctx *gin.Context) {
 		ctx,
 		http.StatusOK,
 		"E-mail verificado",
-		"Sua conta foi verificada com sucesso. Agora voce ja pode voltar ao app e fazer login.",
+		"Sua conta foi verificada com sucesso. Agora você já pode voltar ao app e fazer login.",
 	)
 }
 

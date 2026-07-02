@@ -353,8 +353,8 @@ export const ptBR = {
         '{count} dia{daySuffix} selecionado{selectedSuffix}.',
     'aiWizard.preferences.description':
         'Esses campos são opcionais. Preencha se quiser que a IA respeite um limite de tempo, volume diário ou um modelo de divisão específico.',
-    'aiWizard.preferences.hoursLabel': 'Horas por dia',
-    'aiWizard.preferences.hoursPlaceholder': 'Ex.: 1, 1.5 ou 2',
+    'aiWizard.preferences.minutesLabel': 'Minutos por dia',
+    'aiWizard.preferences.minutesPlaceholder': 'Ex.: 45, 60 ou 90',
     'aiWizard.preferences.machinesLabel': 'Máquinas por dia',
     'aiWizard.preferences.machinesPlaceholder': 'Ex.: 6',
     'aiWizard.preferences.splitLabel': 'Modelo de divisão',
@@ -407,7 +407,7 @@ export const ptBR = {
     'workout.incomplete.confirm': 'Sair sem salvar',
     'workout.pending.title': 'Finalizar com pendências?',
     'workout.pending.message':
-        '{count} máquina{machineSuffix} ainda precisa de revisão. Você pode salvar agora ou continuar revisando.',
+        'Algumas máquinas ainda precisam de revisão. Você pode salvar agora ou continuar revisando.',
     'workout.quit.title': 'Encerrar treino?',
     'workout.quit.message':
         'Se você sair agora, o treino será encerrado e nada será salvo.',

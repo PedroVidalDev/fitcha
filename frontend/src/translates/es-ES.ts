@@ -358,8 +358,8 @@ export const esES: TranslationDictionary = {
         '{count} dia{daySuffix} seleccionado{selectedSuffix}.',
     'aiWizard.preferences.description':
         'Estos campos son opcionales. Completalos si quieres que la IA respete un limite de tiempo, volumen diario o un modelo de division especifico.',
-    'aiWizard.preferences.hoursLabel': 'Horas por dia',
-    'aiWizard.preferences.hoursPlaceholder': 'Ej.: 1, 1.5 o 2',
+    'aiWizard.preferences.minutesLabel': 'Minutos por dia',
+    'aiWizard.preferences.minutesPlaceholder': 'Ej.: 45, 60 o 90',
     'aiWizard.preferences.machinesLabel': 'Maquinas por dia',
     'aiWizard.preferences.machinesPlaceholder': 'Ej.: 6',
     'aiWizard.preferences.splitLabel': 'Modelo de division',
@@ -413,7 +413,7 @@ export const esES: TranslationDictionary = {
     'workout.incomplete.confirm': 'Salir sin guardar',
     'workout.pending.title': 'Finalizar con pendientes?',
     'workout.pending.message':
-        '{count} maquina{machineSuffix} todavia necesita revision. Puedes guardar ahora o seguir revisando.',
+        'Algunas maquinas todavia necesitan revision. Puedes guardar ahora o seguir revisando.',
     'workout.quit.title': 'Cerrar entrenamiento?',
     'workout.quit.message':
         'Si sales ahora, el entrenamiento terminara y no se guardara nada.',
