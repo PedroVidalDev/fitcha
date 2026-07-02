@@ -184,7 +184,7 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input 
 		completion, err := s.createOpenAIChatCompletion(ctx, openAIChatCompletionRequest{
 			Model:       s.model,
 			Messages:    messages,
-			Tools:       buildAIWorkoutTools(surfacedCatalogByID),
+			Tools:       buildAIWorkoutTools(surfacedCatalogByID, input.DaysPerWeek),
 			ToolChoice:  aiWorkoutToolChoiceRequired,
 			Temperature: aiWorkoutGenerationTemperature,
 		})
@@ -238,7 +238,7 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input 
 					continue
 				}
 
-				if err := validateGeneratedWorkout(parsed, surfacedCatalogByID); err != nil {
+				if err := validateGeneratedWorkout(parsed, surfacedCatalogByID, input.DaysPerWeek); err != nil {
 					messages = append(messages, openAIChatCompletionMessage{
 						Role:       "tool",
 						ToolCallID: toolCall.ID,
@@ -352,6 +352,9 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		fmt.Sprintf("Distribua os grupos musculares de forma equilibrada entre os %d dias selecionados.", input.DaysPerWeek),
 		fmt.Sprintf("Use os dias escolhidos %s apenas para decidir volume, recuperacao e divisao do treino.", selectedDayNames),
 		fmt.Sprintf("Use somente estes indices de dias para interpretar a disponibilidade semanal do usuario: %s.", selectedDayIndexes),
+		fmt.Sprintf("Retorne exatamente %d treinos, um para cada dia selecionado.", input.DaysPerWeek),
+		"Cada item do campo categories representa um treino completo, nao um grupo muscular isolado.",
+		"O modelo de divisao preferido, como ABC, deve orientar a organizacao desses treinos, mas nunca aumentar ou reduzir a quantidade total de treinos.",
 		"Se o usuario informar tempo por dia, quantidade de maquinas ou um modelo de divisao, respeite essas preferencias quando forem compativeis com o objetivo e os dias disponiveis.",
 		"Se houver um modelo de divisao preferido, como ABC, ABCAB ou fullbody, siga esse formato ou a adaptacao mais proxima possivel.",
 		"Categorias disponiveis no catalogo: peito, costas, pernas, ombros, biceps, triceps, core, cardio.",
@@ -360,9 +363,9 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"Cada exercicio precisa apontar para um catalogMachineId valido retornado pela ferramenta.",
 		"Se o exercicio ideal nao existir exatamente no catalogo, escolha a opcao mais proxima dentre as retornadas pela ferramenta.",
 		"Quando concluir, finalize chamando a ferramenta submit_workout_plan.",
-		"Nao inclua dias na resposta final.",
+		"Nao inclua dias na resposta final nem crie treinos extras fora dos dias disponiveis.",
 		"",
-		"Monte categorias de treino personalizadas e atribua exercicios de musculacao com peso sugerido para 3 series em kg.",
+		fmt.Sprintf("No campo categories, monte exatamente %d treinos personalizados e atribua exercicios de musculacao com peso sugerido para 3 series em kg.", input.DaysPerWeek),
 		"Cada exercicio precisa ter exatamente 3 pesos em kg.",
 	}, "\n")
 }
@@ -527,7 +530,15 @@ func normalizeGeneratedWorkoutText(value string) string {
 	return strings.ToLower(replacer.Replace(strings.TrimSpace(value)))
 }
 
-func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogByID map[string]models.Machine) error {
+func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogByID map[string]models.Machine, expectedWorkoutCount int) error {
+	if expectedWorkoutCount > 0 && len(response.Categories) != expectedWorkoutCount {
+		return fmt.Errorf(
+			"a IA deve retornar exatamente %d treinos, mas retornou %d",
+			expectedWorkoutCount,
+			len(response.Categories),
+		)
+	}
+
 	for _, category := range response.Categories {
 		if strings.TrimSpace(category.Name) == "" {
 			return errors.New("a IA retornou uma categoria sem nome")
@@ -573,6 +584,8 @@ func buildAIWorkoutMessages(input dtos.GenerateAIWorkoutRequest, previousErr err
 			Content: strings.Join([]string{
 				"Voce e um personal trainer especialista em musculacao.",
 				"Use obrigatoriamente a convencao de dias 0=domingo, 1=segunda, 2=terca, 3=quarta, 4=quinta, 5=sexta, 6=sabado ao interpretar a disponibilidade do usuario.",
+				"A quantidade de itens enviados no campo categories deve ser exatamente igual a quantidade de dias selecionados pelo usuario.",
+				"Cada item de categories representa um treino completo, nao um grupo muscular isolado.",
 				"Busque maquinas apenas com a ferramenta search_catalog_machines.",
 				"Finalize sempre chamando a ferramenta submit_workout_plan.",
 			}, "\n"),
@@ -720,7 +733,7 @@ func (r openAIChatCompletionResponse) FirstMessageRefusal() string {
 	return r.FirstMessage().Refusal
 }
 
-func buildAIWorkoutTools(surfacedCatalogByID map[string]models.Machine) []openAIChatCompletionTool {
+func buildAIWorkoutTools(surfacedCatalogByID map[string]models.Machine, expectedWorkoutCount int) []openAIChatCompletionTool {
 	tools := []openAIChatCompletionTool{
 		{
 			Type: "function",
@@ -743,7 +756,7 @@ func buildAIWorkoutTools(surfacedCatalogByID map[string]models.Machine) []openAI
 			Name:        aiWorkoutSubmitToolName,
 			Description: "Envia o treino final usando apenas catalogMachineId ja retornados pela busca.",
 			Strict:      true,
-			Parameters:  buildAIWorkoutSubmitToolSchema(surfacedCatalogByID),
+			Parameters:  buildAIWorkoutSubmitToolSchema(surfacedCatalogByID, expectedWorkoutCount),
 		},
 	})
 
@@ -775,7 +788,7 @@ func buildAIWorkoutSearchToolSchema() map[string]any {
 	}
 }
 
-func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machine) map[string]any {
+func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machine, expectedWorkoutCount int) map[string]any {
 	return map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
@@ -783,7 +796,8 @@ func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machin
 		"properties": map[string]any{
 			"categories": map[string]any{
 				"type":     "array",
-				"minItems": 1,
+				"minItems": expectedWorkoutCount,
+				"maxItems": expectedWorkoutCount,
 				"items": map[string]any{
 					"type":                 "object",
 					"additionalProperties": false,
