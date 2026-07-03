@@ -15,7 +15,7 @@ export function MachineProgressMetrics(props: MachineProgressMetricsProps) {
     const recordPalette = t.home.record
 
     return (
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
+        <View style={{ flexDirection: 'column', gap: 10, marginTop: 18 }}>
             <View
                 style={{
                     flex: 1,
