@@ -13,6 +13,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
         confirmLabel,
         cancelLabel,
         hideCancel = false,
+        isBusy = false,
         confirmVariant = 'danger',
         onClose,
         onConfirm,
@@ -28,7 +29,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
     return (
         <AppModal
             visible={visible}
-            onClose={onClose}
+            onClose={isBusy ? () => undefined : onClose}
             overlayPadding={24}
             compact
         >
@@ -62,6 +63,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                 {!hideCancel && (
                     <TouchableOpacity
                         onPress={onClose}
+                        disabled={isBusy}
                         style={{ padding: 12, justifyContent: 'center' }}
                     >
                         <Text
@@ -69,13 +71,18 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                                 color: t.textMuted,
                                 fontSize: 15,
                                 fontWeight: '600',
+                                opacity: isBusy ? 0.5 : 1,
                             }}
                         >
                             {resolvedCancelLabel}
                         </Text>
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={onConfirm} activeOpacity={0.75}>
+                <TouchableOpacity
+                    onPress={onConfirm}
+                    activeOpacity={0.75}
+                    disabled={isBusy}
+                >
                     {confirmVariant === 'accent' ? (
                         <LinearGradient
                             colors={t.gradientAccent}
@@ -83,6 +90,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                                 paddingHorizontal: 24,
                                 paddingVertical: 12,
                                 borderRadius: 12,
+                                opacity: isBusy ? 0.8 : 1,
                             }}
                         >
                             <Text
@@ -102,6 +110,7 @@ export const ConfirmModal = (props: ConfirmModalProps) => {
                                 paddingHorizontal: 24,
                                 paddingVertical: 12,
                                 borderRadius: 12,
+                                opacity: isBusy ? 0.8 : 1,
                             }}
                         >
                             <Text

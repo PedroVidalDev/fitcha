@@ -9,6 +9,14 @@ export const esES: TranslationDictionary = {
         'Hay una actualizacion obligatoria disponible para seguir usando la app. Version actual: {currentVersion}. Nueva version: {latestVersion}.',
     'appUpdate.confirm': 'Descargar ahora',
     'appUpdate.cancel': 'Despues',
+    'appUpdate.otaTitle': 'Actualizacion disponible',
+    'appUpdate.otaMessage':
+        'Hay una actualizacion interna lista para aplicarse. La app se reiniciara despues de tu confirmacion.',
+    'appUpdate.otaConfirm': 'Actualizar ahora',
+    'appUpdate.otaApplying': 'Actualizando...',
+    'appUpdate.errorTitle': 'Error al actualizar',
+    'appUpdate.otaErrorMessage':
+        'No fue posible aplicar la actualizacion ahora. Intentalo de nuevo en unos instantes.',
     'common.or': 'o',
     'common.actions.back': 'Volver',
     'common.actions.close': 'Cerrar',

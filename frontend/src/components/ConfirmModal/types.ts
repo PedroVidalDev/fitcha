@@ -5,6 +5,7 @@ export type ConfirmModalProps = {
     confirmLabel?: string
     cancelLabel?: string
     hideCancel?: boolean
+    isBusy?: boolean
     confirmVariant?: 'danger' | 'accent'
     onClose: () => void
     onConfirm: () => void

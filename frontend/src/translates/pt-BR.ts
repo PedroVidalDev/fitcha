@@ -7,6 +7,14 @@ export const ptBR = {
         'Existe uma atualização obrigatória disponível para continuar usando o app. Versão atual: {currentVersion}. Nova versão: {latestVersion}.',
     'appUpdate.confirm': 'Baixar agora',
     'appUpdate.cancel': 'Depois',
+    'appUpdate.otaTitle': 'Atualização disponível',
+    'appUpdate.otaMessage':
+        'Existe uma atualização interna pronta para aplicar. O app será reiniciado após sua confirmação.',
+    'appUpdate.otaConfirm': 'Atualizar agora',
+    'appUpdate.otaApplying': 'Atualizando...',
+    'appUpdate.errorTitle': 'Erro ao atualizar',
+    'appUpdate.otaErrorMessage':
+        'Não foi possível aplicar a atualização agora. Tente novamente em instantes.',
     'common.or': 'ou',
     'common.actions.back': 'Voltar',
     'common.actions.close': 'Fechar',

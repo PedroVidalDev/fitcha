@@ -9,6 +9,14 @@ export const enUS: TranslationDictionary = {
         'A required update is available to keep using the app. Current version: {currentVersion}. New version: {latestVersion}.',
     'appUpdate.confirm': 'Download now',
     'appUpdate.cancel': 'Later',
+    'appUpdate.otaTitle': 'Update available',
+    'appUpdate.otaMessage':
+        'There is an in-app update ready to apply. The app will restart after your confirmation.',
+    'appUpdate.otaConfirm': 'Update now',
+    'appUpdate.otaApplying': 'Updating...',
+    'appUpdate.errorTitle': 'Update error',
+    'appUpdate.otaErrorMessage':
+        'Unable to apply the update right now. Please try again shortly.',
     'common.or': 'or',
     'common.actions.back': 'Back',
     'common.actions.close': 'Close',
