@@ -382,7 +382,7 @@ export const enUS: TranslationDictionary = {
     'aiWizard.review.weight': 'Weight',
     'aiWizard.review.selectedDays': 'Selected days',
     'aiWizard.review.totalDays': 'Total days',
-    'aiWizard.review.hoursPerDay': 'Hours per day',
+    'aiWizard.review.hoursPerDay': 'Minutes per day',
     'aiWizard.review.machinesPerDay': 'Machines per day',
     'aiWizard.review.split': 'Split model',
     'aiWizard.review.intensity': 'Intensity',

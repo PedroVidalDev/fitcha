@@ -8,6 +8,21 @@ type GenerateAIWorkoutResponse = GPTResponse & {
 
 const aiWorkoutRequestTimeoutMs = 120000
 
+function convertMinutesToHours(minutesPerDay: string): string {
+    const trimmedMinutes = minutesPerDay.trim()
+    if (trimmedMinutes === '') {
+        return ''
+    }
+
+    const normalizedMinutes = trimmedMinutes.replace(',', '.')
+    const parsedMinutes = Number(normalizedMinutes)
+    if (!Number.isFinite(parsedMinutes)) {
+        return trimmedMinutes
+    }
+
+    return String(parsedMinutes / 60)
+}
+
 function getAIWorkoutErrorMessage(error: unknown, fallback: string) {
     if (
         typeof error === 'object' &&
@@ -44,7 +59,7 @@ export async function generateAIWorkout(
                 daysPerWeek: data.selectedDays.length,
                 height: data.height.trim(),
                 weight: data.weight.trim(),
-                hoursPerDay: data.hoursPerDay.trim(),
+                hoursPerDay: convertMinutesToHours(data.hoursPerDay),
                 machinesPerDay: data.machinesPerDay.trim(),
                 workoutSplit: data.workoutSplit.trim(),
                 customInstructions: data.customInstructions.trim(),

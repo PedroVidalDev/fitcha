@@ -67,9 +67,7 @@ export const StepPreferences = (props: StepPreferencesProps) => {
                         placeholderTextColor={t.textDim}
                         keyboardType='decimal-pad'
                         value={hoursPerDay}
-                        onChangeText={(value) =>
-                            onHoursPerDayChange(parseFloat(value) || 0)
-                        }
+                        onChangeText={onHoursPerDayChange}
                     />
                 </View>
             </View>

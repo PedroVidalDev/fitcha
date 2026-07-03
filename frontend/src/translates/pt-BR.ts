@@ -382,7 +382,7 @@ export const ptBR = {
     'aiWizard.review.weight': 'Peso',
     'aiWizard.review.selectedDays': 'Dias escolhidos',
     'aiWizard.review.totalDays': 'Total de dias',
-    'aiWizard.review.hoursPerDay': 'Horas por dia',
+    'aiWizard.review.hoursPerDay': 'Minutos por dia',
     'aiWizard.review.machinesPerDay': 'Máquinas por dia',
     'aiWizard.review.split': 'Modelo de divisão',
     'aiWizard.review.intensity': 'Intensidade',

@@ -388,7 +388,7 @@ export const esES: TranslationDictionary = {
     'aiWizard.review.weight': 'Peso',
     'aiWizard.review.selectedDays': 'Dias elegidos',
     'aiWizard.review.totalDays': 'Total de dias',
-    'aiWizard.review.hoursPerDay': 'Horas por dia',
+    'aiWizard.review.hoursPerDay': 'Minutos por dia',
     'aiWizard.review.machinesPerDay': 'Maquinas por dia',
     'aiWizard.review.split': 'Modelo de division',
     'aiWizard.review.intensity': 'Intensidad',

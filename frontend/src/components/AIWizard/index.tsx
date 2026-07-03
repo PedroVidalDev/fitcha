@@ -315,11 +315,8 @@ export function AIWizard(props: AIWizardProps) {
                             hoursPerDay={data.hoursPerDay}
                             machinesPerDay={data.machinesPerDay}
                             workoutSplit={data.workoutSplit}
-                            onHoursPerDayChange={(value: number) =>
-                                setData({
-                                    ...data,
-                                    hoursPerDay: String(value / 60),
-                                })
+                            onHoursPerDayChange={(value) =>
+                                setData({ ...data, hoursPerDay: value })
                             }
                             onMachinesPerDayChange={(value) =>
                                 setData({ ...data, machinesPerDay: value })

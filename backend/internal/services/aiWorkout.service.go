@@ -22,6 +22,8 @@ import (
 
 const (
 	defaultAIWorkoutModel          = "gpt-4.1-mini"
+	defaultAssumedMachinesPerDay   = 6
+	averageMinutesPerMachine       = 10
 	openAIChatCompletionsURL       = "https://api.openai.com/v1/chat/completions"
 	aiWorkoutGenerationTries       = 2
 	aiWorkoutMaxToolRounds         = 6
@@ -63,6 +65,8 @@ func (s *AIWorkoutService) Generate(ctx context.Context, userID uint, input dtos
 	if s.apiKey == "" {
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("configure OPENAI_API_KEY para gerar treinos com IA")
 	}
+
+	input = normalizeAIWorkoutRequest(input)
 
 	selectedDays, err := normalizeSelectedDays(input.SelectedDays)
 	if err != nil {
@@ -337,8 +341,8 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		fmt.Sprintf("- Dias por semana: %d", input.DaysPerWeek),
 		fmt.Sprintf("- Dias exatos escolhidos (indices obrigatorios): %s", selectedDayIndexes),
 		fmt.Sprintf("- Dias exatos escolhidos (nomes): %s", selectedDayNames),
-		fmt.Sprintf("- Tempo desejado por dia: %s", buildOptionalTextLine(input.HoursPerDay, "nao informado")),
-		fmt.Sprintf("- Quantidade desejada de maquinas por dia: %s", buildOptionalTextLine(input.MachinesPerDay, "nao informado")),
+		fmt.Sprintf("- Tempo desejado por dia (em horas): %s", buildOptionalTextLine(input.HoursPerDay, "nao informado")),
+		buildMachinesPerDayPromptLine(input),
 		fmt.Sprintf("- Modelo de divisao preferido: %s", buildOptionalTextLine(input.WorkoutSplit, "nenhum modelo especifico")),
 		fmt.Sprintf("- Intensidade: %s", intensityMap[input.Intensity]),
 		fmt.Sprintf("- Objetivo: %s", goalMap[input.Goal]),
@@ -356,6 +360,7 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"Cada item do campo categories representa um treino completo, nao um grupo muscular isolado.",
 		"O modelo de divisao preferido, como ABC, deve orientar a organizacao desses treinos, mas nunca aumentar ou reduzir a quantidade total de treinos.",
 		"Se o usuario informar tempo por dia, quantidade de maquinas ou um modelo de divisao, respeite essas preferencias quando forem compativeis com o objetivo e os dias disponiveis.",
+		buildMachinesPerDayPromptInstruction(input),
 		"Se houver um modelo de divisao preferido, como ABC, ABCAB ou fullbody, siga esse formato ou a adaptacao mais proxima possivel.",
 		"Categorias disponiveis no catalogo: peito, costas, pernas, ombros, biceps, triceps, core, cardio.",
 		"Antes de montar o treino, consulte a ferramenta search_catalog_machines em buscas pequenas e direcionadas.",
@@ -377,6 +382,111 @@ func buildOptionalTextLine(value, fallback string) string {
 	}
 
 	return trimmed
+}
+
+func normalizeAIWorkoutRequest(input dtos.GenerateAIWorkoutRequest) dtos.GenerateAIWorkoutRequest {
+	input.Height = strings.TrimSpace(input.Height)
+	input.Weight = strings.TrimSpace(input.Weight)
+	input.HoursPerDay = strings.TrimSpace(input.HoursPerDay)
+	input.MachinesPerDay = strings.TrimSpace(input.MachinesPerDay)
+	input.WorkoutSplit = strings.TrimSpace(input.WorkoutSplit)
+	input.Intensity = strings.TrimSpace(input.Intensity)
+	input.Goal = strings.TrimSpace(input.Goal)
+	input.CustomInstructions = strings.TrimSpace(input.CustomInstructions)
+
+	return input
+}
+
+func buildMachinesPerDayPromptLine(input dtos.GenerateAIWorkoutRequest) string {
+	machinesPerDay := strings.TrimSpace(input.MachinesPerDay)
+	if parsedMachinesPerDay, ok := parseOptionalFloat(machinesPerDay); ok {
+		if estimatedMachines, hasHours := estimateMachinesPerDayFromHours(input.HoursPerDay); hasHours {
+			averageMachines := (parsedMachinesPerDay + estimatedMachines) / 2
+
+			return fmt.Sprintf(
+				"- Quantidade desejada de maquinas por dia: %s. O tempo informado sugere cerca de %s maquinas por dia, considerando %d minutos por maquina (3 series). Use uma media entre os dois valores, cerca de %s maquinas por dia.",
+				machinesPerDay,
+				strconv.FormatFloat(estimatedMachines, 'f', -1, 64),
+				averageMinutesPerMachine,
+				strconv.FormatFloat(averageMachines, 'f', -1, 64),
+			)
+		}
+
+		return fmt.Sprintf("- Quantidade desejada de maquinas por dia: %s", machinesPerDay)
+	}
+
+	if machinesPerDay != "" {
+		return fmt.Sprintf("- Quantidade desejada de maquinas por dia: %s", machinesPerDay)
+	}
+
+	if estimatedMachines, ok := estimateMachinesPerDayFromHours(input.HoursPerDay); ok {
+		return fmt.Sprintf(
+			"- Quantidade desejada de maquinas por dia: nao informada; estime usando 1 maquina a cada %d minutos de treino (3 series). Isso equivale a cerca de %s maquinas por dia.",
+			averageMinutesPerMachine,
+			strconv.FormatFloat(estimatedMachines, 'f', -1, 64),
+		)
+	}
+
+	return fmt.Sprintf(
+		"- Quantidade desejada de maquinas por dia: nao informada; sem tempo nem quantidade informados, assuma %d maquinas por dia.",
+		defaultAssumedMachinesPerDay,
+	)
+}
+
+func buildMachinesPerDayPromptInstruction(input dtos.GenerateAIWorkoutRequest) string {
+	machinesPerDay := strings.TrimSpace(input.MachinesPerDay)
+	if parsedMachinesPerDay, ok := parseOptionalFloat(machinesPerDay); ok {
+		if estimatedMachines, hasHours := estimateMachinesPerDayFromHours(input.HoursPerDay); hasHours {
+			averageMachines := (parsedMachinesPerDay + estimatedMachines) / 2
+
+			return fmt.Sprintf(
+				"Como o usuario informou tempo e quantidade de maquinas, compare a quantidade informada com a estimativa derivada do tempo usando 1 maquina a cada %d minutos, e trabalhe com uma media entre os dois sinais, em torno de %s maquinas por dia.",
+				averageMinutesPerMachine,
+				strconv.FormatFloat(averageMachines, 'f', -1, 64),
+			)
+		}
+
+		return "Como o usuario informou a quantidade de maquinas por dia, respeite esse numero como preferencia principal."
+	}
+
+	if machinesPerDay != "" {
+		return "Como o usuario informou a quantidade de maquinas por dia, respeite esse numero como preferencia principal."
+	}
+
+	if _, ok := estimateMachinesPerDayFromHours(input.HoursPerDay); ok {
+		return fmt.Sprintf(
+			"Como o usuario nao informou a quantidade de maquinas, estime esse volume a partir do tempo desejado por dia, usando 1 maquina a cada %d minutos para completar 3 series.",
+			averageMinutesPerMachine,
+		)
+	}
+
+	return fmt.Sprintf(
+		"Como o usuario nao informou nem tempo nem quantidade de maquinas, assuma %d maquinas por dia como referencia padrao.",
+		defaultAssumedMachinesPerDay,
+	)
+}
+
+func estimateMachinesPerDayFromHours(hoursPerDay string) (float64, bool) {
+	parsedHours, ok := parseOptionalFloat(hoursPerDay)
+	if !ok || parsedHours <= 0 {
+		return 0, false
+	}
+
+	return (parsedHours * 60) / averageMinutesPerMachine, true
+}
+
+func parseOptionalFloat(value string) (float64, bool) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return 0, false
+	}
+
+	parsed, err := strconv.ParseFloat(strings.ReplaceAll(trimmed, ",", "."), 64)
+	if err != nil {
+		return 0, false
+	}
+
+	return parsed, true
 }
 
 func buildSelectedDayNames(days []int) string {
