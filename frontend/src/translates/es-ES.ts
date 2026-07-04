@@ -298,7 +298,7 @@ export const esES: TranslationDictionary = {
     'home.machine.comparison.needMore':
         'Guarda un entrenamiento mas para comparar tu evolucion.',
     'home.machine.comparison.default':
-        'Comparacion del rendimiento actual contra el primer registro guardado.',
+        'Comparacion del rendimiento (volumen total) actual contra el primer registro guardado.',
     'home.machine.previous.noHistory': 'sin historial',
     'home.machine.previous.oneRecord': '1 registro guardado',
     'home.machine.previous.noComparison': 'sin comparacion',

@@ -295,7 +295,7 @@ export const enUS: TranslationDictionary = {
     'home.machine.comparison.needMore':
         'Save one more workout to compare your progress.',
     'home.machine.comparison.default':
-        'Current performance compared with the first saved record.',
+        'Current performance (total volume) compared with the first saved record.',
     'home.machine.previous.noHistory': 'no history',
     'home.machine.previous.oneRecord': '1 saved record',
     'home.machine.previous.noComparison': 'no comparison',

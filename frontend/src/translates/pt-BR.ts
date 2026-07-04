@@ -293,7 +293,7 @@ export const ptBR = {
     'home.machine.comparison.needMore':
         'Salve mais um treino para comparar a evolução.',
     'home.machine.comparison.default':
-        'Comparação do desempenho atual contra o primeiro registro salvo.',
+        'Comparação do desempenho (volume total) atual contra o primeiro registro salvo.',
     'home.machine.previous.noHistory': 'sem histórico',
     'home.machine.previous.oneRecord': '1 registro salvo',
     'home.machine.previous.noComparison': 'sem comparação',

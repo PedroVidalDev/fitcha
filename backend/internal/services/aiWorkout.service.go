@@ -363,10 +363,17 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		buildMachinesPerDayPromptInstruction(input),
 		"Se houver um modelo de divisao preferido, como ABC, ABCAB ou fullbody, siga esse formato ou a adaptacao mais proxima possivel.",
 		"Categorias disponiveis no catalogo: peito, costas, pernas, ombros, biceps, triceps, core, cardio.",
+		"O nome de cada treino deve refletir apenas os grupos musculares realmente trabalhados pelos exercicios escolhidos.",
+		"Se o nome de um treino citar mais de um grupo muscular, inclua pelo menos 1 exercicio de cada grupo citado.",
+		`Exemplo: "ombros e peito" precisa ter ao menos 1 exercicio de ombros e 1 de peito.`,
+		`Exemplo: "costas, biceps e core" precisa ter ao menos 1 exercicio de costas, 1 de biceps e 1 de core.`,
+		"Nao cite no titulo um grupo muscular que nao apareca nos exercicios daquele treino.",
+		"Quando combinar varios grupos no mesmo treino, mantenha o primeiro grupo citado como foco principal e distribua os demais como complementares, sem deixar nenhum zerado.",
 		"Antes de montar o treino, consulte a ferramenta search_catalog_machines em buscas pequenas e direcionadas.",
 		"Use exclusivamente catalogMachineId retornados pela ferramenta.",
 		"Cada exercicio precisa apontar para um catalogMachineId valido retornado pela ferramenta.",
 		"Se o exercicio ideal nao existir exatamente no catalogo, escolha a opcao mais proxima dentre as retornadas pela ferramenta.",
+		"Antes de chamar submit_workout_plan, confira se cada treino cumpre exatamente os grupos musculares prometidos no proprio titulo.",
 		"Quando concluir, finalize chamando a ferramenta submit_workout_plan.",
 		"Nao inclua dias na resposta final nem crie treinos extras fora dos dias disponiveis.",
 		"",
@@ -659,13 +666,15 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogBy
 		}
 
 		categoryMachineSet := make(map[string]struct{}, len(category.Machines))
+		categoryMachineCounts := make(map[string]int)
 		for _, machine := range category.Machines {
 			catalogMachineID := strings.TrimSpace(machine.CatalogMachineID)
 			if catalogMachineID == "" {
 				return errors.New("a IA retornou um exercicio sem catalogMachineId")
 			}
 
-			if _, ok := catalogByID[catalogMachineID]; !ok {
+			catalogMachine, ok := catalogByID[catalogMachineID]
+			if !ok {
 				return fmt.Errorf("a IA retornou uma maquina fora do catalogo permitido: %s", catalogMachineID)
 			}
 
@@ -677,10 +686,15 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogBy
 				)
 			}
 			categoryMachineSet[catalogMachineID] = struct{}{}
+			categoryMachineCounts[strings.TrimSpace(catalogMachine.CategoryKey)]++
 
 			if len(machine.Sets) != 3 {
 				return errors.New("a IA retornou um exercicio sem 3 series")
 			}
+		}
+
+		if err := validateGeneratedWorkoutTitleCoverage(category.Name, categoryMachineCounts); err != nil {
+			return err
 		}
 	}
 
@@ -696,6 +710,8 @@ func buildAIWorkoutMessages(input dtos.GenerateAIWorkoutRequest, previousErr err
 				"Use obrigatoriamente a convencao de dias 0=domingo, 1=segunda, 2=terca, 3=quarta, 4=quinta, 5=sexta, 6=sabado ao interpretar a disponibilidade do usuario.",
 				"A quantidade de itens enviados no campo categories deve ser exatamente igual a quantidade de dias selecionados pelo usuario.",
 				"Cada item de categories representa um treino completo, nao um grupo muscular isolado.",
+				"O titulo de cada treino deve corresponder aos grupos musculares realmente presentes nos exercicios.",
+				"Se o titulo citar peito, costas, pernas, ombros, biceps, triceps, core ou cardio, inclua pelo menos 1 exercicio da categoria citada.",
 				"Busque maquinas apenas com a ferramenta search_catalog_machines.",
 				"Finalize sempre chamando a ferramenta submit_workout_plan.",
 			}, "\n"),
@@ -1182,6 +1198,138 @@ func min(left, right int) int {
 	}
 
 	return right
+}
+
+func validateGeneratedWorkoutTitleCoverage(categoryName string, machineCounts map[string]int) error {
+	requiredCategories := extractMentionedWorkoutCategories(categoryName)
+	if len(requiredCategories) == 0 {
+		return nil
+	}
+
+	missing := make([]string, 0, len(requiredCategories))
+	for _, categoryKey := range requiredCategories {
+		if machineCounts[categoryKey] == 0 {
+			missing = append(missing, categoryKey)
+		}
+	}
+
+	if len(missing) == 0 {
+		return nil
+	}
+
+	present := make([]string, 0, len(machineCounts))
+	for _, categoryKey := range allMachineCategoryKeys() {
+		if machineCounts[categoryKey] > 0 {
+			present = append(present, categoryKey)
+		}
+	}
+
+	return fmt.Errorf(
+		`o treino %q cita os grupos %s no titulo, mas os exercicios cobrem apenas %s; faltam exercicios de %s`,
+		strings.TrimSpace(categoryName),
+		formatWorkoutCategoryList(requiredCategories),
+		formatWorkoutCategoryList(present),
+		formatWorkoutCategoryList(missing),
+	)
+}
+
+func extractMentionedWorkoutCategories(categoryName string) []string {
+	normalizedName := normalizeWorkoutTitleText(categoryName)
+	if normalizedName == "" {
+		return nil
+	}
+
+	categoryAliases := map[string][]string{
+		string(models.MachineCategoryPeito):   {"peito", "peitoral", "peitorais"},
+		string(models.MachineCategoryCostas):  {"costas", "dorsal", "dorsais", "dorso"},
+		string(models.MachineCategoryPernas):  {"perna", "pernas", "quadriceps", "posterior", "posteriores", "gluteo", "gluteos", "panturrilha", "panturrilhas"},
+		string(models.MachineCategoryOmbros):  {"ombro", "ombros", "deltoide", "deltoides"},
+		string(models.MachineCategoryBiceps):  {"biceps", "bicep"},
+		string(models.MachineCategoryTriceps): {"triceps", "tricep"},
+		string(models.MachineCategoryCore):    {"core", "abdomen", "abdome", "abdominal", "abdominais", "obliquo", "obliquos", "lombar"},
+		string(models.MachineCategoryCardio):  {"cardio", "aerobico", "aerobicos", "condicionamento"},
+	}
+
+	type categoryMatch struct {
+		key   string
+		index int
+	}
+
+	matches := make([]categoryMatch, 0, len(categoryAliases))
+	for _, categoryKey := range allMachineCategoryKeys() {
+		aliases := categoryAliases[categoryKey]
+		matchIndex := -1
+		for _, alias := range aliases {
+			currentIndex := strings.Index(normalizedName, alias)
+			if currentIndex == -1 {
+				continue
+			}
+
+			if matchIndex == -1 || currentIndex < matchIndex {
+				matchIndex = currentIndex
+			}
+		}
+
+		if matchIndex >= 0 {
+			matches = append(matches, categoryMatch{
+				key:   categoryKey,
+				index: matchIndex,
+			})
+		}
+	}
+
+	sort.SliceStable(matches, func(i, j int) bool {
+		if matches[i].index == matches[j].index {
+			return matches[i].key < matches[j].key
+		}
+
+		return matches[i].index < matches[j].index
+	})
+
+	result := make([]string, 0, len(matches))
+	for _, match := range matches {
+		result = append(result, match.key)
+	}
+
+	return result
+}
+
+func normalizeWorkoutTitleText(value string) string {
+	replacer := strings.NewReplacer(
+		"á", "a",
+		"à", "a",
+		"ã", "a",
+		"â", "a",
+		"ä", "a",
+		"é", "e",
+		"è", "e",
+		"ê", "e",
+		"ë", "e",
+		"í", "i",
+		"ì", "i",
+		"î", "i",
+		"ï", "i",
+		"ó", "o",
+		"ò", "o",
+		"õ", "o",
+		"ô", "o",
+		"ö", "o",
+		"ú", "u",
+		"ù", "u",
+		"û", "u",
+		"ü", "u",
+		"ç", "c",
+	)
+
+	return normalizeGeneratedWorkoutText(replacer.Replace(strings.TrimSpace(value)))
+}
+
+func formatWorkoutCategoryList(categoryKeys []string) string {
+	if len(categoryKeys) == 0 {
+		return "nenhum grupo"
+	}
+
+	return "[" + strings.Join(categoryKeys, ", ") + "]"
 }
 
 func extractOpenAIError(body []byte) string {
