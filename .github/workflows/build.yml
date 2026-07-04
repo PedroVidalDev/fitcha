@@ -36,6 +36,74 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Detect OTA-safe frontend changes
+        id: ota_changes
+        run: |
+          BASE_SHA="${{ github.event.before }}"
+
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA=$(git -C "$GITHUB_WORKSPACE" rev-list --max-count=1 HEAD^ 2>/dev/null || true)
+          fi
+
+          if [ -z "$BASE_SHA" ]; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "reason=no_base_sha" >> "$GITHUB_OUTPUT"
+            echo "No base SHA available. Skipping OTA publish."
+            exit 0
+          fi
+
+          mapfile -t CHANGED_FILES < <(git -C "$GITHUB_WORKSPACE" diff --name-only "$BASE_SHA" "$GITHUB_SHA")
+
+          if [ "${#CHANGED_FILES[@]}" -eq 0 ]; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "reason=no_changes" >> "$GITHUB_OUTPUT"
+            echo "No changed files detected. Skipping OTA publish."
+            exit 0
+          fi
+
+          has_safe_frontend_change=false
+          has_unsafe_frontend_change=false
+
+          for file in "${CHANGED_FILES[@]}"; do
+            case "$file" in
+              frontend/src/*|frontend/assets/*)
+                has_safe_frontend_change=true
+                ;;
+              frontend/*)
+                has_unsafe_frontend_change=true
+                echo "Unsafe for OTA publish: $file"
+                ;;
+            esac
+          done
+
+          if [ "$has_safe_frontend_change" = true ] && [ "$has_unsafe_frontend_change" = false ]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            echo "reason=ota_safe_changes_only" >> "$GITHUB_OUTPUT"
+            echo "OTA-safe frontend changes detected."
+            exit 0
+          fi
+
+          echo "should_publish=false" >> "$GITHUB_OUTPUT"
+
+          if [ "$has_safe_frontend_change" = false ]; then
+            echo "reason=no_frontend_runtime_changes" >> "$GITHUB_OUTPUT"
+            echo "No OTA-safe frontend changes detected."
+          else
+            echo "reason=contains_unsafe_frontend_changes" >> "$GITHUB_OUTPUT"
+            echo "Frontend changes include files that require a new build or version review."
+          fi
+
+      - name: Publish preview OTA update
+        if: steps.ota_changes.outputs.should_publish == 'true'
+        run: |
+          UPDATE_MESSAGE=$(git log -1 --pretty=%s | tr '\n' ' ' | cut -c1-120)
+          UPDATE_MESSAGE=${UPDATE_MESSAGE:-main@${GITHUB_SHA::7}}
+
+          eas update \
+            --channel preview \
+            --environment preview \
+            --message "$UPDATE_MESSAGE"
+
       - name: Resolve app version
         id: app_version
         run: |

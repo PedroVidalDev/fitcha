@@ -66,6 +66,13 @@ npx expo install @react-native-async-storage/async-storage expo-linear-gradient 
 
 O projeto usa **EAS Build** com GitHub Actions. A cada push na `main`, um APK é gerado automaticamente e publicado como GitHub Release.
 
+Esse mesmo pipeline agora tambem publica um OTA update no canal `preview` quando as mudancas ficam restritas a arquivos seguros para runtime, como `frontend/src/**` e assets.
+
+O APK gerado por esse workflow recebe updates OTA do canal `preview`.
+
+Para mudancas so de UI/JS, normalmente nao e necessario alterar `expo.version` em `frontend/app.json`.
+Para mudancas nativas, de dependencias, plugins, `app.json`, `eas.json` ou qualquer ajuste que impacte o runtime, aumente `expo.version` e gere uma nova build.
+
 Para buildar manualmente:
 
 ```bash
