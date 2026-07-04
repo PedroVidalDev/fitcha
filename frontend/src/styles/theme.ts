@@ -14,7 +14,7 @@ export type ThemePalette = {
     textDim: string
     overlay: string
     chipBg: string
-    gradientScreen: [string, string, string]
+    gradientScreen: [string, string]
     gradientCard: [string, string]
     gradientHero: [string, string]
     gradientAccent: [string, string]
@@ -58,7 +58,7 @@ export const dark: ThemePalette = {
     textDim: '#768093',
     overlay: 'rgba(4, 8, 13, 0.8)',
     chipBg: 'rgba(243, 140, 43, 0.14)',
-    gradientScreen: ['#24160C', '#112733', '#25173F'],
+    gradientScreen: ['#24160C', '#112733'],
     gradientCard: ['#1A2230', '#19172A'],
     gradientHero: ['#43210F', '#163745'],
     gradientAccent: ['#FFC47D', '#F38C2B'],
@@ -118,7 +118,7 @@ export const light: ThemePalette = {
     textDim: '#8A96A7',
     overlay: 'rgba(10, 16, 22, 0.36)',
     chipBg: 'rgba(217, 110, 30, 0.12)',
-    gradientScreen: ['#FFF3E5', '#EAF8F8', '#F2EDFF'],
+    gradientScreen: ['#FFF3E5', '#EAF8F8'],
     gradientCard: ['#FFFFFF', '#EDF2F7'],
     gradientHero: ['#FFF0E1', '#E5F7F6'],
     gradientAccent: ['#FFC07A', '#D96E1E'],
