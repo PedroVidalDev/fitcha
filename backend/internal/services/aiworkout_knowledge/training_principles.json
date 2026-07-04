@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "principles": [
+    {
+      "key": "individualidade_e_seguranca",
+      "title": "Individualidade e seguranca",
+      "summary": "O treino deve respeitar objetivo, disponibilidade semanal, nivel de experiencia e qualidade de execucao.",
+      "rules": [
+        "A selecao de exercicios deve considerar o nivel do praticante e nao assumir dominio tecnico avancado.",
+        "Treinos leves ou de adaptacao devem privilegiar estabilidade, aprendizagem motora e execucao controlada.",
+        "Nao aplicar fracionamento excessivo ou tecnicas avancadas quando os dias disponiveis e a experiencia do aluno nao sustentarem isso."
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 21 e 38",
+        "Treino Iniciante ABC Academia Escola 2025 - paginas 1 e 2"
+      ]
+    },
+    {
+      "key": "sobrecarga_progressiva",
+      "title": "Sobrecarga progressiva",
+      "summary": "A progressao deve ser continua e controlada para evitar estagnacao.",
+      "rules": [
+        "Quando a execucao estiver estavel dentro da zona alvo, aumentar carga ou repeticoes de forma gradual.",
+        "A progressao nao deve sacrificar a tecnica do movimento.",
+        "A organizacao da semana deve permitir continuidade de progresso, e nao apenas exaustao pontual."
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 16, 22 e 23",
+        "Treino Iniciante ABC Academia Escola 2025 - pagina 2"
+      ]
+    },
+    {
+      "key": "periodizacao_e_fadiga",
+      "title": "Periodizacao e gestao da fadiga",
+      "summary": "Volume, intensidade, carga e selecao dos exercicios devem ser manipulados para favorecer adaptacao e recuperacao.",
+      "rules": [
+        "Treinos mais frequentes ou fracionados precisam abrir espaco para recuperacao do grupamento trabalhado.",
+        "Maior disponibilidade semanal permite maior fracionamento e foco em pontos fracos.",
+        "A distribuicao semanal deve evitar concentrar muitos grupos grandes no mesmo dia quando isso comprometer a qualidade."
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 22, 23, 39 e 43"
+      ]
+    },
+    {
+      "key": "volume_e_frequencia",
+      "title": "Volume e frequencia",
+      "summary": "Volume e frequencia precisam ser coerentes com o objetivo e com os dias disponiveis.",
+      "rules": [
+        "Quando possivel, distribuir o trabalho de grandes grupamentos de forma recorrente ao longo da semana.",
+        "Treinos com poucos dias por semana devem combinar grupos de forma eficiente, sem deixar o treino monotematico.",
+        "Se o usuario informar pouco tempo por dia, reduzir dispersao e manter apenas os grupamentos centrais do treino."
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 28, 29 e 30"
+      ]
+    },
+    {
+      "key": "ordem_dos_exercicios",
+      "title": "Ordem dos exercicios",
+      "summary": "Grandes grupamentos e exercicios compostos devem vir antes dos acessorios na maior parte dos casos.",
+      "rules": [
+        "Priorizar exercicios multiarticulares e de grandes grupamentos nas primeiras posicoes do treino.",
+        "Combinar exercicios compostos e isolados, usando os isolados como complemento e refinamento.",
+        "Treinos basicos devem trabalhar em sua maior parte com exercicios compostos e poucos monoarticulares."
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 30, 33 e 39"
+      ]
+    },
+    {
+      "key": "faixas_basicas_de_treino",
+      "title": "Faixas basicas de treino",
+      "summary": "A base tradicional descrita no material trabalha com faixas classicas de repeticoes e descanso.",
+      "rules": [
+        "Como base geral, usar compostos na faixa de 8 a 12 repeticoes e isolados em faixas moderadas a mais altas.",
+        "Manter descansos mais longos nos movimentos principais e mais curtos nos acessorios.",
+        "Controlar a velocidade de execucao com cadencia estavel, evitando repeticoes desleixadas."
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 14, 33 e 34",
+        "Treino ABC1 Projeto 30 Dias - pagina 1"
+      ]
+    }
+  ],
+  "traditional_defaults": {
+    "main_rep_range": "8-12",
+    "accessory_rep_range": "10-15",
+    "rest_main_seconds": "90-150",
+    "rest_accessory_seconds": "60-90",
+    "tempo_guidance": "1-2 segundos na fase concentrica e 1-2 segundos na fase excentrica",
+    "frequency_per_week": "2-5",
+    "exercise_order": "priorizar grandes grupamentos e exercicios compostos no inicio"
+  }
+}

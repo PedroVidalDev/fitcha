@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "examples": [
+    {
+      "key": "abc_iniciante_base",
+      "label": "ABC iniciante dias alternados",
+      "input_profile": {
+        "days_per_week": 3,
+        "intensity": "leve",
+        "goal": "hipertrofia",
+        "preference": "abc"
+      },
+      "why_it_is_good": [
+        "Usa uma divisao simples e clara para adaptacao.",
+        "Mantem compostos antes dos acessorios.",
+        "Previne treinos monotematicos e deixa a progressao simples."
+      ],
+      "workouts": [
+        {
+          "name": "Costas e biceps",
+          "pattern": [
+            "puxador alto ou puxada frontal",
+            "remada baixa",
+            "barra fixa ou graviton",
+            "rosca direta"
+          ]
+        },
+        {
+          "name": "Pernas e core",
+          "pattern": [
+            "agachamento",
+            "leg press",
+            "mesa flexora",
+            "cadeira extensora",
+            "abdominal"
+          ]
+        },
+        {
+          "name": "Peito, ombros e triceps",
+          "pattern": [
+            "supino reto",
+            "supino inclinado",
+            "desenvolvimento",
+            "elevacao lateral",
+            "triceps no cabo"
+          ]
+        }
+      ],
+      "source_refs": [
+        "Treino Iniciante ABC Academia Escola 2025 - paginas 1 e 2"
+      ]
+    },
+    {
+      "key": "abc_push_pull_legs_hipertrofia",
+      "label": "ABC tradicional com foco em hipertrofia",
+      "input_profile": {
+        "days_per_week": 3,
+        "intensity": "moderado",
+        "goal": "hipertrofia",
+        "preference": "abc"
+      },
+      "why_it_is_good": [
+        "Agrupa presses, puxadas e pernas de forma coerente.",
+        "Combina multiarticulares no inicio com acessorios depois.",
+        "Mantem boa densidade de exercicios por treino."
+      ],
+      "workouts": [
+        {
+          "name": "Peito, ombros e triceps",
+          "pattern": [
+            "supino reto com halteres",
+            "crucifixo inclinado",
+            "crossover",
+            "desenvolvimento com halteres",
+            "triceps corda",
+            "triceps testa"
+          ]
+        },
+        {
+          "name": "Costas, biceps e core",
+          "pattern": [
+            "pulley frente",
+            "remada baixa",
+            "remada unilateral com halter",
+            "pulley com triangulo",
+            "rosca direta",
+            "rosca concentrada"
+          ]
+        },
+        {
+          "name": "Pernas e core",
+          "pattern": [
+            "cadeira extensora",
+            "leg press 45",
+            "passada frontal",
+            "stiff",
+            "mesa flexora",
+            "panturrilha"
+          ]
+        }
+      ],
+      "source_refs": [
+        "Treino ABC1 Projeto 30 Dias - pagina 1"
+      ]
+    },
+    {
+      "key": "ab_superior_inferior_forca_base",
+      "label": "A-B superior e inferior para base geral",
+      "input_profile": {
+        "days_per_week": 2,
+        "intensity": "moderado",
+        "goal": "forca",
+        "preference": "ab"
+      },
+      "why_it_is_good": [
+        "Organiza o treino para poucos dias sem abandonar grandes grupamentos.",
+        "E boa base para progressao de carga nos compostos centrais.",
+        "Mantem economia de exercicios e foco por sessao."
+      ],
+      "workouts": [
+        {
+          "name": "Peito, costas, ombros e bracos",
+          "pattern": [
+            "supino reto",
+            "remada curvada",
+            "puxada frontal",
+            "desenvolvimento",
+            "rosca direta",
+            "triceps no cabo"
+          ]
+        },
+        {
+          "name": "Pernas e core",
+          "pattern": [
+            "agachamento",
+            "leg press",
+            "mesa flexora",
+            "cadeira extensora",
+            "panturrilha",
+            "prancha"
+          ]
+        }
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 36 e 44"
+      ]
+    }
+  ]
+}

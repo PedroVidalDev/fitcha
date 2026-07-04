@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "weekly_progression_rules": [
+    {
+      "key": "leve_progressao_basica",
+      "applies_to": {
+        "intensities": [
+          "leve"
+        ],
+        "goals": [
+          "hipertrofia",
+          "forca",
+          "resistencia",
+          "emagrecimento"
+        ]
+      },
+      "guidance": "Para treinos leves, priorizar consolidacao tecnica. Progredir carga ou repeticoes apenas quando a execucao estiver limpa e dentro da faixa alvo.",
+      "source_refs": [
+        "Treino Iniciante ABC Academia Escola 2025 - pagina 2",
+        "E-book de Musculacao Tiagonutri - paginas 16 e 17"
+      ]
+    },
+    {
+      "key": "moderado_progressao_continua",
+      "applies_to": {
+        "intensities": [
+          "moderado"
+        ],
+        "goals": [
+          "hipertrofia",
+          "forca",
+          "resistencia",
+          "emagrecimento"
+        ]
+      },
+      "guidance": "Para treinos moderados, usar progresso gradual semana a semana, alternando aumento de carga, repeticoes ou refinamento tecnico conforme a recuperacao.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 22 e 23"
+      ]
+    },
+    {
+      "key": "intenso_periodizado",
+      "applies_to": {
+        "intensities": [
+          "intenso"
+        ],
+        "goals": [
+          "hipertrofia",
+          "forca"
+        ]
+      },
+      "guidance": "Treinos intensos exigem fracionamento melhor, maior foco nos compostos principais e variacao de volume/intensidade ao longo do tempo para conter a fadiga.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 22, 23, 39 e 43"
+      ]
+    }
+  ],
+  "goal_biases": [
+    {
+      "goal": "hipertrofia",
+      "guidance": "Manter volume robusto, compostos no inicio e isolados complementares. Favorecer combinacoes que sustentem maior volume por grupamento ao longo da semana."
+    },
+    {
+      "goal": "forca",
+      "guidance": "Dar mais peso aos exercicios compostos principais, com menor dispersao de acessorios e faixas de repeticao mais baixas nos movimentos centrais."
+    },
+    {
+      "goal": "resistencia",
+      "guidance": "Favorecer descansos ligeiramente menores, maior repeticao media e distribuicao que evite saturar um unico grupamento cedo demais."
+    },
+    {
+      "goal": "emagrecimento",
+      "guidance": "Manter treino de forca consistente para preservar massa magra, com possibilidade de incluir cardio ou core em dias estrategicos."
+    }
+  ]
+}

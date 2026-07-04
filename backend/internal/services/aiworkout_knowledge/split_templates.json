@@ -1,0 +1,644 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "key": "fullbody_1x",
+      "display_name": "Full body 1x",
+      "preferred_split_aliases": [
+        "fullbody",
+        "full body",
+        "corpo inteiro"
+      ],
+      "days_per_week": [
+        1
+      ],
+      "recommended_intensities": [
+        "leve",
+        "moderado"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca",
+        "resistencia",
+        "emagrecimento"
+      ],
+      "beginner_friendly": true,
+      "priority": 10,
+      "description": "Sessao unica com foco em grandes grupamentos e complementos essenciais.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 28 a 34"
+      ],
+      "workouts": [
+        {
+          "name": "Full body",
+          "primary_categories": [
+            "pernas",
+            "peito",
+            "costas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "core"
+          ],
+          "notes": "Priorizar compostos e cobrir o corpo todo com economia de exercicios."
+        }
+      ]
+    },
+    {
+      "key": "ab_superior_inferior",
+      "display_name": "A-B superior e inferior",
+      "preferred_split_aliases": [
+        "ab",
+        "a-b",
+        "upper lower",
+        "superior inferior"
+      ],
+      "days_per_week": [
+        2
+      ],
+      "recommended_intensities": [
+        "leve",
+        "moderado"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca",
+        "resistencia",
+        "emagrecimento"
+      ],
+      "beginner_friendly": true,
+      "priority": 20,
+      "description": "Divisao classica para iniciantes e base geral, alternando membros superiores e inferiores.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - pagina 36"
+      ],
+      "workouts": [
+        {
+          "name": "Peito, costas, ombros e bracos",
+          "primary_categories": [
+            "peito",
+            "costas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "biceps",
+            "triceps"
+          ],
+          "notes": "Treino de superiores com foco nos grandes grupamentos antes dos acessorios."
+        },
+        {
+          "name": "Pernas e core",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Treino de inferiores com complementacao de core."
+        }
+      ]
+    },
+    {
+      "key": "abc_iniciante_alternado",
+      "display_name": "ABC iniciante alternado",
+      "preferred_split_aliases": [
+        "abc",
+        "a-b-c",
+        "iniciante abc",
+        "dias alternados"
+      ],
+      "days_per_week": [
+        3
+      ],
+      "recommended_intensities": [
+        "leve",
+        "moderado"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "resistencia",
+        "emagrecimento"
+      ],
+      "beginner_friendly": true,
+      "priority": 30,
+      "description": "ABC de base para adaptacao, com boa clareza de grupamentos e progressao simples.",
+      "source_refs": [
+        "Treino Iniciante ABC Academia Escola 2025 - paginas 1 e 2"
+      ],
+      "workouts": [
+        {
+          "name": "Costas e biceps",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps"
+          ],
+          "notes": "Priorizar puxadas e remadas antes das roscas."
+        },
+        {
+          "name": "Pernas e core",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Construir base de inferiores com um complemento simples de core."
+        },
+        {
+          "name": "Peito, ombros e triceps",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Comecar por presses e deixar isolamentos de ombro e triceps para o fim."
+        }
+      ]
+    },
+    {
+      "key": "abc_push_pull_legs",
+      "display_name": "ABC push pull legs",
+      "preferred_split_aliases": [
+        "abc",
+        "a-b-c",
+        "push pull legs",
+        "ppl"
+      ],
+      "days_per_week": [
+        3
+      ],
+      "recommended_intensities": [
+        "moderado",
+        "intenso"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca",
+        "emagrecimento"
+      ],
+      "beginner_friendly": false,
+      "priority": 40,
+      "description": "ABC com presses, puxadas e pernas, bom para hipertrofia e forca basica.",
+      "source_refs": [
+        "Treino ABC1 Projeto 30 Dias - pagina 1",
+        "E-book de Musculacao Tiagonutri - pagina 39"
+      ],
+      "workouts": [
+        {
+          "name": "Peito, ombros e triceps",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Treino de empurrar com presses no inicio e acessorios no fim."
+        },
+        {
+          "name": "Costas, biceps e core",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps",
+            "core"
+          ],
+          "notes": "Treino de puxar com remadas e puxadas antes do trabalho de biceps."
+        },
+        {
+          "name": "Pernas e core",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Treino de inferiores com foco em quadriceps e cadeia posterior."
+        }
+      ]
+    },
+    {
+      "key": "upper_lower_repeat_4x",
+      "display_name": "Upper lower 4x",
+      "preferred_split_aliases": [
+        "upper lower",
+        "superior inferior",
+        "ab2x",
+        "a-b"
+      ],
+      "days_per_week": [
+        4
+      ],
+      "recommended_intensities": [
+        "leve",
+        "moderado"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca",
+        "resistencia",
+        "emagrecimento"
+      ],
+      "beginner_friendly": true,
+      "priority": 35,
+      "description": "Repeticao controlada de superiores e inferiores duas vezes na semana.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 28 a 34"
+      ],
+      "workouts": [
+        {
+          "name": "Superiores A",
+          "primary_categories": [
+            "peito",
+            "costas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "triceps"
+          ],
+          "notes": "Primeira sessao de superiores com foco em presses e remadas."
+        },
+        {
+          "name": "Inferiores A",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Sessao de pernas com base tecnica."
+        },
+        {
+          "name": "Superiores B",
+          "primary_categories": [
+            "costas",
+            "peito"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "biceps"
+          ],
+          "notes": "Variar estimulos de superiores sem abandonar os compostos."
+        },
+        {
+          "name": "Inferiores B",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core",
+            "cardio"
+          ],
+          "notes": "Segunda sessao de inferiores com complemento metabolico opcional."
+        }
+      ]
+    },
+    {
+      "key": "abcd_intermediario",
+      "display_name": "ABCD intermediario",
+      "preferred_split_aliases": [
+        "abcd",
+        "a-b-c-d",
+        "bodypart 4x"
+      ],
+      "days_per_week": [
+        4
+      ],
+      "recommended_intensities": [
+        "moderado",
+        "intenso"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca"
+      ],
+      "beginner_friendly": false,
+      "priority": 45,
+      "description": "Fracionamento mais especifico para quem suporta maior foco por sessao.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 43 e 44"
+      ],
+      "workouts": [
+        {
+          "name": "Peito e triceps",
+          "primary_categories": [
+            "peito"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Priorizar presses e complementos de triceps."
+        },
+        {
+          "name": "Costas e biceps",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps"
+          ],
+          "notes": "Treino de puxar com foco nas costas."
+        },
+        {
+          "name": "Pernas",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Sessao dominante de inferiores."
+        },
+        {
+          "name": "Ombros e core",
+          "primary_categories": [
+            "ombros"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Foco em deltoides com estabilidade de tronco."
+        }
+      ]
+    },
+    {
+      "key": "abcde_avancado",
+      "display_name": "ABCDE avancado",
+      "preferred_split_aliases": [
+        "abcde",
+        "a-b-c-d-e",
+        "bodypart 5x"
+      ],
+      "days_per_week": [
+        5
+      ],
+      "recommended_intensities": [
+        "intenso"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca"
+      ],
+      "beginner_friendly": false,
+      "priority": 50,
+      "description": "Fracionamento alto para praticantes experientes com mais sessoes semanais.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 43 e 44"
+      ],
+      "workouts": [
+        {
+          "name": "Peito",
+          "primary_categories": [
+            "peito"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Sessao com forte foco em peitoral."
+        },
+        {
+          "name": "Costas",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps"
+          ],
+          "notes": "Sessao com foco em dorsais e remadas."
+        },
+        {
+          "name": "Pernas",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Sessao exclusiva de inferiores."
+        },
+        {
+          "name": "Ombros",
+          "primary_categories": [
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Sessao de deltoides com complemento pequeno."
+        },
+        {
+          "name": "Biceps, triceps e core",
+          "primary_categories": [
+            "biceps",
+            "triceps"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Dia de bracos e estabilidade."
+        }
+      ]
+    },
+    {
+      "key": "ppl_repeat_6x",
+      "display_name": "Push pull legs 6x",
+      "preferred_split_aliases": [
+        "abcabc",
+        "abc 2x",
+        "push pull legs 6x",
+        "ppl 6x"
+      ],
+      "days_per_week": [
+        6
+      ],
+      "recommended_intensities": [
+        "intenso"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca",
+        "emagrecimento"
+      ],
+      "beginner_friendly": false,
+      "priority": 55,
+      "description": "Repeticao do ABC em dois blocos para alta frequencia semanal.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 39, 43 e 44"
+      ],
+      "workouts": [
+        {
+          "name": "Peito, ombros e triceps A",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Primeira sessao push."
+        },
+        {
+          "name": "Costas, biceps e core A",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps",
+            "core"
+          ],
+          "notes": "Primeira sessao pull."
+        },
+        {
+          "name": "Pernas e core A",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Primeira sessao de inferiores."
+        },
+        {
+          "name": "Peito, ombros e triceps B",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Segunda sessao push, variando estimulos."
+        },
+        {
+          "name": "Costas, biceps e core B",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps",
+            "core"
+          ],
+          "notes": "Segunda sessao pull, variando estimulos."
+        },
+        {
+          "name": "Pernas e core B",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Segunda sessao de inferiores."
+        }
+      ]
+    },
+    {
+      "key": "ppl_plus_cardio_7x",
+      "display_name": "Push pull legs 6x + cardio/core",
+      "preferred_split_aliases": [
+        "7x",
+        "semana completa",
+        "push pull legs 7x",
+        "ppl 7x"
+      ],
+      "days_per_week": [
+        7
+      ],
+      "recommended_intensities": [
+        "intenso"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "emagrecimento",
+        "resistencia"
+      ],
+      "beginner_friendly": false,
+      "priority": 60,
+      "description": "Semana completa com repeticao do ABC e um dia adicional de cardio/core.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 39, 43 e 44"
+      ],
+      "workouts": [
+        {
+          "name": "Peito, ombros e triceps A",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Primeira sessao push."
+        },
+        {
+          "name": "Costas, biceps e core A",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps",
+            "core"
+          ],
+          "notes": "Primeira sessao pull."
+        },
+        {
+          "name": "Pernas e core A",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Primeira sessao de inferiores."
+        },
+        {
+          "name": "Peito, ombros e triceps B",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Segunda sessao push."
+        },
+        {
+          "name": "Costas, biceps e core B",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps",
+            "core"
+          ],
+          "notes": "Segunda sessao pull."
+        },
+        {
+          "name": "Pernas e core B",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Segunda sessao de inferiores."
+        },
+        {
+          "name": "Cardio e core",
+          "primary_categories": [
+            "cardio"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Dia complementar para condicionamento e estabilidade."
+        }
+      ]
+    }
+  ]
+}

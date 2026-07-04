@@ -43,6 +43,7 @@ type AIWorkoutService struct {
 	httpClient *http.Client
 	apiKey     string
 	model      string
+	knowledge  aiWorkoutKnowledge
 }
 
 func NewAIWorkoutService(db *gorm.DB, userRepo repositories.IUserRepository, catalogRepo repositories.IMachineRepository) *AIWorkoutService {
@@ -58,6 +59,7 @@ func NewAIWorkoutService(db *gorm.DB, userRepo repositories.IUserRepository, cat
 		httpClient: &http.Client{Timeout: 45 * time.Second},
 		apiKey:     strings.TrimSpace(os.Getenv("OPENAI_API_KEY")),
 		model:      model,
+		knowledge:  mustLoadAIWorkoutKnowledge(),
 	}
 }
 
@@ -95,7 +97,12 @@ func (s *AIWorkoutService) Generate(ctx context.Context, userID uint, input dtos
 		return dtos.GenerateAIWorkoutResponse{}, errors.New("voce nao possui creditos suficientes para gerar um treino com IA")
 	}
 
-	response, err := s.requestWorkoutPlan(ctx, input, catalogMachines, catalogByID)
+	blueprint, err := buildAIWorkoutBlueprint(input, s.knowledge)
+	if err != nil {
+		return dtos.GenerateAIWorkoutResponse{}, err
+	}
+
+	response, err := s.requestWorkoutPlan(ctx, input, blueprint, catalogMachines, catalogByID)
 	if err != nil {
 		if requestErr := mapAIWorkoutRequestError(err); requestErr != nil {
 			return dtos.GenerateAIWorkoutResponse{}, requestErr
@@ -149,7 +156,7 @@ func (s *AIWorkoutService) Generate(ctx context.Context, userID uint, input dtos
 	return response, nil
 }
 
-func (s *AIWorkoutService) requestWorkoutPlan(ctx context.Context, input dtos.GenerateAIWorkoutRequest, catalogMachines []models.Machine, catalogByID map[string]models.Machine) (dtos.GenerateAIWorkoutResponse, error) {
+func (s *AIWorkoutService) requestWorkoutPlan(ctx context.Context, input dtos.GenerateAIWorkoutRequest, blueprint aiWorkoutBlueprint, catalogMachines []models.Machine, catalogByID map[string]models.Machine) (dtos.GenerateAIWorkoutResponse, error) {
 	var lastErr error
 
 	for attempt := 0; attempt < aiWorkoutGenerationTries; attempt++ {
@@ -157,7 +164,7 @@ func (s *AIWorkoutService) requestWorkoutPlan(ctx context.Context, input dtos.Ge
 			return dtos.GenerateAIWorkoutResponse{}, err
 		}
 
-		response, err := s.requestWorkoutPlanAttempt(ctx, input, catalogMachines, catalogByID, lastErr)
+		response, err := s.requestWorkoutPlanAttempt(ctx, input, blueprint, catalogMachines, catalogByID, lastErr)
 		if err == nil {
 			return response, nil
 		}
@@ -176,8 +183,8 @@ func (s *AIWorkoutService) requestWorkoutPlan(ctx context.Context, input dtos.Ge
 	return dtos.GenerateAIWorkoutResponse{}, errors.New("nao foi possivel gerar o treino automaticamente")
 }
 
-func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input dtos.GenerateAIWorkoutRequest, catalogMachines []models.Machine, catalogByID map[string]models.Machine, previousErr error) (dtos.GenerateAIWorkoutResponse, error) {
-	messages := buildAIWorkoutMessages(input, previousErr)
+func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input dtos.GenerateAIWorkoutRequest, blueprint aiWorkoutBlueprint, catalogMachines []models.Machine, catalogByID map[string]models.Machine, previousErr error) (dtos.GenerateAIWorkoutResponse, error) {
+	messages := buildAIWorkoutMessages(input, blueprint, s.knowledge, previousErr)
 	surfacedCatalogByID := make(map[string]models.Machine)
 
 	for round := 0; round < aiWorkoutMaxToolRounds; round++ {
@@ -188,7 +195,7 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input 
 		completion, err := s.createOpenAIChatCompletion(ctx, openAIChatCompletionRequest{
 			Model:       s.model,
 			Messages:    messages,
-			Tools:       buildAIWorkoutTools(surfacedCatalogByID, input.DaysPerWeek),
+			Tools:       buildAIWorkoutTools(surfacedCatalogByID, blueprint),
 			ToolChoice:  aiWorkoutToolChoiceRequired,
 			Temperature: aiWorkoutGenerationTemperature,
 		})
@@ -242,7 +249,7 @@ func (s *AIWorkoutService) requestWorkoutPlanAttempt(ctx context.Context, input 
 					continue
 				}
 
-				if err := validateGeneratedWorkout(parsed, surfacedCatalogByID, input.DaysPerWeek); err != nil {
+				if err := validateGeneratedWorkout(parsed, surfacedCatalogByID, blueprint); err != nil {
 					messages = append(messages, openAIChatCompletionMessage{
 						Role:       "tool",
 						ToolCallID: toolCall.ID,
@@ -316,7 +323,7 @@ func mapAIWorkoutRequestError(err error) error {
 	return nil
 }
 
-func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
+func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest, blueprint aiWorkoutBlueprint, knowledge aiWorkoutKnowledge) string {
 	intensityMap := map[string]string{
 		"leve":     "iniciante, com volumes baixos e foco em aprendizado dos movimentos",
 		"moderado": "intermediario, com volume e carga moderados",
@@ -353,15 +360,16 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		fmt.Sprintf("- Observacoes personalizadas: %s", buildOptionalTextLine(input.CustomInstructions, "nenhuma")),
 		"",
 		"Leve em conta o biotipo do usuario (altura e peso) para calibrar as cargas sugeridas.",
-		fmt.Sprintf("Distribua os grupos musculares de forma equilibrada entre os %d dias selecionados.", input.DaysPerWeek),
-		fmt.Sprintf("Use os dias escolhidos %s apenas para decidir volume, recuperacao e divisao do treino.", selectedDayNames),
+		fmt.Sprintf("Use os dias escolhidos %s apenas para decidir volume e recuperacao entre sessoes.", selectedDayNames),
 		fmt.Sprintf("Use somente estes indices de dias para interpretar a disponibilidade semanal do usuario: %s.", selectedDayIndexes),
-		fmt.Sprintf("Retorne exatamente %d treinos, um para cada dia selecionado.", input.DaysPerWeek),
+		fmt.Sprintf("Retorne exatamente %d treinos, um para cada dia selecionado.", len(blueprint.Workouts)),
 		"Cada item do campo categories representa um treino completo, nao um grupo muscular isolado.",
-		"O modelo de divisao preferido, como ABC, deve orientar a organizacao desses treinos, mas nunca aumentar ou reduzir a quantidade total de treinos.",
-		"Se o usuario informar tempo por dia, quantidade de maquinas ou um modelo de divisao, respeite essas preferencias quando forem compativeis com o objetivo e os dias disponiveis.",
+		"O blueprint abaixo ja foi escolhido localmente a partir de regras e fontes estudadas. Nao altere essa divisao.",
+		"Use exatamente os nomes de treino do blueprint e siga a mesma ordem.",
+		"Cada treino deve ter exatamente a quantidade total de exercicios definida no blueprint.",
+		"Cada treino deve cumprir exatamente as cotas obrigatorias por categoria definidas no blueprint.",
+		"Se o usuario informar tempo por dia ou quantidade de maquinas, respeite essas preferencias quando forem compativeis com o blueprint.",
 		buildMachinesPerDayPromptInstruction(input),
-		"Se houver um modelo de divisao preferido, como ABC, ABCAB ou fullbody, siga esse formato ou a adaptacao mais proxima possivel.",
 		"Categorias disponiveis no catalogo: peito, costas, pernas, ombros, biceps, triceps, core, cardio.",
 		"O nome de cada treino deve refletir apenas os grupos musculares realmente trabalhados pelos exercicios escolhidos.",
 		"Se o nome de um treino citar mais de um grupo muscular, inclua pelo menos 1 exercicio de cada grupo citado.",
@@ -372,12 +380,17 @@ func buildAIWorkoutPrompt(input dtos.GenerateAIWorkoutRequest) string {
 		"Antes de montar o treino, consulte a ferramenta search_catalog_machines em buscas pequenas e direcionadas.",
 		"Use exclusivamente catalogMachineId retornados pela ferramenta.",
 		"Cada exercicio precisa apontar para um catalogMachineId valido retornado pela ferramenta.",
+		"Escolha exercicios de forma coerente com o blueprint: primeiro os compostos e depois os acessorios, sempre que o catalogo permitir.",
 		"Se o exercicio ideal nao existir exatamente no catalogo, escolha a opcao mais proxima dentre as retornadas pela ferramenta.",
 		"Antes de chamar submit_workout_plan, confira se cada treino cumpre exatamente os grupos musculares prometidos no proprio titulo.",
 		"Quando concluir, finalize chamando a ferramenta submit_workout_plan.",
 		"Nao inclua dias na resposta final nem crie treinos extras fora dos dias disponiveis.",
 		"",
-		fmt.Sprintf("No campo categories, monte exatamente %d treinos personalizados e atribua exercicios de musculacao com peso sugerido para 3 series em kg.", input.DaysPerWeek),
+		buildAIWorkoutBlueprintPrompt(blueprint),
+		"",
+		buildAIWorkoutKnowledgePrompt(knowledge, input, blueprint),
+		"",
+		fmt.Sprintf("No campo categories, monte exatamente %d treinos personalizados e atribua exercicios de musculacao com peso sugerido para 3 series em kg.", len(blueprint.Workouts)),
 		"Cada exercicio precisa ter exatamente 3 pesos em kg.",
 	}, "\n")
 }
@@ -647,22 +660,40 @@ func normalizeGeneratedWorkoutText(value string) string {
 	return strings.ToLower(replacer.Replace(strings.TrimSpace(value)))
 }
 
-func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogByID map[string]models.Machine, expectedWorkoutCount int) error {
-	if expectedWorkoutCount > 0 && len(response.Categories) != expectedWorkoutCount {
+func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogByID map[string]models.Machine, blueprint aiWorkoutBlueprint) error {
+	if len(response.Categories) != len(blueprint.Workouts) {
 		return fmt.Errorf(
 			"a IA deve retornar exatamente %d treinos, mas retornou %d",
-			expectedWorkoutCount,
+			len(blueprint.Workouts),
 			len(response.Categories),
 		)
 	}
 
-	for _, category := range response.Categories {
+	for index, category := range response.Categories {
+		expectedWorkout := blueprint.Workouts[index]
 		if strings.TrimSpace(category.Name) == "" {
 			return errors.New("a IA retornou uma categoria sem nome")
 		}
 
+		if normalizeGeneratedWorkoutText(category.Name) != normalizeGeneratedWorkoutText(expectedWorkout.Name) {
+			return fmt.Errorf(
+				`a IA alterou o nome do treino na posicao %d: esperado %q, recebido %q`,
+				index+1,
+				expectedWorkout.Name,
+				category.Name,
+			)
+		}
+
 		if len(category.Machines) == 0 {
 			return errors.New("a IA retornou uma categoria sem exercicios")
+		}
+		if len(category.Machines) != expectedWorkout.TargetExercises {
+			return fmt.Errorf(
+				`o treino %q deveria conter exatamente %d exercicios, mas retornou %d`,
+				category.Name,
+				expectedWorkout.TargetExercises,
+				len(category.Machines),
+			)
 		}
 
 		categoryMachineSet := make(map[string]struct{}, len(category.Machines))
@@ -693,6 +724,9 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogBy
 			}
 		}
 
+		if err := validateGeneratedWorkoutBlueprintCoverage(expectedWorkout, categoryMachineCounts); err != nil {
+			return err
+		}
 		if err := validateGeneratedWorkoutTitleCoverage(category.Name, categoryMachineCounts); err != nil {
 			return err
 		}
@@ -701,15 +735,17 @@ func validateGeneratedWorkout(response dtos.GenerateAIWorkoutResponse, catalogBy
 	return nil
 }
 
-func buildAIWorkoutMessages(input dtos.GenerateAIWorkoutRequest, previousErr error) []openAIChatCompletionMessage {
+func buildAIWorkoutMessages(input dtos.GenerateAIWorkoutRequest, blueprint aiWorkoutBlueprint, knowledge aiWorkoutKnowledge, previousErr error) []openAIChatCompletionMessage {
 	messages := []openAIChatCompletionMessage{
 		{
 			Role: "system",
 			Content: strings.Join([]string{
 				"Voce e um personal trainer especialista em musculacao.",
+				"Voce esta na etapa de selecao de exercicios de um pipeline. A divisao semanal nao deve ser reinventada.",
 				"Use obrigatoriamente a convencao de dias 0=domingo, 1=segunda, 2=terca, 3=quarta, 4=quinta, 5=sexta, 6=sabado ao interpretar a disponibilidade do usuario.",
-				"A quantidade de itens enviados no campo categories deve ser exatamente igual a quantidade de dias selecionados pelo usuario.",
+				"A quantidade de itens enviados no campo categories deve ser exatamente igual ao numero de treinos do blueprint.",
 				"Cada item de categories representa um treino completo, nao um grupo muscular isolado.",
+				"Use exatamente os nomes de treino e as cotas por categoria definidas no blueprint.",
 				"O titulo de cada treino deve corresponder aos grupos musculares realmente presentes nos exercicios.",
 				"Se o titulo citar peito, costas, pernas, ombros, biceps, triceps, core ou cardio, inclua pelo menos 1 exercicio da categoria citada.",
 				"Busque maquinas apenas com a ferramenta search_catalog_machines.",
@@ -718,7 +754,7 @@ func buildAIWorkoutMessages(input dtos.GenerateAIWorkoutRequest, previousErr err
 		},
 		{
 			Role:    "user",
-			Content: buildAIWorkoutPrompt(input),
+			Content: buildAIWorkoutPrompt(input, blueprint, knowledge),
 		},
 	}
 
@@ -859,7 +895,7 @@ func (r openAIChatCompletionResponse) FirstMessageRefusal() string {
 	return r.FirstMessage().Refusal
 }
 
-func buildAIWorkoutTools(surfacedCatalogByID map[string]models.Machine, expectedWorkoutCount int) []openAIChatCompletionTool {
+func buildAIWorkoutTools(surfacedCatalogByID map[string]models.Machine, blueprint aiWorkoutBlueprint) []openAIChatCompletionTool {
 	tools := []openAIChatCompletionTool{
 		{
 			Type: "function",
@@ -882,7 +918,7 @@ func buildAIWorkoutTools(surfacedCatalogByID map[string]models.Machine, expected
 			Name:        aiWorkoutSubmitToolName,
 			Description: "Envia o treino final usando apenas catalogMachineId ja retornados pela busca.",
 			Strict:      true,
-			Parameters:  buildAIWorkoutSubmitToolSchema(surfacedCatalogByID, expectedWorkoutCount),
+			Parameters:  buildAIWorkoutSubmitToolSchema(surfacedCatalogByID, blueprint),
 		},
 	})
 
@@ -914,7 +950,7 @@ func buildAIWorkoutSearchToolSchema() map[string]any {
 	}
 }
 
-func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machine, expectedWorkoutCount int) map[string]any {
+func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machine, blueprint aiWorkoutBlueprint) map[string]any {
 	return map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
@@ -922,8 +958,8 @@ func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machin
 		"properties": map[string]any{
 			"categories": map[string]any{
 				"type":     "array",
-				"minItems": expectedWorkoutCount,
-				"maxItems": expectedWorkoutCount,
+				"minItems": len(blueprint.Workouts),
+				"maxItems": len(blueprint.Workouts),
 				"items": map[string]any{
 					"type":                 "object",
 					"additionalProperties": false,
@@ -932,6 +968,7 @@ func buildAIWorkoutSubmitToolSchema(surfacedCatalogByID map[string]models.Machin
 						"name": map[string]any{
 							"type":      "string",
 							"minLength": 1,
+							"enum":      blueprint.workoutNames(),
 						},
 						"machines": map[string]any{
 							"type":     "array",
@@ -1231,6 +1268,57 @@ func validateGeneratedWorkoutTitleCoverage(categoryName string, machineCounts ma
 		formatWorkoutCategoryList(present),
 		formatWorkoutCategoryList(missing),
 	)
+}
+
+func validateGeneratedWorkoutBlueprintCoverage(expectedWorkout aiWorkoutBlueprintWorkout, machineCounts map[string]int) error {
+	unexpected := make([]string, 0)
+	mismatches := make([]string, 0)
+	checked := make(map[string]struct{}, len(machineCounts))
+
+	for categoryKey, actualCount := range machineCounts {
+		checked[categoryKey] = struct{}{}
+		expectedCount, ok := expectedWorkout.CategoryTargets[categoryKey]
+		if !ok {
+			unexpected = append(unexpected, categoryKey)
+			continue
+		}
+
+		if actualCount != expectedCount {
+			mismatches = append(mismatches, fmt.Sprintf("%s esperado=%d recebido=%d", categoryKey, expectedCount, actualCount))
+		}
+	}
+
+	for categoryKey, expectedCount := range expectedWorkout.CategoryTargets {
+		if _, alreadyChecked := checked[categoryKey]; alreadyChecked {
+			continue
+		}
+		actualCount := machineCounts[categoryKey]
+		if actualCount != expectedCount {
+			mismatches = append(mismatches, fmt.Sprintf("%s esperado=%d recebido=%d", categoryKey, expectedCount, actualCount))
+		}
+	}
+
+	sort.Strings(unexpected)
+	sort.Strings(mismatches)
+
+	if len(unexpected) == 0 && len(mismatches) == 0 {
+		return nil
+	}
+
+	parts := []string{
+		fmt.Sprintf("o treino %q nao respeitou as cotas do blueprint", expectedWorkout.Name),
+		fmt.Sprintf("cotas esperadas: %s", formatAIWorkoutCategoryTargets(expectedWorkout.CategoryTargets)),
+		fmt.Sprintf("cobertura recebida: %s", formatAIWorkoutCategoryTargets(machineCounts)),
+	}
+
+	if len(unexpected) > 0 {
+		parts = append(parts, fmt.Sprintf("categorias inesperadas: %s", strings.Join(unexpected, ", ")))
+	}
+	if len(mismatches) > 0 {
+		parts = append(parts, fmt.Sprintf("diferencas: %s", strings.Join(mismatches, "; ")))
+	}
+
+	return errors.New(strings.Join(parts, " | "))
 }
 
 func extractMentionedWorkoutCategories(categoryName string) []string {
