@@ -113,7 +113,10 @@ jobs:
           UPDATE_MESSAGE=$(git log -1 --pretty=%s | tr '\n' ' ' | cut -c1-120)
           UPDATE_MESSAGE=${UPDATE_MESSAGE:-main@${GITHUB_SHA::7}}
 
+          # This pipeline distributes only the Android preview APK, so publish
+          # the OTA update for Android only and avoid web static export.
           eas update \
+            --platform android \
             --channel preview \
             --environment preview \
             --non-interactive \
