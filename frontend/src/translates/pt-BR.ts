@@ -118,7 +118,7 @@ export const ptBR = {
     'profile.credits.title': 'Créditos Fitcha AI',
     'profile.credits.subtitle': '1 crédito = 1 treino customizado',
     'profile.credits.description':
-        'Compre créditos avulsos via Pix. O saldo é liberado automaticamente assim que o pagamento for aprovado.',
+        'Compre créditos avulsos via Pix. O saldo é liberado automaticamente assim que o pagamento for aprovado pelo banco.',
     'profile.credits.balanceLabel': 'Créditos disponíveis',
     'profile.credits.balanceHint': 'Cada geração concluída consome 1 crédito.',
     'profile.credits.pendingTitle': 'Pagamento pendente',
