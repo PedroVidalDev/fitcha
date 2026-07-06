@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -58,6 +59,58 @@ func buildAIWorkoutBlueprint(input dtos.GenerateAIWorkoutRequest, knowledge aiWo
 	}
 
 	return blueprint, nil
+}
+
+func relaxAIWorkoutBlueprintForCatalog(blueprint aiWorkoutBlueprint, catalogCountsByCategory map[string]int) (aiWorkoutBlueprint, []string, error) {
+	adjusted := aiWorkoutBlueprint{
+		TemplateKey:               blueprint.TemplateKey,
+		TemplateName:              blueprint.TemplateName,
+		TargetExercisesPerWorkout: blueprint.TargetExercisesPerWorkout,
+		Workouts:                  make([]aiWorkoutBlueprintWorkout, 0, len(blueprint.Workouts)),
+	}
+	adjustments := make([]string, 0)
+
+	for _, workout := range blueprint.Workouts {
+		adjustedWorkout := aiWorkoutBlueprintWorkout{
+			Name:                workout.Name,
+			PrimaryCategories:   append([]string(nil), workout.PrimaryCategories...),
+			SecondaryCategories: append([]string(nil), workout.SecondaryCategories...),
+			CategoryTargets:     make(map[string]int, len(workout.CategoryTargets)),
+			Notes:               workout.Notes,
+		}
+
+		totalExercises := 0
+		for _, categoryKey := range orderedAIWorkoutBlueprintCategoryKeys(workout) {
+			expectedCount := workout.CategoryTargets[categoryKey]
+			availableCount := catalogCountsByCategory[categoryKey]
+			if availableCount <= 0 {
+				return aiWorkoutBlueprint{}, nil, fmt.Errorf(
+					`catalogo insuficiente para o treino %q: categoria %q nao possui maquinas disponiveis`,
+					workout.Name,
+					categoryKey,
+				)
+			}
+
+			effectiveCount := expectedCount
+			if availableCount < expectedCount {
+				effectiveCount = availableCount
+				adjustments = append(adjustments, fmt.Sprintf("%s/%s %d->%d", workout.Name, categoryKey, expectedCount, effectiveCount))
+			}
+
+			adjustedWorkout.CategoryTargets[categoryKey] = effectiveCount
+			totalExercises += effectiveCount
+		}
+
+		adjustedWorkout.TargetExercises = totalExercises
+		adjusted.Workouts = append(adjusted.Workouts, adjustedWorkout)
+	}
+
+	adjusted.TargetExercisesPerWorkout = resolveAIWorkoutBlueprintSharedTargetExercises(adjusted)
+	if err := adjusted.validate(); err != nil {
+		return aiWorkoutBlueprint{}, nil, err
+	}
+
+	return adjusted, adjustments, nil
 }
 
 func selectAIWorkoutSplitTemplate(input dtos.GenerateAIWorkoutRequest, knowledge aiWorkoutKnowledge) (aiWorkoutSplitTemplate, error) {
@@ -256,7 +309,7 @@ func buildAIWorkoutBlueprintPrompt(blueprint aiWorkoutBlueprint) string {
 	lines := []string{
 		"Blueprint local obrigatorio para esta geracao:",
 		fmt.Sprintf("- Template escolhido: %s (%s)", blueprint.TemplateName, blueprint.TemplateKey),
-		fmt.Sprintf("- Quantidade alvo de exercicios por treino: %d", blueprint.TargetExercisesPerWorkout),
+		fmt.Sprintf("- Quantidade alvo de exercicios por treino: %s", formatAIWorkoutBlueprintTargetExercisesSummary(blueprint)),
 		"",
 		"Treinos obrigatorios:",
 	}
@@ -275,6 +328,29 @@ func buildAIWorkoutBlueprintPrompt(blueprint aiWorkoutBlueprint) string {
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+func formatAIWorkoutBlueprintTargetExercisesSummary(blueprint aiWorkoutBlueprint) string {
+	if blueprint.TargetExercisesPerWorkout > 0 {
+		return strconv.Itoa(blueprint.TargetExercisesPerWorkout)
+	}
+
+	return "variavel por treino; use o detalhamento abaixo"
+}
+
+func resolveAIWorkoutBlueprintSharedTargetExercises(blueprint aiWorkoutBlueprint) int {
+	if len(blueprint.Workouts) == 0 {
+		return 0
+	}
+
+	targetExercises := blueprint.Workouts[0].TargetExercises
+	for _, workout := range blueprint.Workouts[1:] {
+		if workout.TargetExercises != targetExercises {
+			return 0
+		}
+	}
+
+	return targetExercises
 }
 
 func formatAIWorkoutCategoryTargets(targets map[string]int) string {
