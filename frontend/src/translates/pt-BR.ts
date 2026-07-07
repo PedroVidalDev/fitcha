@@ -213,6 +213,9 @@ export const ptBR = {
     'week.machineCount': '{count} máquina{pluralSuffix}',
     'week.summary':
         '{workoutCount} treino{workoutSuffix} salvo{workoutSuffix} com {machineCount} máquina{machineSuffix} no total.',
+    'week.aiAction': 'Montar treino com IA',
+    'week.aiDescription':
+        'Responda algumas perguntas e receba uma divisao pronta.',
     'week.generated.title': 'Treino gerado',
     'week.generated.message':
         'Seu treino automático foi criado com sucesso e substituiu os treinos atuais.',

@@ -216,6 +216,9 @@ export const esES: TranslationDictionary = {
     'week.machineCount': '{count} maquina{pluralSuffix}',
     'week.summary':
         '{workoutCount} entrenamiento{workoutSuffix} guardado{workoutSuffix} con {machineCount} maquina{machineSuffix} en total.',
+    'week.aiAction': 'Armar entrenamiento con IA',
+    'week.aiDescription':
+        'Responde algunas preguntas y recibe una division lista.',
     'week.generated.title': 'Entrenamiento generado',
     'week.generated.message':
         'Tu entrenamiento automatico fue creado con exito y reemplazo los entrenamientos actuales.',

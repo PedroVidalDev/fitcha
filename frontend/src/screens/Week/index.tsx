@@ -157,7 +157,7 @@ export default function WeekScreen() {
             <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setIsCreateModalVisible(true)}
-                style={{ marginBottom: 16 }}
+                style={{ marginBottom: user ? 12 : 16 }}
             >
                 <LinearGradient
                     colors={t.gradientAccent}
@@ -183,6 +183,103 @@ export default function WeekScreen() {
                     </Text>
                 </LinearGradient>
             </TouchableOpacity>
+
+            {user ? (
+                <TouchableOpacity
+                    activeOpacity={0.84}
+                    onPress={() => setWizardVisible(true)}
+                    style={{ marginBottom: 18 }}
+                >
+                    <LinearGradient
+                        colors={t.gradientHero}
+                        style={{
+                            borderRadius: 18,
+                            paddingVertical: 15,
+                            paddingHorizontal: 16,
+                            borderWidth: 1,
+                            borderColor: t.border,
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <View
+                            style={{
+                                position: 'absolute',
+                                right: -12,
+                                top: -18,
+                                width: 74,
+                                height: 74,
+                                borderRadius: 999,
+                                backgroundColor: t.chipBg,
+                            }}
+                        />
+
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 12,
+                            }}
+                        >
+                            <View
+                                style={{
+                                    width: 42,
+                                    height: 42,
+                                    borderRadius: 14,
+                                    backgroundColor: t.inputBg,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <Ionicons
+                                    name='sparkles'
+                                    size={20}
+                                    color={t.accent}
+                                />
+                            </View>
+
+                            <View style={{ flex: 1 }}>
+                                <Text
+                                    style={{
+                                        color: t.textDim,
+                                        fontSize: 10,
+                                        fontWeight: '800',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1.2,
+                                    }}
+                                >
+                                    {translate('aiWizard.badge')}
+                                </Text>
+                                <Text
+                                    style={{
+                                        color: t.textPrimary,
+                                        fontSize: 16,
+                                        fontWeight: '900',
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {translate('week.aiAction')}
+                                </Text>
+                                <Text
+                                    style={{
+                                        color: t.textMuted,
+                                        fontSize: 13,
+                                        lineHeight: 18,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {translate('week.aiDescription')}
+                                </Text>
+                            </View>
+
+                            <Ionicons
+                                name='chevron-forward'
+                                size={18}
+                                color={t.textPrimary}
+                            />
+                        </View>
+                    </LinearGradient>
+                </TouchableOpacity>
+            ) : null}
 
             <FlatList
                 data={workouts}

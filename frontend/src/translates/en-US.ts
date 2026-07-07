@@ -214,6 +214,8 @@ export const enUS: TranslationDictionary = {
     'week.machineCount': '{count} machine{pluralSuffix}',
     'week.summary':
         '{workoutCount} saved workout{workoutSuffix} with {machineCount} machine{machineSuffix} in total.',
+    'week.aiAction': 'Build workout with AI',
+    'week.aiDescription': 'Answer a few questions and get a ready-made split.',
     'week.generated.title': 'Workout generated',
     'week.generated.message':
         'Your automatic workout was created successfully and replaced the current workouts.',
