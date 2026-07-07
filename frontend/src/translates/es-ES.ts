@@ -276,6 +276,14 @@ export const esES: TranslationDictionary = {
     'detail.record.volume': 'volumen {volume}',
     'detail.record.reps': '{value} reps',
     'detail.record.duration': '{value} de duracion',
+    'detail.progress.title': 'evolucion',
+    'detail.progress.subtitle':
+        'Grafico de linea con el progreso guardado en esta maquina.',
+    'detail.progress.empty':
+        'Todavia no hay historial suficiente para dibujar este grafico.',
+    'detail.progress.metric.weight': 'volumen',
+    'detail.progress.metric.reps': 'reps',
+    'detail.progress.metric.duration': 'duracion',
     'detail.history.title': 'historial',
     'detail.history.empty':
         'Todavia no hay registros. Inicia un entrenamiento para guardar tu evolucion.',

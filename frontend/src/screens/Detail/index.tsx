@@ -1,23 +1,16 @@
 import { RootStackParamList } from '@/src/router/types'
 import { useMachineHistory } from '@/src/screens/Detail/hooks/useMachineHistory'
 import { useMachinePhoto } from '@/src/screens/Detail/hooks/useMachinePhoto'
-import { Ionicons } from '@expo/vector-icons'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import * as ImagePicker from 'expo-image-picker'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useState } from 'react'
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { CategoryBadge } from '../../components/CategoryBadge'
+import { ScrollView } from 'react-native'
 import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
-import {
-    formatSetSequence,
-    formatHistoryMetricValue,
-    getHistoryEntryPrimaryMetric,
-    getHistoryMetricKind,
-    getRecordHistoryEntry,
-} from '../../utils/workoutRecords'
-import { History } from './components/History'
+import { MachineHistorySection } from './components/MachineHistorySection'
+import { MachineIntro } from './components/MachineIntro'
+import { MachinePhotoCard } from './components/MachinePhotoCard'
+import { MachineStatsCarousel } from './components/MachineStatsCarousel'
 import { PhotoModal } from './components/PhotoModal'
 import { PhotoModalState } from './components/PhotoModal/types'
 
@@ -175,14 +168,6 @@ export default function MachineDetailScreen() {
         openPhotoActionsModal()
     }
 
-    const labelStyle = {
-        color: t.textDim,
-        fontSize: 11,
-        fontWeight: '700' as const,
-        textTransform: 'uppercase' as const,
-        letterSpacing: 2,
-    }
-
     useEffect(() => {
         if (machine?.name) {
             navigation.setOptions({ title: machine.name })
@@ -191,23 +176,6 @@ export default function MachineDetailScreen() {
 
     if (!machine) return null
 
-    const recordEntry = getRecordHistoryEntry(history, machine)
-    const recordMetricKind = getHistoryMetricKind(
-        machine,
-        recordEntry?.sets ?? [],
-    )
-    const recordMetric = recordEntry
-        ? getHistoryEntryPrimaryMetric(recordEntry, machine)
-        : null
-    const recordOverlayColor =
-        t.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.44)'
-    const recordStripeColors =
-        t.mode === 'dark'
-            ? (['rgba(255,208,112,0.16)', 'rgba(244,162,97,0.06)'] as const)
-            : (['rgba(244,162,97,0.16)', 'rgba(255,208,112,0.18)'] as const)
-    const recordSequenceColor = t.mode === 'dark' ? '#FFF4E6' : t.textPrimary
-    const recordDateColor = t.mode === 'dark' ? '#D9A57A' : t.textMuted
-
     return (
         <>
             <ScrollView
@@ -215,285 +183,10 @@ export default function MachineDetailScreen() {
                 contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
                 showsVerticalScrollIndicator={false}
             >
-                <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={handlePhotoPress}
-                    style={{
-                        width: '100%',
-                        height: photo ? 180 : 80,
-                        borderRadius: 16,
-                        marginBottom: 16,
-                        backgroundColor: t.inputBg,
-                        borderWidth: 0.5,
-                        borderColor: t.border,
-                        overflow: 'hidden',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    {photo ? (
-                        <Image
-                            source={{ uri: photo }}
-                            style={{ width: '100%', height: '100%' }}
-                            resizeMode='cover'
-                        />
-                    ) : (
-                        <View style={{ alignItems: 'center', gap: 6 }}>
-                            <Ionicons
-                                name='camera-outline'
-                                size={28}
-                                color={t.textDim}
-                            />
-                            <Text
-                                style={{
-                                    color: t.textDim,
-                                    fontSize: 12,
-                                    fontWeight: '600',
-                                }}
-                            >
-                                {translate('detail.photo.add')}
-                            </Text>
-                        </View>
-                    )}
-                </TouchableOpacity>
-
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 10,
-                        marginBottom: 8,
-                    }}
-                >
-                    <CategoryBadge categoryKey={machine.categoryKey} />
-                </View>
-                {machine.description && (
-                    <Text
-                        style={{
-                            color: t.textMuted,
-                            fontSize: 14,
-                            lineHeight: 20,
-                            marginBottom: 16,
-                        }}
-                    >
-                        {machine.description}
-                    </Text>
-                )}
-
-                <LinearGradient
-                    colors={t.gradientCard}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                        borderRadius: 16,
-                        padding: 16,
-                        marginBottom: 16,
-                        overflow: 'hidden',
-                        borderWidth: 1,
-                        borderColor: t.border,
-                    }}
-                >
-                    <View
-                        pointerEvents='none'
-                        style={{
-                            position: 'absolute',
-                            top: -28,
-                            right: -18,
-                            width: 104,
-                            height: 104,
-                            borderRadius: 999,
-                            backgroundColor: recordOverlayColor,
-                        }}
-                    />
-                    <View
-                        pointerEvents='none'
-                        style={{
-                            position: 'absolute',
-                            bottom: -30,
-                            left: -26,
-                            width: 78,
-                            height: 78,
-                            borderRadius: 999,
-                            backgroundColor: recordOverlayColor,
-                        }}
-                    />
-                    <LinearGradient
-                        colors={t.gradientAccent}
-                        start={{ x: 0, y: 0.5 }}
-                        end={{ x: 1, y: 0.5 }}
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: 4,
-                        }}
-                    />
-
-                    <View
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start',
-                            gap: 12,
-                        }}
-                    >
-                        <View style={{ flex: 1 }}>
-                            <View
-                                style={{
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    gap: 8,
-                                }}
-                            >
-                                <View
-                                    style={{
-                                        width: 36,
-                                        height: 36,
-                                        borderRadius: 12,
-                                        backgroundColor: t.chipBg,
-                                        borderWidth: 1,
-                                        borderColor: t.border,
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    <Ionicons
-                                        name='trophy'
-                                        size={18}
-                                        color={t.accent}
-                                    />
-                                </View>
-                                <Text
-                                    style={{
-                                        ...labelStyle,
-                                        color: t.textPrimary,
-                                    }}
-                                >
-                                    {translate('detail.record.title')}
-                                </Text>
-                            </View>
-                            <Text
-                                style={{
-                                    color: t.textMuted,
-                                    fontSize: 13,
-                                    lineHeight: 18,
-                                    marginTop: 8,
-                                }}
-                            >
-                                {recordEntry
-                                    ? translate('detail.record.subtitle')
-                                    : translate('detail.record.empty')}
-                            </Text>
-                        </View>
-
-                        {recordMetric !== null && (
-                            <View
-                                style={{
-                                    backgroundColor: t.chipBg,
-                                    borderRadius: 999,
-                                    paddingHorizontal: 12,
-                                    paddingVertical: 8,
-                                    borderWidth: 1,
-                                    borderColor: t.border,
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        color: t.accent,
-                                        fontSize: 12,
-                                        fontWeight: '800',
-                                    }}
-                                >
-                                    {recordMetricKind === 'weight'
-                                        ? translate('detail.record.volume', {
-                                              volume: recordMetric,
-                                          })
-                                        : translate(
-                                              recordMetricKind === 'duration'
-                                                  ? 'detail.record.duration'
-                                                  : 'detail.record.reps',
-                                              {
-                                                  value: formatHistoryMetricValue(
-                                                      recordMetric,
-                                                      recordMetricKind,
-                                                  ),
-                                              },
-                                          )}
-                                </Text>
-                            </View>
-                        )}
-                    </View>
-
-                    {recordEntry && (
-                        <LinearGradient
-                            colors={recordStripeColors}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{
-                                marginTop: 16,
-                                borderRadius: 14,
-                                paddingHorizontal: 14,
-                                paddingVertical: 12,
-                                borderWidth: 1,
-                                borderColor: t.border,
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: recordSequenceColor,
-                                    fontSize: 22,
-                                    fontWeight: '900',
-                                }}
-                            >
-                                {formatSetSequence(
-                                    recordEntry.sets,
-                                    ' / ',
-                                    machine,
-                                )}
-                            </Text>
-                            <Text
-                                style={{
-                                    color: recordDateColor,
-                                    fontSize: 12,
-                                    marginTop: 6,
-                                }}
-                            >
-                                {recordEntry.label}
-                            </Text>
-                        </LinearGradient>
-                    )}
-                </LinearGradient>
-
-                <Text
-                    style={{ ...labelStyle, marginBottom: 12, marginLeft: 2 }}
-                >
-                    {translate('detail.history.title')}
-                </Text>
-
-                {history.length === 0 ? (
-                    <Text
-                        style={{
-                            color: t.textDim,
-                            textAlign: 'center',
-                            marginTop: 24,
-                            fontSize: 14,
-                        }}
-                    >
-                        {translate('detail.history.empty')}
-                    </Text>
-                ) : (
-                    <View style={{ gap: 8 }}>
-                        {history.map((item, index) => (
-                            <History
-                                key={item.id}
-                                item={item}
-                                index={index}
-                                machine={machine}
-                            />
-                        ))}
-                    </View>
-                )}
+                <MachinePhotoCard photo={photo} onPress={handlePhotoPress} />
+                <MachineIntro machine={machine} />
+                <MachineStatsCarousel machine={machine} history={history} />
+                <MachineHistorySection machine={machine} history={history} />
             </ScrollView>
 
             <PhotoModal

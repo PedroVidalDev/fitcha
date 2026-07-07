@@ -1,10 +1,8 @@
 import { useWorkouts } from '@/src/hooks/useWorkouts'
-import { RootStackParamList } from '@/src/router/types'
 import { Ionicons } from '@expo/vector-icons'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { useFocusEffect } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { AIWizard } from '../../components/AIWizard'
 import { WizardData } from '../../components/AIWizard/types'
@@ -19,13 +17,10 @@ import { generateAIWorkout } from '../../services/aiWorkout'
 import { EmptyWorkout } from './components/EmptyWorkout'
 import { Workout } from './components/Workout'
 
-type Nav = NativeStackNavigationProp<RootStackParamList, 'Week'>
-
 export default function WeekScreen() {
     const { t } = useTheme()
     const { t: translate } = useI18n()
     const { user, setCredits } = useAuth()
-    const navigation = useNavigation<Nav>()
     const { workouts, createWorkout, refresh } = useWorkouts()
     const {
         payment,
@@ -56,25 +51,6 @@ export default function WeekScreen() {
             workouts.reduce((sum, workout) => sum + workout.machines.length, 0),
         [workouts],
     )
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerLeft: user
-                ? () => (
-                      <TouchableOpacity
-                          onPress={() => setWizardVisible(true)}
-                          style={{ padding: 6 }}
-                      >
-                          <Ionicons
-                              name='sparkles'
-                              size={22}
-                              color={t.accent}
-                          />
-                      </TouchableOpacity>
-                  )
-                : undefined,
-        })
-    }, [navigation, t.accent, user])
 
     useFocusEffect(
         useCallback(() => {

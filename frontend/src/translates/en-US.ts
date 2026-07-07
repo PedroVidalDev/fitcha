@@ -272,6 +272,14 @@ export const enUS: TranslationDictionary = {
     'detail.record.volume': 'volume {volume}',
     'detail.record.reps': '{value} reps',
     'detail.record.duration': '{value} duration',
+    'detail.progress.title': 'progress',
+    'detail.progress.subtitle':
+        'Line chart for the saved progress on this machine.',
+    'detail.progress.empty':
+        'There is not enough saved history to draw this chart yet.',
+    'detail.progress.metric.weight': 'volume',
+    'detail.progress.metric.reps': 'reps',
+    'detail.progress.metric.duration': 'duration',
     'detail.history.title': 'history',
     'detail.history.empty':
         'No records yet. Start a workout to save your progress.',

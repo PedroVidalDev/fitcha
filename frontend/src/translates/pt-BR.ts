@@ -271,6 +271,13 @@ export const ptBR = {
     'detail.record.volume': 'volume {volume}',
     'detail.record.reps': '{value} reps',
     'detail.record.duration': '{value} de duração',
+    'detail.progress.title': 'evolução',
+    'detail.progress.subtitle': 'Linha com o progresso salvo nessa máquina.',
+    'detail.progress.empty':
+        'Ainda não há histórico suficiente para desenhar o gráfico.',
+    'detail.progress.metric.weight': 'volume',
+    'detail.progress.metric.reps': 'reps',
+    'detail.progress.metric.duration': 'duração',
     'detail.history.title': 'histórico',
     'detail.history.empty':
         'Nenhum registro ainda. Inicie um treino para salvar sua evolução.',
