@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fitcha/internal/middlewares"
 	"fitcha/internal/routes"
 	database "fitcha/pkg/db"
 	"fmt"
@@ -23,6 +24,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(middlewares.CORSMiddleware())
 
 	routes.SetupRoutes(r, dbConnection)
 
