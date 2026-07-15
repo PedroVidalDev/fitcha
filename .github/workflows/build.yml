@@ -136,7 +136,7 @@ jobs:
         run: |
           BUILD_URL=$(node -e "const fs=require('fs'); const raw=JSON.parse(fs.readFileSync('build.json','utf8')); const build=Array.isArray(raw)?raw[0]:raw; if(!build?.artifacts?.buildUrl){process.exit(1)}; process.stdout.write(build.artifacts.buildUrl)")
           echo "Downloading APK from: $BUILD_URL"
-          curl -L -o app-release.apk "$BUILD_URL"
+          curl -L -o fitcha.apk "$BUILD_URL"
 
       - name: Generate version tag
         id: version
@@ -157,7 +157,7 @@ jobs:
             Baixe o APK abaixo e instale no seu Android.
 
             Pode ser necessario habilitar "Instalar de fontes desconhecidas" nas configuracoes do celular.
-          files: frontend/app-release.apk
+          files: frontend/fitcha.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -168,7 +168,7 @@ jobs:
           APP_UPDATE_TOKEN: ${{ secrets.APP_UPDATE_TOKEN }}
           APP_VERSION: ${{ steps.app_version.outputs.version }}
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
-          RELEASE_URL: https://github.com/${{ github.repository }}/releases/latest
+          RELEASE_URL: https://github.com/${{ github.repository }}/releases/latest/download/fitcha.apk
         run: |
           if [ -z "$APP_RELEASE_SYNC_URL" ] || [ -z "$APP_UPDATE_TOKEN" ]; then
             echo "APP_RELEASE_SYNC_URL and APP_UPDATE_TOKEN were not configured."
