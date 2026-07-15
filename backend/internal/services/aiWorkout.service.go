@@ -1192,7 +1192,7 @@ func buildAIWorkoutTools(surfacedCatalogByID map[string]models.Machine, blueprin
 			Type: "function",
 			Function: openAIChatCompletionToolFunction{
 				Name:        aiWorkoutSearchToolName,
-				Description: "Busca maquinas de uma unica categoria do catalogo oficial para montar o treino.",
+				Description: "Busca maquinas de uma unica categoria do catalogo oficial para montar o treino. A query prioriza resultados pelo nome ou alias; se nao houver correspondencia textual, retorna opcoes disponiveis da categoria informada.",
 				Strict:      true,
 				Parameters:  buildAIWorkoutSearchToolSchema(),
 			},
@@ -1334,10 +1334,12 @@ func searchAIWorkoutCatalogMachines(catalogMachines []models.Machine, args aiWor
 	}
 
 	scored := make([]scoredMachine, 0, len(catalogMachines))
+	categoryCandidates := make([]scoredMachine, 0, len(catalogMachines))
 	for _, machine := range catalogMachines {
 		if categoryKey != "" && strings.TrimSpace(machine.CategoryKey) != categoryKey {
 			continue
 		}
+		categoryCandidates = append(categoryCandidates, scoredMachine{machine: machine, score: 1})
 
 		score := scoreAIWorkoutCatalogMachine(machine, normalizedQuery)
 		if normalizedQuery != "" && score == 0 {
@@ -1352,6 +1354,10 @@ func searchAIWorkoutCatalogMachines(catalogMachines []models.Machine, args aiWor
 			machine: machine,
 			score:   score,
 		})
+	}
+
+	if len(scored) == 0 && categoryKey != "" {
+		scored = categoryCandidates
 	}
 
 	if len(scored) == 0 {

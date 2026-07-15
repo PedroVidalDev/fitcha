@@ -445,6 +445,83 @@
       ]
     },
     {
+      "key": "abcab_repeticao_5x",
+      "display_name": "ABCAB 5x",
+      "preferred_split_aliases": [
+        "abcab",
+        "a-b-c-a-b",
+        "abc ab",
+        "abcab 5x"
+      ],
+      "days_per_week": [
+        5
+      ],
+      "recommended_intensities": [
+        "moderado",
+        "intenso"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca"
+      ],
+      "beginner_friendly": false,
+      "priority": 52,
+      "description": "Repeticao de peito/triceps e costas/biceps em cinco sessoes, com um treino de pernas no meio da semana.",
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 39, 43 e 44"
+      ],
+      "workouts": [
+        {
+          "name": "Peito e triceps A",
+          "primary_categories": [
+            "peito"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Comecar por presses para peitoral e finalizar com complementos de triceps."
+        },
+        {
+          "name": "Costas e biceps A",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps"
+          ],
+          "notes": "Priorizar puxadas e remadas antes dos complementos de biceps."
+        },
+        {
+          "name": "Pernas",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [],
+          "notes": "Sessao de inferiores com foco em movimentos principais e complementos para quadriceps e posteriores."
+        },
+        {
+          "name": "Peito e triceps B",
+          "primary_categories": [
+            "peito"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Variar os exercicios em relacao ao treino A, mantendo peito como foco principal."
+        },
+        {
+          "name": "Costas e biceps B",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps"
+          ],
+          "notes": "Variar os exercicios em relacao ao treino A, mantendo costas como foco principal."
+        }
+      ]
+    },
+    {
       "key": "ppl_repeat_6x",
       "display_name": "Push pull legs 6x",
       "preferred_split_aliases": [
