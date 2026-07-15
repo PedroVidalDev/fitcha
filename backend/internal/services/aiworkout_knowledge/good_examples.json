@@ -144,6 +144,514 @@
       "source_refs": [
         "E-book de Musculacao Tiagonutri - paginas 36 e 44"
       ]
+    },
+    {
+      "key": "fullbody_3x_base",
+      "label": "Full body 3x para base e resistencia",
+      "input_profile": {
+        "days_per_week": 3,
+        "intensity": "leve",
+        "goal": "resistencia",
+        "preference": "fullbody"
+      },
+      "why_it_is_good": [
+        "Distribui pernas, peito e costas em tres sessoes sem concentrar todo o volume em um dia.",
+        "Alterna o foco principal entre as sessoes para manter a execucao controlada.",
+        "Usa compostos como base e complementos de ombro e core no fim."
+      ],
+      "workouts": [
+        {
+          "name": "Full body A",
+          "pattern": [
+            "agachamento livre",
+            "supino reto com barra",
+            "remada baixa",
+            "elevacao lateral",
+            "prancha"
+          ]
+        },
+        {
+          "name": "Full body B",
+          "pattern": [
+            "leg press 45",
+            "supino inclinado com halteres",
+            "puxada frontal",
+            "desenvolvimento com halteres",
+            "abdominal no cabo"
+          ]
+        },
+        {
+          "name": "Full body C",
+          "pattern": [
+            "stiff com barra",
+            "chest press na maquina",
+            "remada unilateral com halter",
+            "crucifixo invertido na maquina",
+            "prancha lateral"
+          ]
+        }
+      ],
+      "source_refs": [
+        "Ramos-Campo et al. (2024) - Efficacy of Split Versus Full-Body Resistance Training on Strength and Muscle Growth"
+      ]
+    },
+    {
+      "key": "fullbody_cardio_3x_emagrecimento",
+      "label": "Full body + cardio 3x para emagrecimento",
+      "input_profile": {
+        "days_per_week": 3,
+        "intensity": "moderado",
+        "goal": "emagrecimento",
+        "preference": "full body cardio"
+      },
+      "why_it_is_good": [
+        "Mantem movimentos de musculacao para todos os grandes grupamentos.",
+        "Inclui cardio em cada sessao sem substituir o trabalho de forca.",
+        "Alterna o foco principal para reduzir repeticao desnecessaria de exercicios."
+      ],
+      "workouts": [
+        {
+          "name": "Full body e cardio A",
+          "pattern": [
+            "leg press 45",
+            "supino reto com halteres",
+            "remada baixa",
+            "elevacao lateral",
+            "bicicleta ergometrica"
+          ]
+        },
+        {
+          "name": "Full body e cardio B",
+          "pattern": [
+            "mesa flexora",
+            "chest press na maquina",
+            "puxada frontal",
+            "desenvolvimento na maquina",
+            "esteira"
+          ]
+        },
+        {
+          "name": "Full body e cardio C",
+          "pattern": [
+            "afundo com halteres",
+            "crossover na polia media",
+            "remada maquina articulada",
+            "elevacao lateral na polia",
+            "eliptico"
+          ]
+        }
+      ],
+      "source_refs": [
+        "WHO Guidelines on Physical Activity and Sedentary Behaviour (2020)"
+      ]
+    },
+    {
+      "key": "upper_lower_4x_hipertrofia",
+      "label": "Upper lower 4x para hipertrofia",
+      "input_profile": {
+        "days_per_week": 4,
+        "intensity": "moderado",
+        "goal": "hipertrofia",
+        "preference": "upper lower"
+      },
+      "why_it_is_good": [
+        "Repete superiores e inferiores duas vezes na semana com variacoes de exercicios.",
+        "Mantem compostos no inicio e acessorios depois.",
+        "Distribui o volume semanal sem exigir uma sessao muito longa."
+      ],
+      "workouts": [
+        {
+          "name": "Superiores A",
+          "pattern": [
+            "supino reto com barra",
+            "remada baixa",
+            "desenvolvimento com halteres",
+            "triceps corda"
+          ]
+        },
+        {
+          "name": "Inferiores A",
+          "pattern": [
+            "agachamento livre",
+            "mesa flexora",
+            "cadeira extensora",
+            "prancha"
+          ]
+        },
+        {
+          "name": "Superiores B",
+          "pattern": [
+            "supino inclinado com halteres",
+            "puxada frontal",
+            "crucifixo invertido na maquina",
+            "rosca direta com barra"
+          ]
+        },
+        {
+          "name": "Inferiores B",
+          "pattern": [
+            "leg press 45",
+            "stiff com barra",
+            "cadeira flexora",
+            "abdominal no cabo"
+          ]
+        }
+      ],
+      "source_refs": [
+        "Ramos-Campo et al. (2024) - Efficacy of Split Versus Full-Body Resistance Training on Strength and Muscle Growth",
+        "E-book de Musculacao Tiagonutri - paginas 28 a 34"
+      ]
+    },
+    {
+      "key": "abcab_5x_hipertrofia",
+      "label": "ABCAB 5x para hipertrofia",
+      "input_profile": {
+        "days_per_week": 5,
+        "intensity": "moderado",
+        "goal": "hipertrofia",
+        "preference": "abcab"
+      },
+      "why_it_is_good": [
+        "Repete peito e costas em duas sessoes com variacoes entre A e B.",
+        "Mantem pernas em uma sessao propria no meio da semana.",
+        "Usa nomes de treino distintos para preservar a ordem e a validacao do plano."
+      ],
+      "workouts": [
+        {
+          "name": "Peito e triceps A",
+          "pattern": [
+            "supino reto com barra",
+            "supino inclinado com halteres",
+            "crossover na polia alta",
+            "triceps corda"
+          ]
+        },
+        {
+          "name": "Costas e biceps A",
+          "pattern": [
+            "puxada frontal",
+            "remada baixa",
+            "remada unilateral com halter",
+            "rosca direta com barra"
+          ]
+        },
+        {
+          "name": "Pernas",
+          "pattern": [
+            "agachamento livre",
+            "leg press 45",
+            "mesa flexora",
+            "panturrilha em pe"
+          ]
+        },
+        {
+          "name": "Peito e triceps B",
+          "pattern": [
+            "chest press na maquina",
+            "crucifixo na maquina",
+            "crossover na polia media",
+            "triceps testa com barra"
+          ]
+        },
+        {
+          "name": "Costas e biceps B",
+          "pattern": [
+            "puxada neutra com triangulo",
+            "remada cavalinho",
+            "pulldown com braco reto",
+            "rosca martelo"
+          ]
+        }
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 39, 43 e 44"
+      ]
+    },
+    {
+      "key": "ppl_upper_lower_5x_hipertrofia",
+      "label": "Push pull legs + upper lower 5x",
+      "input_profile": {
+        "days_per_week": 5,
+        "intensity": "moderado",
+        "goal": "hipertrofia",
+        "preference": "ppl 5x"
+      },
+      "why_it_is_good": [
+        "Combina sessoes especificas push, pull e pernas com uma repeticao de superiores e inferiores.",
+        "Permite variar os exercicios nas sessoes repetidas sem mudar a divisao semanal.",
+        "Distribui o trabalho direto de ombros, bracos e core ao longo da semana."
+      ],
+      "workouts": [
+        {
+          "name": "Push",
+          "pattern": [
+            "supino reto com barra",
+            "desenvolvimento com halteres",
+            "elevacao lateral",
+            "triceps corda"
+          ]
+        },
+        {
+          "name": "Pull",
+          "pattern": [
+            "puxada frontal",
+            "remada baixa",
+            "remada unilateral com halter",
+            "rosca concentrada",
+            "prancha"
+          ]
+        },
+        {
+          "name": "Pernas",
+          "pattern": [
+            "agachamento livre",
+            "leg press 45",
+            "mesa flexora",
+            "abdominal no cabo"
+          ]
+        },
+        {
+          "name": "Superiores",
+          "pattern": [
+            "supino inclinado com halteres",
+            "remada maquina articulada",
+            "crucifixo invertido na maquina",
+            "rosca Scott",
+            "triceps testa com barra"
+          ]
+        },
+        {
+          "name": "Inferiores e core",
+          "pattern": [
+            "stiff com barra",
+            "cadeira extensora",
+            "cadeira flexora",
+            "prancha lateral"
+          ]
+        }
+      ],
+      "source_refs": [
+        "Ramos-Campo et al. (2024) - Efficacy of Split Versus Full-Body Resistance Training on Strength and Muscle Growth"
+      ]
+    },
+    {
+      "key": "ppl_cardio_5x_emagrecimento",
+      "label": "Push pull legs + cardio 5x",
+      "input_profile": {
+        "days_per_week": 5,
+        "intensity": "moderado",
+        "goal": "emagrecimento",
+        "preference": "ppl cardio 5x"
+      },
+      "why_it_is_good": [
+        "Preserva sessoes de musculacao para grandes grupamentos enquanto reserva uma sessao para cardio e core.",
+        "Mantem o cardio como complemento planejado, nao como substituto do treino de forca.",
+        "Permite ajustar a modalidade de cardio ao tempo e ao equipamento disponivel."
+      ],
+      "workouts": [
+        {
+          "name": "Push",
+          "pattern": [
+            "chest press na maquina",
+            "desenvolvimento na maquina",
+            "elevacao lateral",
+            "triceps corda"
+          ]
+        },
+        {
+          "name": "Pull",
+          "pattern": [
+            "puxada frontal",
+            "remada baixa",
+            "remada unilateral com halter",
+            "rosca no cabo"
+          ]
+        },
+        {
+          "name": "Pernas e core",
+          "pattern": [
+            "leg press 45",
+            "mesa flexora",
+            "cadeira extensora",
+            "prancha"
+          ]
+        },
+        {
+          "name": "Superiores",
+          "pattern": [
+            "supino inclinado com halteres",
+            "remada maquina articulada",
+            "crucifixo invertido na maquina",
+            "triceps unilateral na polia"
+          ]
+        },
+        {
+          "name": "Cardio e core",
+          "pattern": [
+            "esteira",
+            "bicicleta ergometrica",
+            "eliptico",
+            "abdominal no cabo"
+          ]
+        }
+      ],
+      "source_refs": [
+        "WHO Guidelines on Physical Activity and Sedentary Behaviour (2020)"
+      ]
+    },
+    {
+      "key": "ppl_6x_intenso_hipertrofia",
+      "label": "Push pull legs 6x intenso",
+      "input_profile": {
+        "days_per_week": 6,
+        "intensity": "intenso",
+        "goal": "hipertrofia",
+        "preference": "ppl 6x"
+      },
+      "why_it_is_good": [
+        "Repete push, pull e pernas duas vezes com variacoes entre os blocos A e B.",
+        "Mantem os compostos principais no inicio de cada sessao.",
+        "Evita repetir exatamente os mesmos exercicios no segundo bloco semanal."
+      ],
+      "workouts": [
+        {
+          "name": "Peito, ombros e triceps A",
+          "pattern": [
+            "supino reto com barra",
+            "desenvolvimento com halteres",
+            "elevacao lateral",
+            "triceps corda"
+          ]
+        },
+        {
+          "name": "Costas, biceps e core A",
+          "pattern": [
+            "puxada frontal",
+            "remada baixa",
+            "rosca direta com barra",
+            "prancha"
+          ]
+        },
+        {
+          "name": "Pernas e core A",
+          "pattern": [
+            "agachamento livre",
+            "leg press 45",
+            "mesa flexora",
+            "abdominal no cabo"
+          ]
+        },
+        {
+          "name": "Peito, ombros e triceps B",
+          "pattern": [
+            "supino inclinado com halteres",
+            "desenvolvimento na maquina",
+            "crossover na polia media",
+            "triceps testa com barra"
+          ]
+        },
+        {
+          "name": "Costas, biceps e core B",
+          "pattern": [
+            "puxada neutra com triangulo",
+            "remada cavalinho",
+            "rosca martelo",
+            "prancha lateral"
+          ]
+        },
+        {
+          "name": "Pernas e core B",
+          "pattern": [
+            "stiff com barra",
+            "cadeira extensora",
+            "cadeira flexora",
+            "elevacao de pernas na barra"
+          ]
+        }
+      ],
+      "source_refs": [
+        "E-book de Musculacao Tiagonutri - paginas 39, 43 e 44"
+      ]
+    },
+    {
+      "key": "ppl_cardio_7x_resistencia",
+      "label": "Push pull legs 6x + cardio/core 7x",
+      "input_profile": {
+        "days_per_week": 7,
+        "intensity": "intenso",
+        "goal": "resistencia",
+        "preference": "ppl 7x"
+      },
+      "why_it_is_good": [
+        "Mantem dois blocos de push, pull e pernas com exercicios variados.",
+        "Inclui uma sessao separada de cardio e core para nao sobrecarregar os treinos de musculacao.",
+        "Exige atencao a recuperacao e deve respeitar o tempo disponivel."
+      ],
+      "workouts": [
+        {
+          "name": "Peito, ombros e triceps A",
+          "pattern": [
+            "supino reto com barra",
+            "desenvolvimento com halteres",
+            "triceps corda"
+          ]
+        },
+        {
+          "name": "Costas, biceps e core A",
+          "pattern": [
+            "puxada frontal",
+            "remada baixa",
+            "rosca direta com barra",
+            "prancha"
+          ]
+        },
+        {
+          "name": "Pernas e core A",
+          "pattern": [
+            "leg press 45",
+            "mesa flexora",
+            "abdominal no cabo"
+          ]
+        },
+        {
+          "name": "Peito, ombros e triceps B",
+          "pattern": [
+            "supino inclinado com halteres",
+            "desenvolvimento na maquina",
+            "triceps testa com barra"
+          ]
+        },
+        {
+          "name": "Costas, biceps e core B",
+          "pattern": [
+            "puxada neutra com triangulo",
+            "remada cavalinho",
+            "rosca martelo",
+            "prancha lateral"
+          ]
+        },
+        {
+          "name": "Pernas e core B",
+          "pattern": [
+            "stiff com barra",
+            "cadeira extensora",
+            "elevacao de pernas na barra"
+          ]
+        },
+        {
+          "name": "Cardio e core",
+          "pattern": [
+            "esteira",
+            "bicicleta ergometrica",
+            "eliptico",
+            "prancha"
+          ]
+        }
+      ],
+      "source_refs": [
+        "WHO Guidelines on Physical Activity and Sedentary Behaviour (2020)",
+        "E-book de Musculacao Tiagonutri - paginas 39, 43 e 44"
+      ]
     }
   ]
 }

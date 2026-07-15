@@ -223,6 +223,146 @@
       ]
     },
     {
+      "key": "fullbody_3x",
+      "display_name": "Full body 3x",
+      "preferred_split_aliases": [
+        "fullbody 3x",
+        "full body 3x",
+        "corpo inteiro 3x",
+        "fullbody"
+      ],
+      "days_per_week": [
+        3
+      ],
+      "recommended_intensities": [
+        "leve",
+        "moderado"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca",
+        "resistencia",
+        "emagrecimento"
+      ],
+      "beginner_friendly": true,
+      "priority": 34,
+      "description": "Tres sessoes de corpo inteiro, alternando o foco principal entre pernas, peito e costas.",
+      "source_refs": [
+        "Ramos-Campo et al. (2024) - Efficacy of Split Versus Full-Body Resistance Training on Strength and Muscle Growth",
+        "E-book de Musculacao Tiagonutri - paginas 28 a 34"
+      ],
+      "workouts": [
+        {
+          "name": "Full body A",
+          "primary_categories": [
+            "pernas",
+            "peito",
+            "costas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "core"
+          ],
+          "notes": "Dar prioridade ao movimento principal de pernas e manter presses e puxadas como complementos."
+        },
+        {
+          "name": "Full body B",
+          "primary_categories": [
+            "peito",
+            "costas",
+            "pernas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "core"
+          ],
+          "notes": "Dar prioridade ao press de peito e variar os movimentos em relacao ao treino A."
+        },
+        {
+          "name": "Full body C",
+          "primary_categories": [
+            "costas",
+            "pernas",
+            "peito"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "core"
+          ],
+          "notes": "Dar prioridade a uma puxada ou remada e variar os movimentos em relacao aos treinos anteriores."
+        }
+      ]
+    },
+    {
+      "key": "fullbody_cardio_3x",
+      "display_name": "Full body + cardio 3x",
+      "preferred_split_aliases": [
+        "fullbody cardio",
+        "full body cardio",
+        "full body + cardio",
+        "cardio 3x"
+      ],
+      "days_per_week": [
+        3
+      ],
+      "recommended_intensities": [
+        "leve",
+        "moderado"
+      ],
+      "recommended_goals": [
+        "emagrecimento",
+        "resistencia"
+      ],
+      "beginner_friendly": true,
+      "priority": 42,
+      "description": "Tres sessoes de corpo inteiro com cardio estruturado para objetivos de resistencia ou emagrecimento.",
+      "source_refs": [
+        "WHO Guidelines on Physical Activity and Sedentary Behaviour (2020)",
+        "Ramos-Campo et al. (2024) - Efficacy of Split Versus Full-Body Resistance Training on Strength and Muscle Growth"
+      ],
+      "workouts": [
+        {
+          "name": "Full body e cardio A",
+          "primary_categories": [
+            "pernas",
+            "peito",
+            "costas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "cardio"
+          ],
+          "notes": "Priorizar pernas e finalizar com cardio compativel com o tempo disponivel."
+        },
+        {
+          "name": "Full body e cardio B",
+          "primary_categories": [
+            "peito",
+            "costas",
+            "pernas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "cardio"
+          ],
+          "notes": "Priorizar peito e variar os movimentos em relacao ao treino A antes do cardio."
+        },
+        {
+          "name": "Full body e cardio C",
+          "primary_categories": [
+            "costas",
+            "pernas",
+            "peito"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "cardio"
+          ],
+          "notes": "Priorizar costas e variar os movimentos em relacao aos treinos anteriores antes do cardio."
+        }
+      ]
+    },
+    {
       "key": "upper_lower_repeat_4x",
       "display_name": "Upper lower 4x",
       "preferred_split_aliases": [
@@ -518,6 +658,175 @@
             "biceps"
           ],
           "notes": "Variar os exercicios em relacao ao treino A, mantendo costas como foco principal."
+        }
+      ]
+    },
+    {
+      "key": "ppl_upper_lower_5x",
+      "display_name": "Push pull legs + upper lower 5x",
+      "preferred_split_aliases": [
+        "ppl 5x",
+        "push pull legs 5x",
+        "push pull legs upper lower",
+        "pplul"
+      ],
+      "days_per_week": [
+        5
+      ],
+      "recommended_intensities": [
+        "moderado",
+        "intenso"
+      ],
+      "recommended_goals": [
+        "hipertrofia",
+        "forca"
+      ],
+      "beginner_friendly": false,
+      "priority": 54,
+      "description": "Cinco sessoes com push, pull, pernas, superiores e inferiores para distribuir o volume semanal.",
+      "source_refs": [
+        "Ramos-Campo et al. (2024) - Efficacy of Split Versus Full-Body Resistance Training on Strength and Muscle Growth",
+        "E-book de Musculacao Tiagonutri - paginas 39, 43 e 44"
+      ],
+      "workouts": [
+        {
+          "name": "Push",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Priorizar presses de peito e ombros antes dos complementos de triceps."
+        },
+        {
+          "name": "Pull",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps",
+            "core"
+          ],
+          "notes": "Priorizar puxadas e remadas antes dos complementos de biceps."
+        },
+        {
+          "name": "Pernas",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Alternar enfases de quadriceps e cadeia posterior conforme a selecao de exercicios."
+        },
+        {
+          "name": "Superiores",
+          "primary_categories": [
+            "peito",
+            "costas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "biceps",
+            "triceps"
+          ],
+          "notes": "Usar variacoes diferentes das sessoes push e pull para distribuir melhor o volume semanal."
+        },
+        {
+          "name": "Inferiores e core",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Usar variacoes diferentes do treino de pernas e manter trabalho de estabilidade."
+        }
+      ]
+    },
+    {
+      "key": "ppl_cardio_5x",
+      "display_name": "Push pull legs + cardio 5x",
+      "preferred_split_aliases": [
+        "ppl cardio 5x",
+        "push pull legs cardio",
+        "emagrecimento 5x",
+        "cardio 5x"
+      ],
+      "days_per_week": [
+        5
+      ],
+      "recommended_intensities": [
+        "leve",
+        "moderado"
+      ],
+      "recommended_goals": [
+        "emagrecimento",
+        "resistencia"
+      ],
+      "beginner_friendly": false,
+      "priority": 56,
+      "description": "Cinco sessoes combinando musculacao e um dia dedicado de cardio e core para resistencia ou emagrecimento.",
+      "source_refs": [
+        "WHO Guidelines on Physical Activity and Sedentary Behaviour (2020)",
+        "E-book de Musculacao Tiagonutri - paginas 28 a 34"
+      ],
+      "workouts": [
+        {
+          "name": "Push",
+          "primary_categories": [
+            "peito",
+            "ombros"
+          ],
+          "secondary_categories": [
+            "triceps"
+          ],
+          "notes": "Treino de empurrar com presses no inicio e acessorios no fim."
+        },
+        {
+          "name": "Pull",
+          "primary_categories": [
+            "costas"
+          ],
+          "secondary_categories": [
+            "biceps"
+          ],
+          "notes": "Treino de puxar com remadas e puxadas antes do trabalho de biceps."
+        },
+        {
+          "name": "Pernas e core",
+          "primary_categories": [
+            "pernas"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Treino de inferiores com foco em quadriceps, cadeia posterior e estabilidade."
+        },
+        {
+          "name": "Superiores",
+          "primary_categories": [
+            "peito",
+            "costas"
+          ],
+          "secondary_categories": [
+            "ombros",
+            "biceps",
+            "triceps"
+          ],
+          "notes": "Usar variacoes diferentes das sessoes push e pull para completar o volume de superiores."
+        },
+        {
+          "name": "Cardio e core",
+          "primary_categories": [
+            "cardio"
+          ],
+          "secondary_categories": [
+            "core"
+          ],
+          "notes": "Selecionar modalidades de cardio compativeis com o tempo e a intensidade informados pelo usuario."
         }
       ]
     },
