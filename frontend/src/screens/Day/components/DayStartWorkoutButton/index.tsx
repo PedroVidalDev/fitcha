@@ -3,18 +3,20 @@ import { useTheme } from '@/src/contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Text, TouchableOpacity, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { type DayStartWorkoutButtonProps } from './types'
 
 export function DayStartWorkoutButton(props: DayStartWorkoutButtonProps) {
     const { onPress } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
+    const insets = useSafeAreaInsets()
 
     return (
         <View
             style={{
                 position: 'absolute',
-                bottom: 24,
+                bottom: Math.max(insets.bottom, 24),
                 left: 16,
                 right: 16,
             }}

@@ -1,6 +1,7 @@
 import 'react-native-gesture-handler'
 import { StatusBar } from 'expo-status-bar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider } from './src/contexts/AuthContext'
 import { I18nProvider } from './src/contexts/I18nContext'
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext'
@@ -19,13 +20,15 @@ function InnerApp() {
 export default function App() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <I18nProvider>
-                <AuthProvider>
-                    <ThemeProvider>
-                        <InnerApp />
-                    </ThemeProvider>
-                </AuthProvider>
-            </I18nProvider>
+            <SafeAreaProvider>
+                <I18nProvider>
+                    <AuthProvider>
+                        <ThemeProvider>
+                            <InnerApp />
+                        </ThemeProvider>
+                    </AuthProvider>
+                </I18nProvider>
+            </SafeAreaProvider>
         </GestureHandlerRootView>
     )
 }
