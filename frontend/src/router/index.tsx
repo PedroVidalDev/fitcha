@@ -1,14 +1,7 @@
-import { Ionicons } from '@expo/vector-icons'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useEffect, useState } from 'react'
-import {
-    ActivityIndicator,
-    Alert,
-    Linking,
-    TouchableOpacity,
-    View,
-} from 'react-native'
+import { ActivityIndicator, Alert, Linking, View } from 'react-native'
 
 import { ConfirmModal } from '../components/ConfirmModal'
 import { ProfileShortcutButton } from '../components/ProfileShortcutButton'
@@ -39,11 +32,10 @@ export function AppNavigator() {
     const {
         user,
         isLoading,
-        logout,
         isSessionExpiredNoticeVisible,
         dismissSessionExpiredNotice,
     } = useAuth()
-    const { t, toggle } = useTheme()
+    const { t } = useTheme()
     const { t: translate } = useI18n()
     const [availableUpdate, setAvailableUpdate] =
         useState<AvailableAppUpdate | null>(null)
@@ -177,41 +169,7 @@ export function AppNavigator() {
         )
     }
 
-    const ThemeToggle = () => (
-        <TouchableOpacity onPress={toggle} style={{ padding: 6 }}>
-            <Ionicons
-                name={t.mode === 'dark' ? 'sunny' : 'moon'}
-                size={22}
-                color={t.accent}
-            />
-        </TouchableOpacity>
-    )
-
-    const HeaderActions = ({
-        showLogout = false,
-    }: {
-        showLogout?: boolean
-    }) => (
-        <View
-            style={{
-                flexDirection: 'row',
-                gap: 10,
-                alignItems: 'center',
-            }}
-        >
-            <ThemeToggle />
-            {showLogout && (
-                <TouchableOpacity onPress={logout} style={{ padding: 6 }}>
-                    <Ionicons
-                        name='log-out-outline'
-                        size={22}
-                        color={t.textMuted}
-                    />
-                </TouchableOpacity>
-            )}
-            <ProfileShortcutButton />
-        </View>
-    )
+    const HeaderActions = () => <ProfileShortcutButton />
 
     return (
         <>
@@ -251,9 +209,7 @@ export function AppNavigator() {
                                 options={{
                                     title: 'Fitcha',
                                     headerBackVisible: false,
-                                    headerRight: () => (
-                                        <HeaderActions showLogout />
-                                    ),
+                                    headerRight: HeaderActions,
                                 }}
                             />
 
@@ -262,9 +218,7 @@ export function AppNavigator() {
                                 component={WeekScreen}
                                 options={{
                                     title: translate('week.title'),
-                                    headerRight: () => (
-                                        <HeaderActions showLogout />
-                                    ),
+                                    headerRight: HeaderActions,
                                 }}
                             />
 
@@ -273,7 +227,6 @@ export function AppNavigator() {
                                 component={ProfileScreen}
                                 options={{
                                     title: translate('navigation.profile'),
-                                    headerRight: () => <ThemeToggle />,
                                 }}
                             />
 
@@ -282,7 +235,7 @@ export function AppNavigator() {
                                 component={DayScreen}
                                 options={{
                                     title: translate('day.title'),
-                                    headerRight: () => <HeaderActions />,
+                                    headerRight: HeaderActions,
                                 }}
                             />
 
@@ -293,7 +246,7 @@ export function AppNavigator() {
                                     title: translate(
                                         'navigation.machineDetail',
                                     ),
-                                    headerRight: () => <HeaderActions />,
+                                    headerRight: HeaderActions,
                                 }}
                             />
 

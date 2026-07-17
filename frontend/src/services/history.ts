@@ -10,10 +10,15 @@ export type HistoryApiEntry = {
     date: string
 }
 
-export type WorkoutHistoryInput = {
-    machineId: string
-    sets: HistorySet[]
-}
+export type WorkoutHistoryInput =
+    | {
+          machineId: string
+          sets: HistorySet[]
+      }
+    | {
+          catalogMachineId: string
+          sets: HistorySet[]
+      }
 
 function getHistoryErrorMessage(error: unknown, fallback: string) {
     if (isAxiosError(error)) {

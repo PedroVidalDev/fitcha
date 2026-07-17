@@ -58,8 +58,9 @@ func (c *HistoryController) CreateWorkout(ctx *gin.Context) {
 		}
 
 		results = append(results, services.CreateWorkoutResultInput{
-			MachineID: result.MachineID,
-			Sets:      sets,
+			MachineID:        result.MachineID,
+			CatalogMachineID: result.CatalogMachineID,
+			Sets:             sets,
 		})
 	}
 

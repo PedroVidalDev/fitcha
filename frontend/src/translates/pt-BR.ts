@@ -109,10 +109,12 @@ export const ptBR = {
     'profile.kicker': 'perfil',
     'profile.header.description':
         'Consulte os dados da conta autenticada e gerencie seu saldo de créditos para gerar treinos com IA.',
-    'profile.account.title': 'Conta',
-    'profile.account.description':
-        'Nome e e-mail refletem a conta autenticada no backend.',
     'profile.language.title': 'Idioma do app',
+    'profile.theme.title': 'Aparência',
+    'profile.theme.description': 'Escolha como o app deve ser exibido.',
+    'profile.theme.dark': 'Tema escuro',
+    'profile.theme.light': 'Tema claro',
+    'profile.logout': 'Sair da conta',
     'profile.language.description':
         'Escolha o idioma padrão salvo neste dispositivo. As telas já migradas mudam na hora.',
     'profile.credits.title': 'Créditos Fitcha AI',
@@ -435,17 +437,6 @@ export const ptBR = {
     'workout.series.three': 'Série 3',
     'workout.position': '{current} de {total}',
     'workout.completedProgress': '{completed}/{total} completas',
-    'workout.swapHint':
-        'Use as setas ou toque nos cartões para trocar de máquina sem perder os rascunhos.',
-    'workout.status.registeredTitle': 'Exercício registrado',
-    'workout.status.draftTitle': 'Rascunho salvo',
-    'workout.status.skipTitle': 'Pode pular sem perder o fluxo',
-    'workout.status.registeredMessage':
-        'Você pode seguir adiante ou voltar depois para revisar esse exercício.',
-    'workout.status.draftMessage':
-        'Os valores ficam guardados ao trocar de máquina. Complete quando ela estiver livre.',
-    'workout.status.skipMessage':
-        'Se a máquina estiver ocupada, avance agora e volte quando quiser pelos cartões acima.',
     'workout.rest.title': 'descanso',
     'workout.rest.idle':
         'O timer começa assim que você confirmar uma série ou finalizar um exercício por tempo.',
@@ -477,6 +468,12 @@ export const ptBR = {
     'workout.resume.confirm': 'Retomar treino',
     'workout.resume.cancel': 'Descartar',
     'workout.nextMachine': 'Próxima máquina',
+    'workout.removeMachine.title': 'Remover exercício?',
+    'workout.removeMachine.message':
+        '"{name}" será removido apenas deste treino em andamento.',
+    'workout.removeMachine.confirm': 'Remover',
+    'workout.emptySession':
+        'Nenhum exercício nesta sessão. Use o + para adicionar uma máquina.',
     'services.aiWorkout.generateError':
         'Não foi possível gerar o treino automaticamente',
     'services.workouts.loadError': 'Não foi possível carregar os treinos',

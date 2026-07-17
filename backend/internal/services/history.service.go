@@ -11,8 +11,9 @@ import (
 )
 
 type CreateWorkoutResultInput struct {
-	MachineID string
-	Sets      []CreateWorkoutSetInput
+	MachineID        string
+	CatalogMachineID string
+	Sets             []CreateWorkoutSetInput
 }
 
 type CreateWorkoutSetInput struct {
@@ -45,13 +46,18 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 	normalizedResults := make([]CreateWorkoutResultInput, 0, len(results))
 	for _, result := range results {
 		machineID := strings.TrimSpace(result.MachineID)
-		if machineID == "" {
+		catalogMachineID := strings.TrimSpace(result.CatalogMachineID)
+		if machineID == "" && catalogMachineID == "" {
 			return []models.HistoryEntry{}, errors.New("maquina nao informada")
+		}
+		if machineID != "" && catalogMachineID != "" {
+			return []models.HistoryEntry{}, errors.New("informe apenas uma maquina por resultado")
 		}
 
 		normalizedResults = append(normalizedResults, CreateWorkoutResultInput{
-			MachineID: machineID,
-			Sets:      result.Sets,
+			MachineID:        machineID,
+			CatalogMachineID: catalogMachineID,
+			Sets:             result.Sets,
 		})
 	}
 
@@ -64,12 +70,20 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 		entries := make([]models.HistoryEntry, 0, len(normalizedResults))
 
 		for _, result := range normalizedResults {
-			userMachine, err := userMachineRepo.FindByIDAndUserID(result.MachineID, userID)
-			if err != nil {
+			var userMachine models.UserMachine
+			var err error
+
+			if result.CatalogMachineID != "" {
+				userMachine, err = resolveUserMachineForInput(tx, userID, CreateWorkoutMachineInput{
+					CatalogMachineID: result.CatalogMachineID,
+				})
+			} else {
+				userMachine, err = userMachineRepo.FindByIDAndUserID(result.MachineID, userID)
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errors.New("maquina nao encontrada")
 				}
-
+			}
+			if err != nil {
 				return err
 			}
 
@@ -96,7 +110,7 @@ func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResul
 
 			entries = append(entries, models.HistoryEntry{
 				ID:            entryID,
-				UserMachineID: result.MachineID,
+				UserMachineID: userMachine.ID,
 				PerformedAt:   performedAt,
 				Sets:          sets,
 			})

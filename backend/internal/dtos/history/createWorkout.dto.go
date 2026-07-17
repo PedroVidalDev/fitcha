@@ -5,8 +5,9 @@ type CreateWorkoutType struct {
 }
 
 type CreateWorkoutResultType struct {
-	MachineID string                 `json:"machineId" binding:"required"`
-	Sets      []CreateWorkoutSetType `json:"sets" binding:"required"`
+	MachineID        string                 `json:"machineId"`
+	CatalogMachineID string                 `json:"catalogMachineId"`
+	Sets             []CreateWorkoutSetType `json:"sets" binding:"required"`
 }
 
 type CreateWorkoutSetType struct {

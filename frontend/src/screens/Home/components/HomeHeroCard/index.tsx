@@ -82,7 +82,7 @@ export function HomeHeroCard(props: HomeHeroCardProps) {
 
                 <View
                     style={{
-                        flexDirection: 'row',
+                        flexDirection: 'column',
                         gap: 12,
                         marginTop: 20,
                     }}

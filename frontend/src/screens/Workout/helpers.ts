@@ -128,7 +128,9 @@ export function draftToResult(
     const normalizedDraft = getWorkoutDraft(draft)
     if (machine.trackingType === 'duration') {
         return {
-            machineId: machine.id,
+            ...(machine.isTemporary && machine.catalogMachineId
+                ? { catalogMachineId: machine.catalogMachineId }
+                : { machineId: machine.id }),
             sets: [
                 {
                     weight: 0,
@@ -142,7 +144,9 @@ export function draftToResult(
 
     const { sets } = normalizedDraft
     return {
-        machineId: machine.id,
+        ...(machine.isTemporary && machine.catalogMachineId
+            ? { catalogMachineId: machine.catalogMachineId }
+            : { machineId: machine.id }),
         sets: WORKOUT_SET_KEYS.map((key) => ({
             weight: machine.requiresWeight ? parseWeight(sets[key].weight) : 0,
             reps: parseReps(sets[key].reps),

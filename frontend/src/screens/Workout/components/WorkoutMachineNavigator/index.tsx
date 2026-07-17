@@ -1,4 +1,3 @@
-import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
@@ -10,12 +9,14 @@ export function WorkoutMachineNavigator(props: WorkoutMachineNavigatorProps) {
         items,
         canGoPrev,
         canGoNext,
+        canRemoveMachine,
         onPressPrevious,
         onPressNext,
+        onPressAddMachine,
+        onPressRemoveMachine,
         onSelectMachine,
     } = props
     const { t } = useTheme()
-    const { t: translate } = useI18n()
 
     return (
         <View
@@ -165,17 +166,47 @@ export function WorkoutMachineNavigator(props: WorkoutMachineNavigatorProps) {
                         color={t.textPrimary}
                     />
                 </TouchableOpacity>
-            </View>
 
-            <Text
-                style={{
-                    color: t.textDim,
-                    fontSize: 12,
-                    lineHeight: 18,
-                }}
-            >
-                {translate('workout.swapHint')}
-            </Text>
+                <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={onPressAddMachine}
+                    style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 14,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: t.chipBg,
+                        borderWidth: 1,
+                        borderColor: t.accent + '80',
+                    }}
+                >
+                    <Ionicons name='add' size={24} color={t.accent} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={onPressRemoveMachine}
+                    disabled={!canRemoveMachine}
+                    style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 14,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: t.inputBg,
+                        borderWidth: 1,
+                        borderColor: t.border,
+                        opacity: canRemoveMachine ? 1 : 0.4,
+                    }}
+                >
+                    <Ionicons
+                        name='trash-outline'
+                        size={19}
+                        color={t.textMuted}
+                    />
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }

@@ -16,9 +16,19 @@ export type UseWorkoutScreenParams = Pick<
 
 export type WorkoutMachine = ReturnType<
     typeof useWorkoutMachines
->['machines'][number]
+>['machines'][number] & {
+    catalogMachineId?: string
+    isTemporary?: boolean
+}
 
-export type WorkoutResult = { machineId: string; sets: HistorySet[] }
+export type TemporaryWorkoutMachine = WorkoutMachine & {
+    catalogMachineId: string
+    isTemporary: true
+}
+
+export type WorkoutResult =
+    | { machineId: string; sets: HistorySet[] }
+    | { catalogMachineId: string; sets: HistorySet[] }
 export type WorkoutSetKey = 'set1' | 'set2' | 'set3'
 export type WorkoutDraftFieldKey = 'weight' | 'reps'
 export type WorkoutSetDraft = {

@@ -1,4 +1,7 @@
-import { Animated as RNAnimated, ScrollView, View } from 'react-native'
+import { AddMachineModal } from '@/src/components/AddMachineModal'
+import { useState } from 'react'
+import { Animated as RNAnimated, ScrollView, Text, View } from 'react-native'
+import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { WorkoutConfirmModal } from './components/WorkoutConfirmModal'
 import { WorkoutDurationCard } from './components/WorkoutDurationCard'
@@ -7,7 +10,6 @@ import { WorkoutHeader } from './components/WorkoutHeader'
 import { WorkoutLoadingState } from './components/WorkoutLoadingState'
 import { WorkoutMachineHero } from './components/WorkoutMachineHero'
 import { WorkoutMachineNavigator } from './components/WorkoutMachineNavigator'
-import { WorkoutMachineStatusCard } from './components/WorkoutMachineStatusCard'
 import { WorkoutRestTimerCard } from './components/WorkoutRestTimerCard'
 import { WorkoutSeriesList } from './components/WorkoutSeriesList'
 import { type WorkoutScreenProps } from './types'
@@ -15,14 +17,13 @@ import { useWorkoutScreen } from './useWorkoutScreen'
 
 export default function WorkoutScreen(props: WorkoutScreenProps) {
     const { t } = useTheme()
+    const { t: translate } = useI18n()
     const {
         machine,
         isLoading,
         currentIdx,
         elapsed,
         completedCount,
-        currentHasDraft,
-        currentIsComplete,
         restStartedAt,
         restElapsed,
         canGoPrev,
@@ -42,25 +43,25 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         handlePreviousMachine,
         handleNextMachine,
         handleNext,
+        handleAddTemporaryMachine,
+        handleRemoveMachine,
         handleSelectMachine,
         handleUpdateDraftField,
         handleConfirmDraftField,
         handleDurationAction,
     } = useWorkoutScreen(props)
+    const [isAddMachineModalVisible, setIsAddMachineModalVisible] =
+        useState(false)
 
     if (isLoading) {
         return <WorkoutLoadingState />
-    }
-
-    if (!machine) {
-        return null
     }
 
     return (
         <View style={{ flex: 1, backgroundColor: t.bg }}>
             <WorkoutHeader
                 elapsed={elapsed}
-                currentPosition={currentIdx + 1}
+                currentPosition={machine ? currentIdx + 1 : 0}
                 totalMachines={machineProgressItems.length}
                 completedCount={completedCount}
                 onQuit={handleQuit}
@@ -71,8 +72,11 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 items={machineProgressItems}
                 canGoPrev={canGoPrev}
                 canGoNext={canGoNext}
+                canRemoveMachine={!!machine}
                 onPressPrevious={handlePreviousMachine}
                 onPressNext={handleNextMachine}
+                onPressAddMachine={() => setIsAddMachineModalVisible(true)}
+                onPressRemoveMachine={handleRemoveMachine}
                 onSelectMachine={handleSelectMachine}
             />
 
@@ -89,39 +93,53 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                         transform: [{ translateY: slideAnim }],
                     }}
                 >
-                    <WorkoutMachineHero machine={machine} />
+                    {machine ? (
+                        <>
+                            <WorkoutMachineHero machine={machine} />
 
-                    <WorkoutMachineStatusCard
-                        currentHasDraft={currentHasDraft}
-                        currentIsComplete={currentIsComplete}
-                    />
+                            <WorkoutRestTimerCard
+                                restStartedAt={restStartedAt}
+                                restElapsed={restElapsed}
+                            />
 
-                    <WorkoutRestTimerCard
-                        restStartedAt={restStartedAt}
-                        restElapsed={restElapsed}
-                    />
+                            {machine.trackingType === 'duration' &&
+                            durationConfig ? (
+                                <WorkoutDurationCard
+                                    config={durationConfig}
+                                    onAction={handleDurationAction}
+                                />
+                            ) : (
+                                <WorkoutSeriesList
+                                    machineId={machine.id}
+                                    items={seriesFields}
+                                    hasLockedSeries={hasLockedSeries}
+                                    onChangeField={handleUpdateDraftField}
+                                    onConfirmField={handleConfirmDraftField}
+                                />
+                            )}
 
-                    {machine.trackingType === 'duration' && durationConfig ? (
-                        <WorkoutDurationCard
-                            config={durationConfig}
-                            onAction={handleDurationAction}
-                        />
+                            <WorkoutFooterActions
+                                canGoBack={canGoPrev}
+                                isLast={isLast}
+                                onPressBack={handlePreviousMachine}
+                                onPressNext={handleNext}
+                            />
+                        </>
                     ) : (
-                        <WorkoutSeriesList
-                            machineId={machine.id}
-                            items={seriesFields}
-                            hasLockedSeries={hasLockedSeries}
-                            onChangeField={handleUpdateDraftField}
-                            onConfirmField={handleConfirmDraftField}
-                        />
+                        <View style={{ paddingVertical: 48 }}>
+                            <Text
+                                style={{
+                                    color: t.textMuted,
+                                    fontSize: 15,
+                                    fontWeight: '700',
+                                    textAlign: 'center',
+                                    lineHeight: 22,
+                                }}
+                            >
+                                {translate('workout.emptySession')}
+                            </Text>
+                        </View>
                     )}
-
-                    <WorkoutFooterActions
-                        canGoBack={canGoPrev}
-                        isLast={isLast}
-                        onPressBack={handlePreviousMachine}
-                        onPressNext={handleNext}
-                    />
                 </RNAnimated.View>
             </ScrollView>
 
@@ -129,6 +147,12 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 modal={modal}
                 onClose={handleCloseModal}
                 onConfirm={handleModalConfirm}
+            />
+
+            <AddMachineModal
+                visible={isAddMachineModalVisible}
+                onClose={() => setIsAddMachineModalVisible(false)}
+                onAdd={handleAddTemporaryMachine}
             />
         </View>
     )

@@ -112,10 +112,12 @@ export const esES: TranslationDictionary = {
     'profile.kicker': 'perfil',
     'profile.header.description':
         'Revisa los datos de la cuenta autenticada y gestiona tu saldo de creditos para generar entrenamientos con IA.',
-    'profile.account.title': 'Cuenta',
-    'profile.account.description':
-        'Nombre y correo reflejan la cuenta autenticada en el backend.',
     'profile.language.title': 'Idioma de la app',
+    'profile.theme.title': 'Apariencia',
+    'profile.theme.description': 'Elige cómo se debe mostrar la aplicación.',
+    'profile.theme.dark': 'Tema oscuro',
+    'profile.theme.light': 'Tema claro',
+    'profile.logout': 'Cerrar sesión',
     'profile.language.description':
         'Elige el idioma predeterminado guardado en este dispositivo. Las pantallas ya migradas cambian al instante.',
     'profile.credits.title': 'Creditos Fitcha AI',
@@ -442,17 +444,6 @@ export const esES: TranslationDictionary = {
     'workout.series.three': 'Serie 3',
     'workout.position': '{current} de {total}',
     'workout.completedProgress': '{completed}/{total} completas',
-    'workout.swapHint':
-        'Usa las flechas o toca las tarjetas para cambiar de maquina sin perder los borradores.',
-    'workout.status.registeredTitle': 'Ejercicio registrado',
-    'workout.status.draftTitle': 'Borrador guardado',
-    'workout.status.skipTitle': 'Puedes saltarlo sin romper el flujo',
-    'workout.status.registeredMessage':
-        'Puedes seguir ahora o volver despues para revisar este ejercicio.',
-    'workout.status.draftMessage':
-        'Los valores quedan guardados al cambiar de maquina. Completa cuando quede libre.',
-    'workout.status.skipMessage':
-        'Si la maquina esta ocupada, avanza ahora y vuelve cuando quieras usando las tarjetas de arriba.',
     'workout.rest.title': 'descanso',
     'workout.rest.idle':
         'El timer empieza apenas confirmas una serie o finalizas un ejercicio por tiempo.',
@@ -484,6 +475,12 @@ export const esES: TranslationDictionary = {
     'workout.resume.confirm': 'Retomar entrenamiento',
     'workout.resume.cancel': 'Descartar',
     'workout.nextMachine': 'Siguiente maquina',
+    'workout.removeMachine.title': 'Eliminar ejercicio?',
+    'workout.removeMachine.message':
+        '"{name}" solo se eliminara de este entrenamiento en curso.',
+    'workout.removeMachine.confirm': 'Eliminar',
+    'workout.emptySession':
+        'No hay ejercicios en esta sesión. Usa + para agregar una máquina.',
     'services.aiWorkout.generateError':
         'No fue posible generar el entrenamiento automaticamente',
     'services.workouts.loadError': 'No fue posible cargar los entrenamientos',

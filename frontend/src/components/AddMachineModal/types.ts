@@ -4,7 +4,7 @@ import { CatalogMachine } from '@/src/dtos/CatalogMachine'
 export type AddMachineModalProps = {
     visible: boolean
     onClose: () => void
-    onAdd: (catalogMachineId: string) => void
+    onAdd: (machine: AddMachineCatalogMachine) => void
 }
 
 export type AddMachineCategoryFilter = MachineCategoryKey | 'all'

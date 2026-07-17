@@ -1,5 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { WorkoutDraftMap } from '../screens/Workout/types'
+import {
+    TemporaryWorkoutMachine,
+    WorkoutDraftMap,
+} from '../screens/Workout/types'
 import { getScopedStorageKey } from './storage'
 
 const ACTIVE_WORKOUT_KEY = 'fitcha_active_workout'
@@ -8,6 +11,8 @@ export type ActiveWorkoutSession = {
     workoutId: number
     currentIdx: number
     drafts: WorkoutDraftMap
+    temporaryMachines: TemporaryWorkoutMachine[]
+    removedMachineIds: string[]
     startedAt: number
     restStartedAt: number | null
     updatedAt: number
@@ -49,10 +54,28 @@ function normalizeActiveWorkoutSession(
         return null
     }
 
+    const temporaryMachines = Array.isArray(candidate.temporaryMachines)
+        ? (candidate.temporaryMachines as TemporaryWorkoutMachine[]).filter(
+              (machine) =>
+                  machine &&
+                  typeof machine === 'object' &&
+                  machine.isTemporary === true &&
+                  typeof machine.id === 'string' &&
+                  typeof machine.catalogMachineId === 'string',
+          )
+        : []
+    const removedMachineIds = Array.isArray(candidate.removedMachineIds)
+        ? candidate.removedMachineIds.filter(
+              (machineId): machineId is string => typeof machineId === 'string',
+          )
+        : []
+
     return {
         workoutId: candidate.workoutId,
         currentIdx: candidate.currentIdx,
         drafts: candidate.drafts as WorkoutDraftMap,
+        temporaryMachines,
+        removedMachineIds,
         startedAt: candidate.startedAt,
         restStartedAt: candidate.restStartedAt ?? null,
         updatedAt: candidate.updatedAt,

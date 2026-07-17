@@ -1,8 +1,9 @@
 import { useWorkoutMachines } from '@/src/hooks/useWorkoutMachines'
 import { useFocusEffect } from '@react-navigation/native'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated as RNAnimated, ScrollView } from 'react-native'
 import { useI18n } from '../../contexts/I18nContext'
+import { type CatalogMachine } from '../../dtos/CatalogMachine'
 import {
     clearActiveWorkoutSession,
     getActiveWorkoutSession,
@@ -29,6 +30,8 @@ import {
     type WorkoutResult,
     type WorkoutSeriesField,
     type WorkoutSetKey,
+    type TemporaryWorkoutMachine,
+    type WorkoutMachine,
     WORKOUT_SET_KEYS,
 } from './types'
 
@@ -43,6 +46,10 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
 
     const [currentIdx, setCurrentIdx] = useState(0)
     const [drafts, setDrafts] = useState<WorkoutDraftMap>({})
+    const [temporaryMachines, setTemporaryMachines] = useState<
+        TemporaryWorkoutMachine[]
+    >([])
+    const [removedMachineIds, setRemovedMachineIds] = useState<string[]>([])
     const [startedAt, setStartedAt] = useState(() => Date.now())
     const [elapsed, setElapsed] = useState(0)
     const [restStartedAt, setRestStartedAt] = useState<number | null>(null)
@@ -53,36 +60,36 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     const slideAnim = useRef(new RNAnimated.Value(30)).current
     const fadeAnim = useRef(new RNAnimated.Value(0)).current
 
-    const machine = machines[currentIdx]
-    const isLast = currentIdx === machines.length - 1
+    const sessionMachines = useMemo<WorkoutMachine[]>(
+        () =>
+            [...machines, ...temporaryMachines].filter(
+                (item) => !removedMachineIds.includes(item.id),
+            ),
+        [machines, removedMachineIds, temporaryMachines],
+    )
+    const machine = sessionMachines[currentIdx]
+    const isLast = currentIdx === sessionMachines.length - 1
     const canGoPrev = currentIdx > 0
-    const canGoNext = currentIdx < machines.length - 1
+    const canGoNext = currentIdx < sessionMachines.length - 1
     const currentDraft = machine
         ? getWorkoutDraft(drafts[machine.id])
         : getWorkoutDraft()
-    const completedCount = machines.filter((item) =>
+    const completedCount = sessionMachines.filter((item) =>
         isDraftComplete(item, drafts[item.id]),
     ).length
-    const pendingCount = machines.length - completedCount
-    const hasAnyDrafts = machines.some((item) =>
+    const pendingCount = sessionMachines.length - completedCount
+    const hasAnyDrafts = sessionMachines.some((item) =>
         hasDraftValue(item, drafts[item.id]),
     )
-    const currentHasDraft = machine
-        ? hasDraftValue(machine, currentDraft)
-        : false
-    const currentIsComplete = machine
-        ? isDraftComplete(machine, currentDraft)
-        : false
 
-    const machineProgressItems: WorkoutMachineProgressItem[] = machines.map(
-        (item, index) => ({
+    const machineProgressItems: WorkoutMachineProgressItem[] =
+        sessionMachines.map((item, index) => ({
             id: item.id,
             position: index + 1,
             isCurrent: index === currentIdx,
             hasDraft: hasDraftValue(item, drafts[item.id]),
             isComplete: isDraftComplete(item, drafts[item.id]),
-        }),
-    )
+        }))
 
     const openModal = useCallback((config: WorkoutModalConfig) => {
         setModal(config)
@@ -252,13 +259,17 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
 
     const goToMachine = useCallback(
         (index: number) => {
-            if (index < 0 || index >= machines.length || index === currentIdx) {
+            if (
+                index < 0 ||
+                index >= sessionMachines.length ||
+                index === currentIdx
+            ) {
                 return
             }
 
             setCurrentIdx(index)
         },
-        [currentIdx, machines.length],
+        [currentIdx, sessionMachines.length],
     )
 
     const goToPreviousMachine = useCallback(() => {
@@ -272,9 +283,80 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     }, [canGoNext])
 
     const buildResults = useCallback(
-        (): WorkoutResult[] => buildWorkoutResults(machines, drafts),
-        [drafts, machines],
+        (): WorkoutResult[] => buildWorkoutResults(sessionMachines, drafts),
+        [drafts, sessionMachines],
     )
+
+    const handleAddTemporaryMachine = useCallback(
+        (catalogMachine: CatalogMachine) => {
+            const alreadyInSession = sessionMachines.some(
+                (item) => item.catalogMachineId === catalogMachine.id,
+            )
+            if (alreadyInSession) return
+
+            const temporaryMachine: TemporaryWorkoutMachine = {
+                id: `temporary:${catalogMachine.id}`,
+                catalogMachineId: catalogMachine.id,
+                isTemporary: true,
+                name: catalogMachine.name,
+                description: catalogMachine.description,
+                photo: catalogMachine.photo,
+                categoryKey: catalogMachine.categoryKey,
+                trackingType: catalogMachine.trackingType,
+                requiresWeight: catalogMachine.requiresWeight,
+                lastWeight: null,
+                lastSets: null,
+                recordSets: null,
+            }
+
+            setTemporaryMachines((previous) => [...previous, temporaryMachine])
+            setCurrentIdx(sessionMachines.length)
+        },
+        [sessionMachines],
+    )
+
+    const removeCurrentMachine = useCallback(() => {
+        if (!machine) return
+
+        const remainingCount = sessionMachines.length - 1
+        if (machine.isTemporary) {
+            setTemporaryMachines((previous) =>
+                previous.filter((item) => item.id !== machine.id),
+            )
+        } else {
+            setRemovedMachineIds((previous) => [...previous, machine.id])
+        }
+        setDrafts((previous) => {
+            const remainingDrafts = { ...previous }
+            delete remainingDrafts[machine.id]
+            return remainingDrafts
+        })
+        setRestStartedAt(null)
+        setRestElapsed(0)
+
+        if (remainingCount === 0) {
+            setCurrentIdx(0)
+            return
+        }
+
+        if (currentIdx >= remainingCount) {
+            setCurrentIdx(remainingCount - 1)
+        }
+    }, [currentIdx, machine, sessionMachines.length])
+
+    const handleRemoveMachine = useCallback(() => {
+        if (!machine) return
+
+        openModal({
+            title: translate('workout.removeMachine.title'),
+            message: translate('workout.removeMachine.message', {
+                name: machine.name,
+            }),
+            confirmLabel: translate('workout.removeMachine.confirm'),
+            confirmVariant: 'danger',
+            onConfirm: removeCurrentMachine,
+        })
+    }, [machine, openModal, removeCurrentMachine, translate])
 
     const showSavedWorkoutModal = useCallback(
         (finalResults: WorkoutResult[]) => {
@@ -410,6 +492,8 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
             if (!shouldResume) {
                 setCurrentIdx(0)
                 setDrafts({})
+                setTemporaryMachines([])
+                setRemovedMachineIds([])
                 setStartedAt(Date.now())
                 setRestStartedAt(null)
                 setRestElapsed(0)
@@ -423,12 +507,16 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
             if (session && session.workoutId === workoutId) {
                 setCurrentIdx(session.currentIdx)
                 setDrafts(session.drafts)
+                setTemporaryMachines(session.temporaryMachines)
+                setRemovedMachineIds(session.removedMachineIds)
                 setStartedAt(session.startedAt)
                 setRestStartedAt(session.restStartedAt)
                 setRestElapsed(0)
             } else {
                 setCurrentIdx(0)
                 setDrafts({})
+                setTemporaryMachines([])
+                setRemovedMachineIds([])
                 setStartedAt(Date.now())
                 setRestStartedAt(null)
                 setRestElapsed(0)
@@ -451,6 +539,8 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
             workoutId,
             currentIdx,
             drafts,
+            temporaryMachines,
+            removedMachineIds,
             startedAt,
             restStartedAt,
         })
@@ -459,7 +549,9 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         drafts,
         isSessionReady,
         restStartedAt,
+        removedMachineIds,
         startedAt,
+        temporaryMachines,
         workoutId,
     ])
 
@@ -500,11 +592,11 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     }, [currentIdx, fadeAnim, slideAnim])
 
     useEffect(() => {
-        if (machines.length === 0) return
-        if (currentIdx >= machines.length) {
-            setCurrentIdx(machines.length - 1)
+        if (sessionMachines.length === 0) return
+        if (currentIdx >= sessionMachines.length) {
+            setCurrentIdx(sessionMachines.length - 1)
         }
-    }, [currentIdx, machines.length])
+    }, [currentIdx, sessionMachines.length])
 
     useEffect(() => {
         machineNavScrollRef.current?.scrollTo({
@@ -627,8 +719,6 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         currentIdx,
         elapsed,
         completedCount,
-        currentHasDraft,
-        currentIsComplete,
         restStartedAt,
         restElapsed,
         canGoPrev,
@@ -648,6 +738,8 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         handlePreviousMachine: goToPreviousMachine,
         handleNextMachine: goToNextMachine,
         handleNext,
+        handleAddTemporaryMachine,
+        handleRemoveMachine,
         handleSelectMachine: goToMachine,
         handleUpdateDraftField: updateDraftField,
         handleConfirmDraftField: confirmDraftField,

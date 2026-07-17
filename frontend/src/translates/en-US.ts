@@ -111,10 +111,12 @@ export const enUS: TranslationDictionary = {
     'profile.kicker': 'profile',
     'profile.header.description':
         'Review the authenticated account details and manage your credit balance for AI workout generation.',
-    'profile.account.title': 'Account',
-    'profile.account.description':
-        'Name and email reflect the account authenticated in the backend.',
     'profile.language.title': 'App language',
+    'profile.theme.title': 'Appearance',
+    'profile.theme.description': 'Choose how the app should be displayed.',
+    'profile.theme.dark': 'Dark theme',
+    'profile.theme.light': 'Light theme',
+    'profile.logout': 'Log out',
     'profile.language.description':
         'Choose the default language saved on this device. Already migrated screens update immediately.',
     'profile.credits.title': 'Fitcha AI credits',
@@ -435,17 +437,6 @@ export const enUS: TranslationDictionary = {
     'workout.series.three': 'Set 3',
     'workout.position': '{current} of {total}',
     'workout.completedProgress': '{completed}/{total} complete',
-    'workout.swapHint':
-        'Use the arrows or tap the cards to switch machines without losing your drafts.',
-    'workout.status.registeredTitle': 'Exercise logged',
-    'workout.status.draftTitle': 'Draft saved',
-    'workout.status.skipTitle': 'You can skip without breaking the flow',
-    'workout.status.registeredMessage':
-        'You can move on now or come back later to review this exercise.',
-    'workout.status.draftMessage':
-        'Values stay saved when switching machines. Finish it when the machine is free.',
-    'workout.status.skipMessage':
-        'If the machine is busy, move on now and come back whenever you want using the cards above.',
     'workout.rest.title': 'rest',
     'workout.rest.idle':
         'The timer starts as soon as you confirm a set or finish a timed exercise.',
@@ -477,6 +468,12 @@ export const enUS: TranslationDictionary = {
     'workout.resume.confirm': 'Resume workout',
     'workout.resume.cancel': 'Discard',
     'workout.nextMachine': 'Next machine',
+    'workout.removeMachine.title': 'Remove exercise?',
+    'workout.removeMachine.message':
+        '"{name}" will only be removed from this workout session.',
+    'workout.removeMachine.confirm': 'Remove',
+    'workout.emptySession':
+        'No exercises in this session. Use + to add a machine.',
     'services.aiWorkout.generateError':
         'Unable to generate the workout automatically',
     'services.workouts.loadError': 'Unable to load the workouts',

@@ -81,7 +81,12 @@ export function AddMachineModal(props: AddMachineModalProps) {
 
     const handleAdd = () => {
         if (!selectedMachineId) return
-        onAdd(selectedMachineId)
+        const selectedMachine = machines.find(
+            (machine) => machine.id === selectedMachineId,
+        )
+        if (!selectedMachine) return
+
+        onAdd(selectedMachine)
         handleClose()
     }
 

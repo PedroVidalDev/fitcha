@@ -3,6 +3,7 @@ import { useWorkouts } from '@/src/hooks/useWorkouts'
 import { useFocusEffect } from '@react-navigation/native'
 import { useCallback, useLayoutEffect, useState } from 'react'
 import { useI18n } from '../../contexts/I18nContext'
+import { type CatalogMachine } from '../../dtos/CatalogMachine'
 import { type DayDeleteTarget, type UseDayScreenParams } from './types'
 
 export function useDayScreen(params: UseDayScreenParams) {
@@ -90,8 +91,8 @@ export function useDayScreen(params: UseDayScreenParams) {
     )
 
     const handleAddMachine = useCallback(
-        async (catalogMachineId: string) => {
-            await addMachineToWorkout(workoutId, catalogMachineId)
+        async (machine: CatalogMachine) => {
+            await addMachineToWorkout(workoutId, machine.id)
             await refresh()
         },
         [addMachineToWorkout, refresh, workoutId],
