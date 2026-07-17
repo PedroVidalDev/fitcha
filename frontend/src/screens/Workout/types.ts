@@ -20,12 +20,12 @@ export type WorkoutMachine = ReturnType<
     catalogMachineId?: string
     substitutionGroup?: string
     isTemporary?: boolean
+    replacesMachineId?: string
 }
 
 export type TemporaryWorkoutMachine = WorkoutMachine & {
     catalogMachineId: string
     isTemporary: true
-    replacesMachineId?: string
 }
 
 export type WorkoutResult =

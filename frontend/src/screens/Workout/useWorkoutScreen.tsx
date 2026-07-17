@@ -35,6 +35,28 @@ import {
     WORKOUT_SET_KEYS,
 } from './types'
 
+function createTemporaryMachine(
+    catalogMachine: CatalogMachine,
+    replacesMachineId?: string,
+): TemporaryWorkoutMachine {
+    return {
+        id: `temporary:${catalogMachine.id}`,
+        catalogMachineId: catalogMachine.id,
+        isTemporary: true,
+        ...(replacesMachineId ? { replacesMachineId } : {}),
+        name: catalogMachine.name,
+        description: catalogMachine.description,
+        photo: catalogMachine.photo,
+        categoryKey: catalogMachine.categoryKey,
+        substitutionGroup: catalogMachine.substitutionGroup,
+        trackingType: catalogMachine.trackingType,
+        requiresWeight: catalogMachine.requiresWeight,
+        lastWeight: null,
+        lastSets: null,
+        recordSets: null,
+    }
+}
+
 export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     const { navigation, route } = params
     const workoutId = route.params.workoutId
@@ -60,13 +82,30 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     const slideAnim = useRef(new RNAnimated.Value(30)).current
     const fadeAnim = useRef(new RNAnimated.Value(0)).current
 
-    const sessionMachines = useMemo<WorkoutMachine[]>(
-        () =>
-            [...machines, ...temporaryMachines].filter(
-                (item) => !removedMachineIds.includes(item.id),
-            ),
-        [machines, removedMachineIds, temporaryMachines],
-    )
+    const sessionMachines = useMemo<WorkoutMachine[]>(() => {
+        const replacements = new Map(
+            temporaryMachines
+                .filter((item) => !!item.replacesMachineId)
+                .map((item) => [item.replacesMachineId, item]),
+        )
+        const plannedMachines = machines.reduce<WorkoutMachine[]>(
+            (session, plannedMachine) => {
+                const replacement = replacements.get(plannedMachine.id)
+                if (replacement) {
+                    session.push(replacement)
+                } else if (!removedMachineIds.includes(plannedMachine.id)) {
+                    session.push(plannedMachine)
+                }
+                return session
+            },
+            [],
+        )
+        const addedMachines = temporaryMachines.filter(
+            (item) => !item.replacesMachineId,
+        )
+
+        return [...plannedMachines, ...addedMachines]
+    }, [machines, removedMachineIds, temporaryMachines])
     const machine = sessionMachines[currentIdx]
     const isLast = currentIdx === sessionMachines.length - 1
     const canGoPrev = currentIdx > 0
@@ -294,21 +333,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
             )
             if (alreadyInSession) return
 
-            const temporaryMachine: TemporaryWorkoutMachine = {
-                id: `temporary:${catalogMachine.id}`,
-                catalogMachineId: catalogMachine.id,
-                isTemporary: true,
-                name: catalogMachine.name,
-                description: catalogMachine.description,
-                photo: catalogMachine.photo,
-                categoryKey: catalogMachine.categoryKey,
-                substitutionGroup: catalogMachine.substitutionGroup,
-                trackingType: catalogMachine.trackingType,
-                requiresWeight: catalogMachine.requiresWeight,
-                lastWeight: null,
-                lastSets: null,
-                recordSets: null,
-            }
+            const temporaryMachine = createTemporaryMachine(catalogMachine)
 
             setTemporaryMachines((previous) => [...previous, temporaryMachine])
             setCurrentIdx(sessionMachines.length)
@@ -328,32 +353,26 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
                 return
             }
 
-            const temporaryMachine: TemporaryWorkoutMachine = {
-                id: `temporary:${catalogMachine.id}`,
-                catalogMachineId: catalogMachine.id,
-                isTemporary: true,
-                name: catalogMachine.name,
-                description: catalogMachine.description,
-                photo: catalogMachine.photo,
-                categoryKey: catalogMachine.categoryKey,
-                substitutionGroup: catalogMachine.substitutionGroup,
-                trackingType: catalogMachine.trackingType,
-                requiresWeight: catalogMachine.requiresWeight,
-                lastWeight: null,
-                lastSets: null,
-                recordSets: null,
-            }
+            const temporaryMachine = createTemporaryMachine(
+                catalogMachine,
+                machine.isTemporary ? machine.replacesMachineId : machine.id,
+            )
 
-            setTemporaryMachines((previous) => [
-                ...previous.filter((item) => item.id !== machine.id),
-                temporaryMachine,
-            ])
-            if (!machine.isTemporary) {
+            if (machine.isTemporary) {
+                setTemporaryMachines((previous) =>
+                    previous.map((item) =>
+                        item.id === machine.id ? temporaryMachine : item,
+                    ),
+                )
+            } else {
+                setTemporaryMachines((previous) => [
+                    ...previous,
+                    temporaryMachine,
+                ])
                 setRemovedMachineIds((previous) => [...previous, machine.id])
             }
-            setCurrentIdx(sessionMachines.length - 1)
         },
-        [drafts, machine, sessionMachines.length],
+        [drafts, machine],
     )
 
     const removeCurrentMachine = useCallback(() => {
