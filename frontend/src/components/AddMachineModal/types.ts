@@ -8,6 +8,7 @@ export type AddMachineModalProps = {
     onAdd: (machine: AddMachineCatalogMachine) => void
     substitutionGroup?: string
     excludedMachineIds?: string[]
+    hideCategoryFilters?: boolean
     titleKey?: TranslationKey
     actionLabelKey?: TranslationKey
 }

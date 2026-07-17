@@ -172,6 +172,7 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 excludedMachineIds={sessionCatalogMachineIds.filter(
                     (id) => id !== machine?.catalogMachineId,
                 )}
+                hideCategoryFilters
                 titleKey='workout.replaceMachine.title'
                 actionLabelKey='workout.replaceMachine.confirm'
             />

@@ -168,7 +168,15 @@ export function WorkoutMachineNavigator(props: WorkoutMachineNavigatorProps) {
                         color={t.textPrimary}
                     />
                 </TouchableOpacity>
+            </View>
 
+            <View
+                style={{
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    gap: 10,
+                }}
+            >
                 <TouchableOpacity
                     activeOpacity={0.75}
                     onPress={onPressAddMachine}

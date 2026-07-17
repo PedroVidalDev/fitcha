@@ -22,6 +22,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
         onAdd,
         substitutionGroup,
         excludedMachineIds = [],
+        hideCategoryFilters = false,
         titleKey,
         actionLabelKey,
     } = props
@@ -120,10 +121,12 @@ export function AddMachineModal(props: AddMachineModalProps) {
             >
                 <AddMachineModalHeader titleKey={titleKey} />
 
-                <AddMachineCategoryFilters
-                    categoryFilter={categoryFilter}
-                    onSelectFilter={setCategoryFilter}
-                />
+                {!hideCategoryFilters && (
+                    <AddMachineCategoryFilters
+                        categoryFilter={categoryFilter}
+                        onSelectFilter={setCategoryFilter}
+                    />
+                )}
 
                 <AddMachineSearchField value={query} onChangeText={setQuery} />
 
