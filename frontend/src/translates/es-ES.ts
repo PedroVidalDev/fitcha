@@ -195,6 +195,7 @@ export const esES: TranslationDictionary = {
     'categories.ombros': 'Hombros',
     'categories.biceps': 'Biceps',
     'categories.triceps': 'Triceps',
+    'categories.antebraco': 'Antebrazos',
     'categories.core': 'Core',
     'categories.cardio': 'Cardio',
     'addMachine.title': 'Nueva maquina',
@@ -475,6 +476,8 @@ export const esES: TranslationDictionary = {
     'workout.resume.confirm': 'Retomar entrenamiento',
     'workout.resume.cancel': 'Descartar',
     'workout.nextMachine': 'Siguiente maquina',
+    'workout.replaceMachine.title': 'Sustituir ejercicio',
+    'workout.replaceMachine.confirm': 'Sustituir',
     'workout.removeMachine.title': 'Eliminar ejercicio?',
     'workout.removeMachine.message':
         '"{name}" solo se eliminara de este entrenamiento en curso.',

@@ -44,6 +44,9 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         handleNextMachine,
         handleNext,
         handleAddTemporaryMachine,
+        handleReplaceCurrentMachine,
+        canReplaceCurrentMachine,
+        sessionCatalogMachineIds,
         handleRemoveMachine,
         handleSelectMachine,
         handleUpdateDraftField,
@@ -51,6 +54,8 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         handleDurationAction,
     } = useWorkoutScreen(props)
     const [isAddMachineModalVisible, setIsAddMachineModalVisible] =
+        useState(false)
+    const [isReplaceMachineModalVisible, setIsReplaceMachineModalVisible] =
         useState(false)
 
     if (isLoading) {
@@ -73,10 +78,14 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 canGoPrev={canGoPrev}
                 canGoNext={canGoNext}
                 canRemoveMachine={!!machine}
+                canReplaceMachine={canReplaceCurrentMachine}
                 onPressPrevious={handlePreviousMachine}
                 onPressNext={handleNextMachine}
                 onPressAddMachine={() => setIsAddMachineModalVisible(true)}
                 onPressRemoveMachine={handleRemoveMachine}
+                onPressReplaceMachine={() =>
+                    setIsReplaceMachineModalVisible(true)
+                }
                 onSelectMachine={handleSelectMachine}
             />
 
@@ -153,6 +162,18 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 visible={isAddMachineModalVisible}
                 onClose={() => setIsAddMachineModalVisible(false)}
                 onAdd={handleAddTemporaryMachine}
+            />
+
+            <AddMachineModal
+                visible={isReplaceMachineModalVisible}
+                onClose={() => setIsReplaceMachineModalVisible(false)}
+                onAdd={handleReplaceCurrentMachine}
+                substitutionGroup={machine?.substitutionGroup}
+                excludedMachineIds={sessionCatalogMachineIds.filter(
+                    (id) => id !== machine?.catalogMachineId,
+                )}
+                titleKey='workout.replaceMachine.title'
+                actionLabelKey='workout.replaceMachine.confirm'
             />
         </View>
     )

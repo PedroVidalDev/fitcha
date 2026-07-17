@@ -9,6 +9,7 @@ export type Machine = {
     description?: string
     photo?: string
     categoryKey: MachineCategoryKey
+    substitutionGroup?: string
     trackingType: MachineTrackingType
     requiresWeight: boolean
 }

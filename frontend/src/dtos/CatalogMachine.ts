@@ -8,6 +8,7 @@ export type CatalogMachine = {
     description?: string
     photo?: string
     categoryKey: MachineCategoryKey
+    substitutionGroup?: string
     trackingType: MachineTrackingType
     requiresWeight: boolean
     aliases: string[]

@@ -3,26 +3,28 @@ package dtos
 import "fitcha/internal/models"
 
 type MachineResponseType struct {
-	ID               string `json:"id"`
-	CatalogMachineID string `json:"catalogMachineId,omitempty"`
-	Name             string `json:"name"`
-	Description      string `json:"description,omitempty"`
-	Photo            string `json:"photo,omitempty"`
-	CategoryKey      string `json:"categoryKey"`
-	TrackingType     string `json:"trackingType"`
-	RequiresWeight   bool   `json:"requiresWeight"`
+	ID                string `json:"id"`
+	CatalogMachineID  string `json:"catalogMachineId,omitempty"`
+	Name              string `json:"name"`
+	Description       string `json:"description,omitempty"`
+	Photo             string `json:"photo,omitempty"`
+	CategoryKey       string `json:"categoryKey"`
+	SubstitutionGroup string `json:"substitutionGroup,omitempty"`
+	TrackingType      string `json:"trackingType"`
+	RequiresWeight    bool   `json:"requiresWeight"`
 }
 
 type CatalogMachineResponseType struct {
-	ID             string            `json:"id"`
-	Slug           string            `json:"slug"`
-	Name           string            `json:"name"`
-	Description    string            `json:"description,omitempty"`
-	Photo          string            `json:"photo,omitempty"`
-	CategoryKey    string            `json:"categoryKey"`
-	TrackingType   string            `json:"trackingType"`
-	RequiresWeight bool              `json:"requiresWeight"`
-	Aliases        models.StringList `json:"aliases"`
+	ID                string            `json:"id"`
+	Slug              string            `json:"slug"`
+	Name              string            `json:"name"`
+	Description       string            `json:"description,omitempty"`
+	Photo             string            `json:"photo,omitempty"`
+	CategoryKey       string            `json:"categoryKey"`
+	SubstitutionGroup string            `json:"substitutionGroup,omitempty"`
+	TrackingType      string            `json:"trackingType"`
+	RequiresWeight    bool              `json:"requiresWeight"`
+	Aliases           models.StringList `json:"aliases"`
 }
 
 func FromMachineModel(machine models.UserMachine) MachineResponseType {
@@ -33,6 +35,7 @@ func FromMachineModel(machine models.UserMachine) MachineResponseType {
 	trackingType := machine.EffectiveTrackingType()
 	requiresWeight := machine.EffectiveRequiresWeight()
 	catalogMachineID := ""
+	substitutionGroup := ""
 
 	if machine.Machine != nil {
 		catalogMachineID = machine.Machine.ID
@@ -45,6 +48,7 @@ func FromMachineModel(machine models.UserMachine) MachineResponseType {
 		if machine.Machine.CategoryKey != "" {
 			categoryKey = machine.Machine.CategoryKey
 		}
+		substitutionGroup = machine.Machine.SubstitutionGroup
 		trackingType = machine.Machine.EffectiveTrackingType()
 		requiresWeight = machine.Machine.EffectiveRequiresWeight()
 		if photo == "" {
@@ -53,14 +57,15 @@ func FromMachineModel(machine models.UserMachine) MachineResponseType {
 	}
 
 	return MachineResponseType{
-		ID:               machine.ID,
-		CatalogMachineID: catalogMachineID,
-		Name:             name,
-		Description:      description,
-		Photo:            photo,
-		CategoryKey:      categoryKey,
-		TrackingType:     trackingType,
-		RequiresWeight:   requiresWeight,
+		ID:                machine.ID,
+		CatalogMachineID:  catalogMachineID,
+		Name:              name,
+		Description:       description,
+		Photo:             photo,
+		CategoryKey:       categoryKey,
+		SubstitutionGroup: substitutionGroup,
+		TrackingType:      trackingType,
+		RequiresWeight:    requiresWeight,
 	}
 }
 
@@ -76,15 +81,16 @@ func FromMachineModels(machines []models.UserMachine) []MachineResponseType {
 
 func FromCatalogMachineModel(machine models.Machine) CatalogMachineResponseType {
 	return CatalogMachineResponseType{
-		ID:             machine.ID,
-		Slug:           machine.Slug,
-		Name:           machine.Name,
-		Description:    machine.Description,
-		Photo:          machine.Photo,
-		CategoryKey:    machine.CategoryKey,
-		TrackingType:   machine.EffectiveTrackingType(),
-		RequiresWeight: machine.EffectiveRequiresWeight(),
-		Aliases:        machine.Aliases,
+		ID:                machine.ID,
+		Slug:              machine.Slug,
+		Name:              machine.Name,
+		Description:       machine.Description,
+		Photo:             machine.Photo,
+		CategoryKey:       machine.CategoryKey,
+		SubstitutionGroup: machine.SubstitutionGroup,
+		TrackingType:      machine.EffectiveTrackingType(),
+		RequiresWeight:    machine.EffectiveRequiresWeight(),
+		Aliases:           machine.Aliases,
 	}
 }
 

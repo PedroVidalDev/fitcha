@@ -1456,6 +1456,7 @@ func allMachineCategoryKeys() []string {
 		string(models.MachineCategoryOmbros),
 		string(models.MachineCategoryBiceps),
 		string(models.MachineCategoryTriceps),
+		string(models.MachineCategoryAntebraco),
 		string(models.MachineCategoryCore),
 		string(models.MachineCategoryCardio),
 	}
@@ -1820,14 +1821,15 @@ func extractMentionedWorkoutCategories(categoryName string) []string {
 	}
 
 	categoryAliases := map[string][]string{
-		string(models.MachineCategoryPeito):   {"peito", "peitoral", "peitorais"},
-		string(models.MachineCategoryCostas):  {"costas", "dorsal", "dorsais", "dorso"},
-		string(models.MachineCategoryPernas):  {"perna", "pernas", "quadriceps", "posterior", "posteriores", "gluteo", "gluteos", "panturrilha", "panturrilhas"},
-		string(models.MachineCategoryOmbros):  {"ombro", "ombros", "deltoide", "deltoides"},
-		string(models.MachineCategoryBiceps):  {"biceps", "bicep"},
-		string(models.MachineCategoryTriceps): {"triceps", "tricep"},
-		string(models.MachineCategoryCore):    {"core", "abdomen", "abdome", "abdominal", "abdominais", "obliquo", "obliquos", "lombar"},
-		string(models.MachineCategoryCardio):  {"cardio", "aerobico", "aerobicos", "condicionamento"},
+		string(models.MachineCategoryPeito):     {"peito", "peitoral", "peitorais"},
+		string(models.MachineCategoryCostas):    {"costas", "dorsal", "dorsais", "dorso"},
+		string(models.MachineCategoryPernas):    {"perna", "pernas", "quadriceps", "posterior", "posteriores", "gluteo", "gluteos", "panturrilha", "panturrilhas"},
+		string(models.MachineCategoryOmbros):    {"ombro", "ombros", "deltoide", "deltoides"},
+		string(models.MachineCategoryBiceps):    {"biceps", "bicep"},
+		string(models.MachineCategoryTriceps):   {"triceps", "tricep"},
+		string(models.MachineCategoryAntebraco): {"antebraco", "antebraço", "punho", "pegada", "grip"},
+		string(models.MachineCategoryCore):      {"core", "abdomen", "abdome", "abdominal", "abdominais", "obliquo", "obliquos", "lombar"},
+		string(models.MachineCategoryCardio):    {"cardio", "aerobico", "aerobicos", "condicionamento"},
 	}
 
 	type categoryMatch struct {

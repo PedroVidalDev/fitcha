@@ -113,6 +113,10 @@ function normalizeMachine(value: unknown): Machine | null {
         photo:
             typeof candidate.photo === 'string' ? candidate.photo : undefined,
         categoryKey: candidate.categoryKey,
+        substitutionGroup:
+            typeof candidate.substitutionGroup === 'string'
+                ? candidate.substitutionGroup
+                : undefined,
         trackingType,
         requiresWeight,
     }

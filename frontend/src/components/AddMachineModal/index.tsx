@@ -16,7 +16,15 @@ import {
 } from './types'
 
 export function AddMachineModal(props: AddMachineModalProps) {
-    const { visible, onClose, onAdd } = props
+    const {
+        visible,
+        onClose,
+        onAdd,
+        substitutionGroup,
+        excludedMachineIds = [],
+        titleKey,
+        actionLabelKey,
+    } = props
     const [machines, setMachines] = useState<AddMachineCatalogMachine[]>([])
     const [query, setQuery] = useState('')
     const [categoryFilter, setCategoryFilter] =
@@ -52,6 +60,13 @@ export function AddMachineModal(props: AddMachineModalProps) {
 
         return machines.filter((machine) => {
             if (
+                (substitutionGroup &&
+                    machine.substitutionGroup !== substitutionGroup) ||
+                excludedMachineIds.includes(machine.id)
+            ) {
+                return false
+            }
+            if (
                 categoryFilter !== 'all' &&
                 machine.categoryKey !== categoryFilter
             ) {
@@ -70,7 +85,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
 
             return haystack.includes(normalizedQuery)
         })
-    }, [categoryFilter, machines, query])
+    }, [categoryFilter, excludedMachineIds, machines, query, substitutionGroup])
 
     const handleClose = () => {
         setQuery('')
@@ -103,7 +118,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                 bounces={false}
                 keyboardShouldPersistTaps='handled'
             >
-                <AddMachineModalHeader />
+                <AddMachineModalHeader titleKey={titleKey} />
 
                 <AddMachineCategoryFilters
                     categoryFilter={categoryFilter}
@@ -129,6 +144,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                 canAdd={!!selectedMachineId}
                 onClose={handleClose}
                 onAdd={handleAdd}
+                actionLabelKey={actionLabelKey}
             />
         </AppModal>
     )

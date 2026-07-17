@@ -5,7 +5,12 @@ import { useTheme } from '@/src/contexts/ThemeContext'
 import { type AddMachineFooterActionsProps } from './types'
 
 export function AddMachineFooterActions(props: AddMachineFooterActionsProps) {
-    const { canAdd, onClose, onAdd } = props
+    const {
+        canAdd,
+        onClose,
+        onAdd,
+        actionLabelKey = 'common.actions.add',
+    } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
 
@@ -51,7 +56,7 @@ export function AddMachineFooterActions(props: AddMachineFooterActionsProps) {
                             fontWeight: '800',
                         }}
                     >
-                        {translate('common.actions.add')}
+                        {translate(actionLabelKey)}
                     </Text>
                 </LinearGradient>
             </TouchableOpacity>

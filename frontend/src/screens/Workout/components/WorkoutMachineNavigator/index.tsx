@@ -10,10 +10,12 @@ export function WorkoutMachineNavigator(props: WorkoutMachineNavigatorProps) {
         canGoPrev,
         canGoNext,
         canRemoveMachine,
+        canReplaceMachine,
         onPressPrevious,
         onPressNext,
         onPressAddMachine,
         onPressRemoveMachine,
+        onPressReplaceMachine,
         onSelectMachine,
     } = props
     const { t } = useTheme()
@@ -182,6 +184,29 @@ export function WorkoutMachineNavigator(props: WorkoutMachineNavigatorProps) {
                     }}
                 >
                     <Ionicons name='add' size={24} color={t.accent} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={onPressReplaceMachine}
+                    disabled={!canReplaceMachine}
+                    style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 14,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: t.inputBg,
+                        borderWidth: 1,
+                        borderColor: t.border,
+                        opacity: canReplaceMachine ? 1 : 0.4,
+                    }}
+                >
+                    <Ionicons
+                        name='swap-horizontal'
+                        size={20}
+                        color={t.textMuted}
+                    />
                 </TouchableOpacity>
 
                 <TouchableOpacity

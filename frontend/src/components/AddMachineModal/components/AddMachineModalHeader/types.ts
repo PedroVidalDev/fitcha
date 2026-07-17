@@ -1,1 +1,5 @@
-export type AddMachineModalHeaderProps = Record<string, never>
+import { type TranslationKey } from '@/src/translates'
+
+export type AddMachineModalHeaderProps = {
+    titleKey?: TranslationKey
+}

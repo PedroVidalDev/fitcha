@@ -192,6 +192,7 @@ export const ptBR = {
     'categories.ombros': 'Ombros',
     'categories.biceps': 'Bíceps',
     'categories.triceps': 'Tríceps',
+    'categories.antebraco': 'Antebraço',
     'categories.core': 'Core',
     'categories.cardio': 'Cardio',
     'addMachine.title': 'Nova máquina',
@@ -468,6 +469,8 @@ export const ptBR = {
     'workout.resume.confirm': 'Retomar treino',
     'workout.resume.cancel': 'Descartar',
     'workout.nextMachine': 'Próxima máquina',
+    'workout.replaceMachine.title': 'Substituir exercício',
+    'workout.replaceMachine.confirm': 'Substituir',
     'workout.removeMachine.title': 'Remover exercício?',
     'workout.removeMachine.message':
         '"{name}" será removido apenas deste treino em andamento.',

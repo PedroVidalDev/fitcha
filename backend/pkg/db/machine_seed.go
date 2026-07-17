@@ -12,7 +12,7 @@ import (
 func SeedCatalogMachines(db *gorm.DB) error {
 	repo := repositories.NewMachineRepository(db)
 
-	return repo.UpsertMany([]models.Machine{
+	machines := []models.Machine{
 		// Peito
 		catalogMachine(1, "supino-reto-barra", "Supino reto com barra", "Exercicio composto para peitoral, com foco em controle do movimento e estabilidade dos ombros.", "peito", "supino reto", "bench press", "press reto"),
 		catalogMachine(2, "supino-inclinado-halteres", "Supino inclinado com halteres", "Variacao inclinada para peitoral superior, pedindo controle na descida e alinhamento dos cotovelos.", "peito", "supino inclinado", "incline dumbbell press"),
@@ -42,6 +42,9 @@ func SeedCatalogMachines(db *gorm.DB) error {
 		catalogMachine(24, "remada-serrote", "Remada serrote", "Variacao de remada unilateral com apoio, priorizando amplitude e estabilidade.", "costas", "serrote", "supported one arm row"),
 		catalogMachine(25, "puxada-fechada", "Puxada fechada", "Puxada vertical com pegada mais fechada para dorsais e redondos.", "costas", "close grip pulldown", "pulldown fechado"),
 		catalogMachine(26, "remada-baixa-corda", "Remada baixa com corda", "Variacao de remada no cabo que favorece amplitude final e contracao das costas.", "costas", "cable row rope", "remada corda"),
+		catalogMachine(101, "puxada-alta-aberta-pronada", "Puxada alta aberta pronada", "Puxada vertical com pegada aberta para dorsais, mantendo o tronco estavel e o peito elevado.", "costas", "puxada alta aberta", "wide grip lat pulldown"),
+		catalogMachine(102, "puxada-alta-unilateral", "Puxada alta unilateral", "Puxada no cabo por um braco para trabalhar dorsais com ajuste fino de amplitude.", "costas", "single arm lat pulldown", "puxada unilateral"),
+		catalogMachine(103, "remada-chest-supported", "Remada com peito apoiado", "Remada apoiada para costas medias, reduzindo a demanda da lombar e favorecendo a retracao escapular.", "costas", "chest supported row", "remada banco inclinado"),
 
 		// Pernas
 		catalogMachine(27, "agachamento-livre", "Agachamento livre", "Exercicio base para pernas, com foco em postura, profundidade segura e controle do core.", "pernas", "squat", "agachamento barra"),
@@ -101,6 +104,13 @@ func SeedCatalogMachines(db *gorm.DB) error {
 		catalogMachine(75, "extensao-triceps-acima-cabeca-corda", "Extensao de triceps acima da cabeca com corda", "Movimento no cabo para cabeca longa do triceps com boa tensao em alongamento.", "triceps", "overhead rope extension", "triceps overhead"),
 		catalogMachine(76, "coice-triceps", "Coice de triceps", "Exercicio acessorio para triceps com foco em extensao total e cotovelo fixo.", "triceps", "triceps kickback", "coice"),
 
+		// Antebraco
+		catalogMachineNoWeight(104, "flexao-punho-halter", "Flexao de punho com halter", "Flexao controlada do punho para musculatura flexora do antebraco.", "antebraco", "wrist curl", "rosca punho"),
+		catalogMachineNoWeight(105, "extensao-punho-halter", "Extensao de punho com halter", "Extensao controlada do punho para musculatura extensora do antebraco.", "antebraco", "reverse wrist curl", "extensao punho"),
+		catalogMachine(106, "rosca-inversa-cabo", "Rosca inversa no cabo", "Rosca pronada com tensao continua para braquiorradial e extensores do antebraco.", "antebraco", "cable reverse curl", "rosca pronada polia"),
+		catalogMachineNoWeight(107, "farmer-walk", "Caminhada do fazendeiro", "Caminhada carregada para pegada, estabilidade de tronco e resistencia do antebraco.", "antebraco", "farmer carry", "farmer walk"),
+		catalogMachineNoWeight(108, "dead-hang", "Suspensao na barra", "Suspensao estatica para desenvolver resistencia de pegada e antebracos.", "antebraco", "bar hang", "dead hang"),
+
 		// Core
 		catalogMachineDuration(77, "prancha", "Prancha", "Exercicio isometrico para core com foco em alinhamento corporal e respiracao.", "core", "plank", "prancha abdominal"),
 		catalogMachine(78, "abdominal-cabo", "Abdominal no cabo", "Flexao de tronco no cabo para core, com foco em encurtamento controlado e sem puxar com os bracos.", "core", "cable crunch", "abdominal polia"),
@@ -128,7 +138,44 @@ func SeedCatalogMachines(db *gorm.DB) error {
 		catalogMachineDuration(98, "transport", "Transport", "Equipamento de cardio com passada guiada e baixo impacto articular.", "cardio", "glider", "simulador de caminhada"),
 		catalogMachineDuration(99, "pular-corda", "Pular corda", "Cardio dinamico para coordenacao, agilidade e resistencia.", "cardio", "jump rope", "corda"),
 		catalogMachineDuration(100, "battle-rope", "Battle rope", "Condicionamento metabolico com cordas, exigindo potencia e ritmo de membros superiores.", "cardio", "corda naval", "ropes"),
-	})
+	}
+
+	applyCatalogSubstitutionGroups(machines)
+	return repo.UpsertMany(machines)
+}
+
+func applyCatalogSubstitutionGroups(machines []models.Machine) {
+	groups := map[string][]string{
+		"chest_upper_press":          {"supino-inclinado-halteres", "supino-inclinado-barra"},
+		"chest_mid_press":            {"supino-reto-barra", "supino-reto-halteres", "chest-press-maquina"},
+		"chest_mid_fly":              {"crucifixo-maquina", "crucifixo-halteres", "crossover-polia-media"},
+		"back_vertical_pull":         {"puxada-frontal", "puxada-supinada", "puxada-neutra-triangulo", "barra-fixa", "puxada-fechada", "puxada-alta-aberta-pronada", "puxada-alta-unilateral"},
+		"back_horizontal_row":        {"remada-baixa", "remada-curvada-barra", "remada-unilateral-halter", "remada-cavalinho", "remada-maquina-articulada", "remada-serrote", "remada-baixa-corda", "remada-chest-supported"},
+		"quad_compound":              {"agachamento-livre", "leg-press-45", "hack-squat", "agachamento-smith", "leg-press-horizontal"},
+		"hamstring_knee_flexion":     {"mesa-flexora", "cadeira-flexora"},
+		"hip_hinge":                  {"stiff-barra", "levantamento-terra-romeno"},
+		"glute_hip_extension":        {"gluteo-polia", "elevacao-pelvica-barra"},
+		"shoulder_vertical_press":    {"desenvolvimento-halteres", "desenvolvimento-barra", "desenvolvimento-maquina", "desenvolvimento-arnold"},
+		"lateral_delt_raise":         {"elevacao-lateral", "elevacao-lateral-polia"},
+		"biceps_supinated_curl":      {"rosca-direta-barra", "rosca-alternada-halteres", "rosca-scott", "rosca-concentrada", "rosca-cabo", "rosca-unilateral-polia", "rosca-inclinada-halteres"},
+		"triceps_pushdown":           {"triceps-corda", "triceps-polia-barra-reta", "triceps-unilateral-polia"},
+		"triceps_overhead_extension": {"triceps-frances-halter", "extensao-triceps-acima-cabeca-corda", "triceps-testa-barra"},
+		"core_trunk_flexion":         {"abdominal-cabo", "abdominal-maquina", "crunch-solo"},
+		"cardio_bike":                {"bicicleta-ergometrica", "bicicleta-spinning", "bicicleta-horizontal", "air-bike"},
+		"cardio_treadmill":           {"esteira", "caminhada-inclinada-esteira", "corrida-intervalada-esteira"},
+		"forearm_pronated_curl":      {"rosca-inversa-barra", "rosca-inversa-cabo"},
+		"forearm_grip":               {"farmer-walk", "dead-hang"},
+	}
+
+	bySlug := make(map[string]string)
+	for group, slugs := range groups {
+		for _, slug := range slugs {
+			bySlug[slug] = group
+		}
+	}
+	for index := range machines {
+		machines[index].SubstitutionGroup = bySlug[machines[index].Slug]
+	}
 }
 
 func catalogMachine(id int, slug, name, description, categoryKey string, aliases ...string) models.Machine {

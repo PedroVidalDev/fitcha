@@ -12,14 +12,15 @@ type MachineCategoryKey string
 type MachineTrackingType string
 
 const (
-	MachineCategoryPeito   MachineCategoryKey = "peito"
-	MachineCategoryCostas  MachineCategoryKey = "costas"
-	MachineCategoryPernas  MachineCategoryKey = "pernas"
-	MachineCategoryOmbros  MachineCategoryKey = "ombros"
-	MachineCategoryBiceps  MachineCategoryKey = "biceps"
-	MachineCategoryTriceps MachineCategoryKey = "triceps"
-	MachineCategoryCore    MachineCategoryKey = "core"
-	MachineCategoryCardio  MachineCategoryKey = "cardio"
+	MachineCategoryPeito     MachineCategoryKey = "peito"
+	MachineCategoryCostas    MachineCategoryKey = "costas"
+	MachineCategoryPernas    MachineCategoryKey = "pernas"
+	MachineCategoryOmbros    MachineCategoryKey = "ombros"
+	MachineCategoryBiceps    MachineCategoryKey = "biceps"
+	MachineCategoryTriceps   MachineCategoryKey = "triceps"
+	MachineCategoryAntebraco MachineCategoryKey = "antebraco"
+	MachineCategoryCore      MachineCategoryKey = "core"
+	MachineCategoryCardio    MachineCategoryKey = "cardio"
 
 	MachineTrackingTypeSets     MachineTrackingType = "sets"
 	MachineTrackingTypeDuration MachineTrackingType = "duration"
@@ -71,17 +72,18 @@ func (l *StringList) Scan(value any) error {
 }
 
 type Machine struct {
-	ID             string     `gorm:"primaryKey;size:16" json:"id"`
-	CreatedAt      time.Time  `json:"createdAt"`
-	UpdatedAt      time.Time  `json:"updatedAt"`
-	Slug           string     `gorm:"size:120;not null;uniqueIndex" json:"slug"`
-	Name           string     `gorm:"size:120;not null" json:"name"`
-	Description    string     `gorm:"type:text" json:"description"`
-	Photo          string     `gorm:"type:text" json:"photo"`
-	CategoryKey    string     `gorm:"size:30;not null;index" json:"categoryKey"`
-	TrackingType   string     `gorm:"size:30;not null;default:'sets'" json:"trackingType"`
-	RequiresWeight bool       `gorm:"not null" json:"requiresWeight"`
-	Aliases        StringList `gorm:"type:jsonb;not null;default:'[]'" json:"aliases"`
+	ID                string     `gorm:"primaryKey;size:16" json:"id"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
+	Slug              string     `gorm:"size:120;not null;uniqueIndex" json:"slug"`
+	Name              string     `gorm:"size:120;not null" json:"name"`
+	Description       string     `gorm:"type:text" json:"description"`
+	Photo             string     `gorm:"type:text" json:"photo"`
+	CategoryKey       string     `gorm:"size:30;not null;index" json:"categoryKey"`
+	SubstitutionGroup string     `gorm:"size:80;not null;default:'';index" json:"substitutionGroup"`
+	TrackingType      string     `gorm:"size:30;not null;default:'sets'" json:"trackingType"`
+	RequiresWeight    bool       `gorm:"not null" json:"requiresWeight"`
+	Aliases           StringList `gorm:"type:jsonb;not null;default:'[]'" json:"aliases"`
 }
 
 func (Machine) TableName() string {
@@ -96,6 +98,7 @@ func IsValidMachineCategoryKey(key string) bool {
 		MachineCategoryOmbros,
 		MachineCategoryBiceps,
 		MachineCategoryTriceps,
+		MachineCategoryAntebraco,
 		MachineCategoryCore,
 		MachineCategoryCardio:
 		return true

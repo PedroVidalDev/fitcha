@@ -302,6 +302,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
                 description: catalogMachine.description,
                 photo: catalogMachine.photo,
                 categoryKey: catalogMachine.categoryKey,
+                substitutionGroup: catalogMachine.substitutionGroup,
                 trackingType: catalogMachine.trackingType,
                 requiresWeight: catalogMachine.requiresWeight,
                 lastWeight: null,
@@ -313,6 +314,46 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
             setCurrentIdx(sessionMachines.length)
         },
         [sessionMachines],
+    )
+
+    const handleReplaceCurrentMachine = useCallback(
+        (catalogMachine: CatalogMachine) => {
+            if (
+                !machine ||
+                !machine.substitutionGroup ||
+                machine.substitutionGroup !==
+                    catalogMachine.substitutionGroup ||
+                hasDraftValue(machine, drafts[machine.id])
+            ) {
+                return
+            }
+
+            const temporaryMachine: TemporaryWorkoutMachine = {
+                id: `temporary:${catalogMachine.id}`,
+                catalogMachineId: catalogMachine.id,
+                isTemporary: true,
+                name: catalogMachine.name,
+                description: catalogMachine.description,
+                photo: catalogMachine.photo,
+                categoryKey: catalogMachine.categoryKey,
+                substitutionGroup: catalogMachine.substitutionGroup,
+                trackingType: catalogMachine.trackingType,
+                requiresWeight: catalogMachine.requiresWeight,
+                lastWeight: null,
+                lastSets: null,
+                recordSets: null,
+            }
+
+            setTemporaryMachines((previous) => [
+                ...previous.filter((item) => item.id !== machine.id),
+                temporaryMachine,
+            ])
+            if (!machine.isTemporary) {
+                setRemovedMachineIds((previous) => [...previous, machine.id])
+            }
+            setCurrentIdx(sessionMachines.length - 1)
+        },
+        [drafts, machine, sessionMachines.length],
     )
 
     const removeCurrentMachine = useCallback(() => {
@@ -739,6 +780,14 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         handleNextMachine: goToNextMachine,
         handleNext,
         handleAddTemporaryMachine,
+        handleReplaceCurrentMachine,
+        canReplaceCurrentMachine:
+            !!machine &&
+            !!machine.substitutionGroup &&
+            !hasDraftValue(machine, drafts[machine.id]),
+        sessionCatalogMachineIds: sessionMachines
+            .map((item) => item.catalogMachineId)
+            .filter((id): id is string => !!id),
         handleRemoveMachine,
         handleSelectMachine: goToMachine,
         handleUpdateDraftField: updateDraftField,

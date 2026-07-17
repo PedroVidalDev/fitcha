@@ -36,6 +36,12 @@ export const MACHINE_CATEGORIES = [
         color: '#7F77DD',
     },
     {
+        key: 'antebraco',
+        label: 'Antebraço',
+        labelKey: 'categories.antebraco',
+        color: '#A66E3E',
+    },
+    {
         key: 'core',
         label: 'Core',
         labelKey: 'categories.core',

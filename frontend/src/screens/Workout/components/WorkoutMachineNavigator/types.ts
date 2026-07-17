@@ -8,9 +8,11 @@ export type WorkoutMachineNavigatorProps = {
     canGoPrev: boolean
     canGoNext: boolean
     canRemoveMachine: boolean
+    canReplaceMachine: boolean
     onPressPrevious: () => void
     onPressNext: () => void
     onPressAddMachine: () => void
     onPressRemoveMachine: () => void
+    onPressReplaceMachine: () => void
     onSelectMachine: (index: number) => void
 }

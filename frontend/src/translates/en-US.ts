@@ -193,6 +193,7 @@ export const enUS: TranslationDictionary = {
     'categories.ombros': 'Shoulders',
     'categories.biceps': 'Biceps',
     'categories.triceps': 'Triceps',
+    'categories.antebraco': 'Forearms',
     'categories.core': 'Core',
     'categories.cardio': 'Cardio',
     'addMachine.title': 'New machine',
@@ -468,6 +469,8 @@ export const enUS: TranslationDictionary = {
     'workout.resume.confirm': 'Resume workout',
     'workout.resume.cancel': 'Discard',
     'workout.nextMachine': 'Next machine',
+    'workout.replaceMachine.title': 'Replace exercise',
+    'workout.replaceMachine.confirm': 'Replace',
     'workout.removeMachine.title': 'Remove exercise?',
     'workout.removeMachine.message':
         '"{name}" will only be removed from this workout session.',

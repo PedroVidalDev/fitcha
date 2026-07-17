@@ -18,12 +18,14 @@ export type WorkoutMachine = ReturnType<
     typeof useWorkoutMachines
 >['machines'][number] & {
     catalogMachineId?: string
+    substitutionGroup?: string
     isTemporary?: boolean
 }
 
 export type TemporaryWorkoutMachine = WorkoutMachine & {
     catalogMachineId: string
     isTemporary: true
+    replacesMachineId?: string
 }
 
 export type WorkoutResult =

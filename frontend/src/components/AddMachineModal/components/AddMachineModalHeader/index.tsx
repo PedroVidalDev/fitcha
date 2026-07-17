@@ -1,8 +1,10 @@
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { Text } from 'react-native'
+import { type AddMachineModalHeaderProps } from './types'
 
-export function AddMachineModalHeader() {
+export function AddMachineModalHeader(props: AddMachineModalHeaderProps) {
+    const { titleKey = 'addMachine.title' } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
 
@@ -15,7 +17,7 @@ export function AddMachineModalHeader() {
                 marginBottom: 18,
             }}
         >
-            {translate('addMachine.title')}
+            {translate(titleKey)}
         </Text>
     )
 }
