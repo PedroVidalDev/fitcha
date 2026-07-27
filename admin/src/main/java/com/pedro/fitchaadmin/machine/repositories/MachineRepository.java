@@ -1,5 +1,9 @@
 package com.pedro.fitchaadmin.machine.repositories;
 
-public class MachineRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.pedro.fitchaadmin.machine.entities.Machine;
+
+public interface MachineRepository extends JpaRepository<Machine, String> {
     
 }
