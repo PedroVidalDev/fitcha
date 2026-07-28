@@ -7,8 +7,11 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      ADMIN_DB_URL: ${ADMIN_DB_URL:?Set ADMIN_DB_URL in Dockhand stack variables}
+      ADMIN_DB_USER: ${ADMIN_DB_USER:?Set ADMIN_DB_USER in Dockhand stack variables}
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?Set ADMIN_DB_PASSWORD in Dockhand stack variables}
+      SERVER_PORT: ${SERVER_PORT:-8081}
     ports:
       - "${ADMIN_HOST_PORT:-8081}:${SERVER_PORT:-8081}"
     healthcheck:
