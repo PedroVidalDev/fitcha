@@ -2,6 +2,7 @@ package com.pedro.fitchaadmin.user.entities;
 
 import com.pedro.fitchaadmin.user.dtos.CreateUserDTO;
 import com.pedro.fitchaadmin.user.dtos.UpdateUserDTO;
+import com.pedro.fitchaadmin.user.enums.UserRole;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,11 +24,15 @@ public class User {
     private String name;
     private String email;
     private String password;
+    private UserRole role;
+    private boolean isActive;
 
     public User(CreateUserDTO createUserDTO) {
         this.name = createUserDTO.name();
         this.email = createUserDTO.email();
         this.password = createUserDTO.password();
+        this.role = createUserDTO.role();
+        this.isActive = true;
     }
 
     public void updateFields(UpdateUserDTO updateUserDTO) {
@@ -41,6 +46,10 @@ public class User {
 
         if (updateUserDTO.password() != null) {
             this.password = updateUserDTO.password();
+        }
+
+        if (updateUserDTO.role() != null) {
+            this.role = updateUserDTO.role();
         }
     }
 }

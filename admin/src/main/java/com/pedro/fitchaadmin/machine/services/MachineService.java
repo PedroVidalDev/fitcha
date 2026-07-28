@@ -3,12 +3,15 @@ package com.pedro.fitchaadmin.machine.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
 import com.pedro.fitchaadmin.machine.dtos.CreateMachineDTO;
 import com.pedro.fitchaadmin.machine.dtos.MachineDTO;
 import com.pedro.fitchaadmin.machine.dtos.UpdateMachineDTO;
 import com.pedro.fitchaadmin.machine.entities.Machine;
 import com.pedro.fitchaadmin.machine.repositories.MachineRepository;
 
+@Service()
 public class MachineService {
     private final MachineRepository repository;
 

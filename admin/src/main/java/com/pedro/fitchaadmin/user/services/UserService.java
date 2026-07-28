@@ -3,12 +3,15 @@ package com.pedro.fitchaadmin.user.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
 import com.pedro.fitchaadmin.user.dtos.CreateUserDTO;
 import com.pedro.fitchaadmin.user.dtos.UserDTO;
 import com.pedro.fitchaadmin.user.dtos.UpdateUserDTO;
 import com.pedro.fitchaadmin.user.entities.User;
 import com.pedro.fitchaadmin.user.repositories.UserRepository;
 
+@Service()
 public class UserService {
     private final UserRepository repository;
 
