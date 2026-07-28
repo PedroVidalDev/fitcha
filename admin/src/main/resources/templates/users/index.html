@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Usuários', 'users', ~{::section})}">
+<section class="page-stack">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">Acesso ao painel</span>
+            <h2>Usuários administrativos</h2>
+            <p>Gerencie quem pode entrar no painel e qual nível de acesso possui.</p>
+        </div>
+        <a class="button button-primary" th:href="@{/users/new}">Novo usuário</a>
+    </div>
+
+    <article class="panel">
+        <div class="panel-toolbar">
+            <label class="search-field">
+                <span aria-hidden="true">⌕</span>
+                <input type="search" placeholder="Buscar por nome ou e-mail" data-table-search="users-table">
+            </label>
+            <span class="result-count">
+                <strong th:text="${users.size()}">0</strong>
+                <span th:text="${users.size() == 1 ? 'usuário' : 'usuários'}">usuários</span>
+            </span>
+        </div>
+
+        <div class="table-wrap" th:if="${!users.isEmpty()}">
+            <table class="data-table" id="users-table">
+                <thead>
+                    <tr>
+                        <th>Usuário</th>
+                        <th>Perfil</th>
+                        <th>Status</th>
+                        <th class="actions-column">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user : ${users}"
+                        data-search-row
+                        th:attr="data-search-value=${user.name + ' ' + user.email + ' ' + user.role}">
+                        <td>
+                            <div class="identity-cell">
+                                <span class="list-avatar"
+                                      th:text="${#strings.isEmpty(user.name) ? '?' : #strings.substring(user.name, 0, 1).toUpperCase()}">U</span>
+                                <span>
+                                    <strong th:text="${user.name}">Nome</strong>
+                                    <small th:text="${user.email}">email@fitcha.com</small>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-purple" th:text="${user.role}">ADMIN</span>
+                        </td>
+                        <td>
+                            <span class="status-badge"
+                                  th:classappend="${user.active} ? ' is-active' : ' is-inactive'">
+                                <span></span>
+                                <span th:text="${user.active ? 'Ativo' : 'Inativo'}">Ativo</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="button button-ghost button-small"
+                                   th:href="@{/users/{id}/edit(id=${user.id})}">Editar</a>
+                                <form th:action="@{/users/{id}/delete(id=${user.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('Deseja realmente remover este usuário?');">
+                                    <button class="button button-danger button-small" type="submit">Excluir</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${users.isEmpty()}">
+            <span class="empty-icon" aria-hidden="true">U</span>
+            <h3>Nenhum usuário cadastrado</h3>
+            <p>Crie o primeiro acesso administrativo do painel.</p>
+            <a class="button button-primary" th:href="@{/users/new}">Criar usuário</a>
+        </div>
+    </article>
+</section>
+</html>

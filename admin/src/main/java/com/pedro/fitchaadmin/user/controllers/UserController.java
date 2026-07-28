@@ -1,25 +1,22 @@
 package com.pedro.fitchaadmin.user.controllers;
 
-import java.net.URI;
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.pedro.fitchaadmin.user.dtos.CreateUserDTO;
 import com.pedro.fitchaadmin.user.dtos.UpdateUserDTO;
 import com.pedro.fitchaadmin.user.dtos.UserDTO;
+import com.pedro.fitchaadmin.user.enums.UserRole;
 import com.pedro.fitchaadmin.user.services.UserService;
 
-@RestController
-@RequestMapping("users")
+@Controller
+@RequestMapping("/users")
 public class UserController {
     private final UserService service;
 
@@ -28,35 +25,58 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getUsers() {
-        return ResponseEntity.ok(this.service.getUsers());
+    public String getUsers(Model model) {
+        model.addAttribute("users", service.getUsers());
+        return "users/index";
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable String id) {
-        return ResponseEntity.ok(this.service.getUserById(id));
+    @GetMapping("/new")
+    public String createUserForm(Model model) {
+        model.addAttribute("user", new UserDTO(null, "", "", UserRole.ADMIN, true));
+        model.addAttribute("roles", UserRole.values());
+        model.addAttribute("editing", false);
+        return "users/form";
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody CreateUserDTO createUserDTO) {
-        UserDTO userDTO = this.service.createUser(createUserDTO);
-
-        URI location = URI.create("/users/" + userDTO.id());
-
-        return ResponseEntity.created(location).body(userDTO);
+    public String createUser(
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam UserRole role,
+            RedirectAttributes redirectAttributes
+    ) {
+        service.createUser(new CreateUserDTO(name, email, password, role));
+        redirectAttributes.addFlashAttribute("successMessage", "Usuário criado com sucesso.");
+        return "redirect:/users";
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable String id, @RequestBody UpdateUserDTO updateUserDTO) {
-        UserDTO userDTO = this.service.updateUser(id, updateUserDTO);
-
-        return ResponseEntity.ok(userDTO);
+    @GetMapping("/{id}/edit")
+    public String updateUserForm(@PathVariable String id, Model model) {
+        model.addAttribute("user", service.getUserById(id));
+        model.addAttribute("roles", UserRole.values());
+        model.addAttribute("editing", true);
+        return "users/form";
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity.HeadersBuilder<?> deleteUser(@PathVariable String id) {
-        this.service.deleteUser(id);
+    @PostMapping("/{id}")
+    public String updateUser(
+            @PathVariable String id,
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam(required = false) String password,
+            @RequestParam UserRole role,
+            RedirectAttributes redirectAttributes
+    ) {
+        service.updateUser(id, new UpdateUserDTO(name, email, password, role));
+        redirectAttributes.addFlashAttribute("successMessage", "Usuário atualizado com sucesso.");
+        return "redirect:/users";
+    }
 
-        return ResponseEntity.noContent();
+    @PostMapping("/{id}/delete")
+    public String deleteUser(@PathVariable String id, RedirectAttributes redirectAttributes) {
+        service.deleteUser(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Usuário removido com sucesso.");
+        return "redirect:/users";
     }
 }

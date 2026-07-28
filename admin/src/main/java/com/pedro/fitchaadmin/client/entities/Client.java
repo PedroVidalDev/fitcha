@@ -12,14 +12,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Table(name = "clients")
+@Table(name = "tb_users")
 @Entity(name = "Client")
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Client {
-    @Id @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String name;
     private String email;
     private String password;
@@ -39,7 +41,7 @@ public class Client {
             this.email = updateClientDTO.email();
         }
 
-        if (updateClientDTO.password() != null) {
+        if (updateClientDTO.password() != null && !updateClientDTO.password().isBlank()) {
             this.password = updateClientDTO.password();
         }
     }

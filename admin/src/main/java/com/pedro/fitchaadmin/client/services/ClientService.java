@@ -3,6 +3,7 @@ package com.pedro.fitchaadmin.client.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pedro.fitchaadmin.client.dtos.ClientDTO;
@@ -14,9 +15,11 @@ import com.pedro.fitchaadmin.client.repositories.ClientRepository;
 @Service()
 public class ClientService {
     private final ClientRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
-    public ClientService(ClientRepository repository) {
+    public ClientService(ClientRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<ClientDTO> getClients() {
@@ -25,7 +28,7 @@ public class ClientService {
                 .toList();
     }
 
-    public ClientDTO getClientById(String id) {
+    public ClientDTO getClientById(Long id) {
         Optional<Client> client = repository.findById(id);
 
         if (client.isEmpty()) {
@@ -36,27 +39,47 @@ public class ClientService {
     }
 
     public ClientDTO createClient(CreateClientDTO createClientDTO) {
-        Client client = new Client(createClientDTO);
+        CreateClientDTO securedClientDTO = new CreateClientDTO(
+                createClientDTO.name(),
+                createClientDTO.email(),
+                passwordEncoder.encode(createClientDTO.password())
+        );
+        Client client = new Client(securedClientDTO);
 
         repository.save(client);
 
         return new ClientDTO(client);
     }
 
-    public ClientDTO updateClient(String id, UpdateClientDTO updateClientDTO) {
+    public ClientDTO updateClient(Long id, UpdateClientDTO updateClientDTO) {
         Client client = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Client with ID " + id + " not found!"));
 
-        client.updateFields(updateClientDTO);
+        String encodedPassword = updateClientDTO.password();
+        if (encodedPassword != null && !encodedPassword.isBlank()) {
+            encodedPassword = passwordEncoder.encode(encodedPassword);
+        } else {
+            encodedPassword = null;
+        }
+
+        client.updateFields(new UpdateClientDTO(
+                updateClientDTO.name(),
+                updateClientDTO.email(),
+                encodedPassword
+        ));
 
         repository.save(client);
         return new ClientDTO(client);
     }
 
-    public void deleteClient(String id) {
+    public void deleteClient(Long id) {
         Client client = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Client with ID " + id + " not found!"));
 
         repository.delete(client);
+    }
+
+    public long countClients() {
+        return repository.count();
     }
 }

@@ -1,13 +1,12 @@
 package com.pedro.fitchaadmin.auth.controllers;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@RestController
-@RequestMapping("auth")
+@Controller
 public class AuthController {
-    public ResponseEntity<String> login() {
-        return ResponseEntity.ok("Login successful!");
+    @GetMapping("/login")
+    public String login() {
+        return "login";
     }
 }

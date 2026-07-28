@@ -5,6 +5,8 @@ import com.pedro.fitchaadmin.user.dtos.UpdateUserDTO;
 import com.pedro.fitchaadmin.user.enums.UserRole;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,7 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Table(name = "users")
+@Table(name = "tb_admin_users")
 @Entity(name = "User")
 @Getter
 @AllArgsConstructor
@@ -24,6 +26,7 @@ public class User {
     private String name;
     private String email;
     private String password;
+    @Enumerated(EnumType.STRING)
     private UserRole role;
     private boolean isActive;
 
@@ -44,7 +47,7 @@ public class User {
             this.email = updateUserDTO.email();
         }
 
-        if (updateUserDTO.password() != null) {
+        if (updateUserDTO.password() != null && !updateUserDTO.password().isBlank()) {
             this.password = updateUserDTO.password();
         }
 

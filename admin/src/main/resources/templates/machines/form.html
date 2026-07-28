@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${editing ? 'Editar máquina' : 'Nova máquina'}, 'machines', ~{::section})}">
+<section class="page-stack">
+    <div class="page-heading compact-heading">
+        <div>
+            <a class="back-link" th:href="@{/machines}">← Voltar para máquinas</a>
+            <span class="eyebrow">Catálogo de exercícios</span>
+            <h2 th:text="${editing ? 'Editar máquina' : 'Nova máquina'}">Nova máquina</h2>
+            <p th:text="${editing ? 'Atualize o nome e a descrição deste equipamento.' : 'Adicione um equipamento ao catálogo do Fitcha.'}">
+                Adicione um equipamento ao catálogo do Fitcha.
+            </p>
+        </div>
+    </div>
+
+    <article class="panel form-panel">
+        <form class="entity-form"
+              th:action="${editing} ? @{/machines/{id}(id=${machine.id})} : @{/machines}"
+              method="post">
+            <div class="form-grid">
+                <label class="field field-full">
+                    <span>Nome da máquina</span>
+                    <input type="text" name="name" th:value="${machine.name}" placeholder="Ex.: Leg press 45°" required>
+                </label>
+
+                <label class="field field-full">
+                    <span>Descrição</span>
+                    <textarea
+                        name="description"
+                        rows="6"
+                        placeholder="Descreva o equipamento e sua utilização"
+                        th:text="${machine.description}"></textarea>
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <a class="button button-ghost" th:href="@{/machines}">Cancelar</a>
+                <button class="button button-primary" type="submit"
+                        th:text="${editing ? 'Salvar alterações' : 'Criar máquina'}">
+                    Criar máquina
+                </button>
+            </div>
+        </form>
+    </article>
+</section>
+</html>

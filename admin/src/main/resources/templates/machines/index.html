@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Máquinas', 'machines', ~{::section})}">
+<section class="page-stack">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">Catálogo de exercícios</span>
+            <h2>Máquinas</h2>
+            <p>Organize os equipamentos e descrições disponíveis no aplicativo.</p>
+        </div>
+        <a class="button button-primary" th:href="@{/machines/new}">Nova máquina</a>
+    </div>
+
+    <article class="panel">
+        <div class="panel-toolbar">
+            <label class="search-field">
+                <span aria-hidden="true">⌕</span>
+                <input type="search" placeholder="Buscar por nome ou descrição" data-table-search="machines-table">
+            </label>
+            <span class="result-count">
+                <strong th:text="${machines.size()}">0</strong>
+                <span th:text="${machines.size() == 1 ? 'máquina' : 'máquinas'}">máquinas</span>
+            </span>
+        </div>
+
+        <div class="table-wrap" th:if="${!machines.isEmpty()}">
+            <table class="data-table" id="machines-table">
+                <thead>
+                    <tr>
+                        <th>Máquina</th>
+                        <th>Descrição</th>
+                        <th class="actions-column">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="machine : ${machines}"
+                        data-search-row
+                        th:attr="data-search-value=${machine.name + ' ' + machine.description}">
+                        <td>
+                            <div class="identity-cell">
+                                <span class="list-avatar purple" aria-hidden="true">M</span>
+                                <span>
+                                    <strong th:text="${machine.name}">Nome</strong>
+                                    <small>Equipamento do catálogo</small>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="description-cell"
+                                  th:text="${#strings.isEmpty(machine.description) ? 'Sem descrição' : machine.description}">
+                                Sem descrição
+                            </span>
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="button button-ghost button-small"
+                                   th:href="@{/machines/{id}/edit(id=${machine.id})}">Editar</a>
+                                <form th:action="@{/machines/{id}/delete(id=${machine.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('Deseja realmente remover esta máquina?');">
+                                    <button class="button button-danger button-small" type="submit">Excluir</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${machines.isEmpty()}">
+            <span class="empty-icon purple" aria-hidden="true">M</span>
+            <h3>Nenhuma máquina cadastrada</h3>
+            <p>Adicione o primeiro equipamento ao catálogo.</p>
+            <a class="button button-primary" th:href="@{/machines/new}">Criar máquina</a>
+        </div>
+    </article>
+</section>
+</html>

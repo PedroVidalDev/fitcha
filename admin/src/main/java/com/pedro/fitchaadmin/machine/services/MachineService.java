@@ -59,4 +59,8 @@ public class MachineService {
 
         repository.delete(machine);
     }
+
+    public long countMachines() {
+        return repository.count();
+    }
 }

@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Table(name = "machines")
+@Table(name = "tb_machines")
 @Entity(name = "Machine")
 @Getter
 @AllArgsConstructor

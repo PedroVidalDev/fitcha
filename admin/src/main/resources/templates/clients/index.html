@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Clientes', 'clients', ~{::section})}">
+<section class="page-stack">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">Base do aplicativo</span>
+            <h2>Clientes</h2>
+            <p>Consulte e mantenha os cadastros das pessoas atendidas pelo Fitcha.</p>
+        </div>
+        <a class="button button-primary" th:href="@{/clients/new}">Novo cliente</a>
+    </div>
+
+    <article class="panel">
+        <div class="panel-toolbar">
+            <label class="search-field">
+                <span aria-hidden="true">⌕</span>
+                <input type="search" placeholder="Buscar por nome ou e-mail" data-table-search="clients-table">
+            </label>
+            <span class="result-count">
+                <strong th:text="${clients.size()}">0</strong>
+                <span th:text="${clients.size() == 1 ? 'cliente' : 'clientes'}">clientes</span>
+            </span>
+        </div>
+
+        <div class="table-wrap" th:if="${!clients.isEmpty()}">
+            <table class="data-table" id="clients-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Identificador</th>
+                        <th class="actions-column">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="client : ${clients}"
+                        data-search-row
+                        th:attr="data-search-value=${client.name + ' ' + client.email}">
+                        <td>
+                            <div class="identity-cell">
+                                <span class="list-avatar cyan"
+                                      th:text="${#strings.isEmpty(client.name) ? '?' : #strings.substring(client.name, 0, 1).toUpperCase()}">C</span>
+                                <span>
+                                    <strong th:text="${client.name}">Nome</strong>
+                                    <small th:text="${client.email}">cliente@email.com</small>
+                                </span>
+                            </div>
+                        </td>
+                        <td><code class="id-code" th:text="${client.id}">id</code></td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="button button-ghost button-small"
+                                   th:href="@{/clients/{id}/edit(id=${client.id})}">Editar</a>
+                                <form th:action="@{/clients/{id}/delete(id=${client.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('Deseja realmente remover este cliente?');">
+                                    <button class="button button-danger button-small" type="submit">Excluir</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${clients.isEmpty()}">
+            <span class="empty-icon cyan" aria-hidden="true">C</span>
+            <h3>Nenhum cliente cadastrado</h3>
+            <p>Adicione o primeiro cliente à sua base.</p>
+            <a class="button button-primary" th:href="@{/clients/new}">Criar cliente</a>
+        </div>
+    </article>
+</section>
+</html>

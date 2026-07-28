@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(pageTitle, activePage, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0B1118">
+    <title th:text="${pageTitle + ' · Fitcha Admin'}">Fitcha Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <span class="brand-copy">
+                    <strong>Fitcha</strong>
+                    <small>Admin</small>
+                </span>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Navegação principal">
+                <span class="nav-section-label">Visão geral</span>
+                <a th:href="@{/dashboard}"
+                   class="nav-link"
+                   th:classappend="${activePage == 'dashboard'} ? ' is-active' : ''">
+                    <span class="nav-icon" aria-hidden="true">D</span>
+                    <span>Dashboard</span>
+                </a>
+
+                <span class="nav-section-label">Gerenciamento</span>
+                <a th:href="@{/users}"
+                   class="nav-link"
+                   th:classappend="${activePage == 'users'} ? ' is-active' : ''">
+                    <span class="nav-icon" aria-hidden="true">U</span>
+                    <span>Usuários</span>
+                </a>
+                <a th:href="@{/clients}"
+                   class="nav-link"
+                   th:classappend="${activePage == 'clients'} ? ' is-active' : ''">
+                    <span class="nav-icon" aria-hidden="true">C</span>
+                    <span>Clientes</span>
+                </a>
+                <a th:href="@{/machines}"
+                   class="nav-link"
+                   th:classappend="${activePage == 'machines'} ? ' is-active' : ''">
+                    <span class="nav-icon" aria-hidden="true">M</span>
+                    <span>Máquinas</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-status">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <span>
+                        <strong>Ambiente seguro</strong>
+                        <small>Sessão administrativa</small>
+                    </span>
+                </div>
+            </div>
+        </aside>
+
+        <button class="sidebar-backdrop" type="button" data-sidebar-close aria-label="Fechar menu"></button>
+
+        <div class="app-main">
+            <header class="topbar">
+                <div class="topbar-title">
+                    <button class="icon-button menu-button" type="button" data-sidebar-open aria-label="Abrir menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div>
+                        <span class="eyebrow">Painel administrativo</span>
+                        <h1 th:text="${pageTitle}">Página</h1>
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="admin-chip">
+                        <span class="admin-avatar" aria-hidden="true">A</span>
+                        <span>
+                            <strong>Administrador</strong>
+                            <small>Acesso protegido</small>
+                        </span>
+                    </div>
+                    <form th:action="@{/logout}" method="post">
+                        <button class="button button-ghost button-compact" type="submit">Sair</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="page-content">
+                <div class="flash-message" th:if="${successMessage}">
+                    <span class="flash-icon" aria-hidden="true">✓</span>
+                    <span th:text="${successMessage}">Operação concluída.</span>
+                </div>
+                <div th:replace="${content}"></div>
+            </main>
+        </div>
+    </div>
+
+    <script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

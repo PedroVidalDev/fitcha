@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Dashboard', 'dashboard', ~{::section})}">
+<section class="page-stack">
+    <div class="dashboard-hero">
+        <div>
+            <span class="eyebrow">Resumo da operação</span>
+            <h2>Visão geral do Fitcha</h2>
+            <p>Acompanhe os principais números e acesse rapidamente as áreas mais usadas.</p>
+        </div>
+        <div class="hero-actions">
+            <a class="button button-secondary" th:href="@{/clients/new}">Novo cliente</a>
+            <a class="button button-primary" th:href="@{/machines/new}">Nova máquina</a>
+        </div>
+    </div>
+
+    <div class="metric-grid">
+        <article class="metric-card metric-orange">
+            <div class="metric-card-top">
+                <span class="metric-label">Clientes cadastrados</span>
+                <span class="metric-symbol" aria-hidden="true">C</span>
+            </div>
+            <strong class="metric-value" th:text="${clientCount}">0</strong>
+            <span class="metric-caption">Base atendida pelo aplicativo</span>
+        </article>
+
+        <article class="metric-card metric-cyan">
+            <div class="metric-card-top">
+                <span class="metric-label">Máquinas no catálogo</span>
+                <span class="metric-symbol" aria-hidden="true">M</span>
+            </div>
+            <strong class="metric-value" th:text="${machineCount}">0</strong>
+            <span class="metric-caption">Exercícios disponíveis para gestão</span>
+        </article>
+
+        <article class="metric-card metric-purple">
+            <div class="metric-card-top">
+                <span class="metric-label">Usuários do painel</span>
+                <span class="metric-symbol" aria-hidden="true">U</span>
+            </div>
+            <strong class="metric-value" th:text="${userCount}">0</strong>
+            <span class="metric-caption">Contas administrativas cadastradas</span>
+        </article>
+
+        <article class="metric-card metric-green">
+            <div class="metric-card-top">
+                <span class="metric-label">Acessos ativos</span>
+                <span class="metric-symbol" aria-hidden="true">A</span>
+            </div>
+            <strong class="metric-value" th:text="${activeUserCount}">0</strong>
+            <span class="metric-caption" th:text="${activeUserPercentage + '% da equipe habilitada'}">0% da equipe habilitada</span>
+        </article>
+    </div>
+
+    <div class="dashboard-grid">
+        <article class="panel dashboard-table-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="eyebrow">Base de clientes</span>
+                    <h3>Visão rápida</h3>
+                </div>
+                <a class="text-link" th:href="@{/clients}">Ver todos</a>
+            </div>
+
+            <div class="compact-list" th:if="${!clients.isEmpty()}">
+                <a class="compact-list-item"
+                   th:each="client : ${clients}"
+                   th:href="@{/clients/{id}/edit(id=${client.id})}">
+                    <span class="list-avatar"
+                          th:text="${#strings.isEmpty(client.name) ? '?' : #strings.substring(client.name, 0, 1).toUpperCase()}">C</span>
+                    <span class="compact-list-copy">
+                        <strong th:text="${client.name}">Nome do cliente</strong>
+                        <small th:text="${client.email}">cliente@email.com</small>
+                    </span>
+                    <span class="list-arrow" aria-hidden="true">→</span>
+                </a>
+            </div>
+
+            <div class="empty-state compact" th:if="${clients.isEmpty()}">
+                <span class="empty-icon" aria-hidden="true">C</span>
+                <h4>Nenhum cliente cadastrado</h4>
+                <p>Adicione o primeiro cliente para começar.</p>
+            </div>
+        </article>
+
+        <article class="panel operations-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="eyebrow">Operação</span>
+                    <h3>Atalhos de gestão</h3>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <a th:href="@{/users/new}">
+                    <span class="quick-action-icon orange" aria-hidden="true">U</span>
+                    <span>
+                        <strong>Novo usuário</strong>
+                        <small>Conceder acesso ao painel</small>
+                    </span>
+                    <span aria-hidden="true">→</span>
+                </a>
+                <a th:href="@{/clients/new}">
+                    <span class="quick-action-icon cyan" aria-hidden="true">C</span>
+                    <span>
+                        <strong>Novo cliente</strong>
+                        <small>Adicionar um cadastro</small>
+                    </span>
+                    <span aria-hidden="true">→</span>
+                </a>
+                <a th:href="@{/machines/new}">
+                    <span class="quick-action-icon purple" aria-hidden="true">M</span>
+                    <span>
+                        <strong>Nova máquina</strong>
+                        <small>Expandir o catálogo</small>
+                    </span>
+                    <span aria-hidden="true">→</span>
+                </a>
+            </div>
+        </article>
+    </div>
+</section>
+</html>

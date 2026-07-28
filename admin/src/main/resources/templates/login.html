@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0B1118">
+    <title>Entrar · Fitcha Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="login-page">
+    <main class="login-shell">
+        <section class="login-brand-panel">
+            <div class="brand brand-light">
+                <span class="brand-mark" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <span class="brand-copy">
+                    <strong>Fitcha</strong>
+                    <small>Admin</small>
+                </span>
+            </div>
+
+            <div class="login-brand-content">
+                <span class="login-kicker">Controle central</span>
+                <h1>Seu negócio em movimento.</h1>
+                <p>Gerencie clientes, usuários e o catálogo de máquinas em um ambiente único e protegido.</p>
+            </div>
+
+            <div class="login-brand-stats" aria-label="Características do painel">
+                <span>Seguro</span>
+                <span>Privado</span>
+                <span>Direto</span>
+            </div>
+        </section>
+
+        <section class="login-form-panel">
+            <div class="login-form-wrap">
+                <span class="eyebrow">Acesso administrativo</span>
+                <h2>Bem-vindo de volta</h2>
+                <p class="login-subtitle">Entre com seu e-mail e senha para continuar.</p>
+
+                <div class="form-alert form-alert-error" th:if="${param.error}">
+                    E-mail ou senha inválidos. Tente novamente.
+                </div>
+                <div class="form-alert form-alert-success" th:if="${param.logout}">
+                    Sua sessão foi encerrada com segurança.
+                </div>
+
+                <form class="auth-form" th:action="@{/login}" method="post">
+                    <label class="field">
+                        <span>E-mail</span>
+                        <input
+                            type="email"
+                            name="username"
+                            placeholder="voce@fitcha.com"
+                            autocomplete="email"
+                            autofocus
+                            required>
+                    </label>
+
+                    <label class="field">
+                        <span>Senha</span>
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required>
+                    </label>
+
+                    <button class="button button-primary button-block" type="submit">
+                        Entrar no painel
+                    </button>
+                </form>
+
+                <p class="login-help">Acesso exclusivo para usuários autorizados.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

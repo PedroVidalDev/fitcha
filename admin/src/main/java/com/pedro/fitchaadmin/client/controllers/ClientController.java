@@ -1,25 +1,21 @@
 package com.pedro.fitchaadmin.client.controllers;
 
-import java.net.URI;
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.pedro.fitchaadmin.client.dtos.ClientDTO;
 import com.pedro.fitchaadmin.client.dtos.CreateClientDTO;
 import com.pedro.fitchaadmin.client.dtos.UpdateClientDTO;
 import com.pedro.fitchaadmin.client.services.ClientService;
 
-@RestController
-@RequestMapping("clients")
+@Controller
+@RequestMapping("/clients")
 public class ClientController {
     private final ClientService service;
 
@@ -28,35 +24,54 @@ public class ClientController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ClientDTO>> getClients() {
-        return ResponseEntity.ok(this.service.getClients());
+    public String getClients(Model model) {
+        model.addAttribute("clients", service.getClients());
+        return "clients/index";
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ClientDTO> getClientById(@PathVariable String id) {
-        return ResponseEntity.ok(this.service.getClientById(id));
+    @GetMapping("/new")
+    public String createClientForm(Model model) {
+        model.addAttribute("client", new ClientDTO(null, "", ""));
+        model.addAttribute("editing", false);
+        return "clients/form";
     }
 
     @PostMapping
-    public ResponseEntity<ClientDTO> createClient(@RequestBody CreateClientDTO createClientDTO) {
-        ClientDTO clientDTO = this.service.createClient(createClientDTO);
-
-        URI location = URI.create("/clients/" + clientDTO.id());
-
-        return ResponseEntity.created(location).body(clientDTO);
+    public String createClient(
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam String password,
+            RedirectAttributes redirectAttributes
+    ) {
+        service.createClient(new CreateClientDTO(name, email, password));
+        redirectAttributes.addFlashAttribute("successMessage", "Cliente criado com sucesso.");
+        return "redirect:/clients";
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ClientDTO> updateClient(@PathVariable String id, @RequestBody UpdateClientDTO updateClientDTO) {
-        ClientDTO clientDTO = this.service.updateClient(id, updateClientDTO);
-
-        return ResponseEntity.ok(clientDTO);
+    @GetMapping("/{id}/edit")
+    public String updateClientForm(@PathVariable Long id, Model model) {
+        model.addAttribute("client", service.getClientById(id));
+        model.addAttribute("editing", true);
+        return "clients/form";
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity.HeadersBuilder<?> deleteClient(@PathVariable String id) {
-        this.service.deleteClient(id);
+    @PostMapping("/{id}")
+    public String updateClient(
+            @PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam(required = false) String password,
+            RedirectAttributes redirectAttributes
+    ) {
+        service.updateClient(id, new UpdateClientDTO(name, email, password));
+        redirectAttributes.addFlashAttribute("successMessage", "Cliente atualizado com sucesso.");
+        return "redirect:/clients";
+    }
 
-        return ResponseEntity.noContent();
+    @PostMapping("/{id}/delete")
+    public String deleteClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        service.deleteClient(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Cliente removido com sucesso.");
+        return "redirect:/clients";
     }
 }
