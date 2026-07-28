@@ -1,8 +1,38 @@
 x-backend: &backend
   image: fitcha-backend:local
   restart: unless-stopped
-  env_file:
-    - .env
+  environment:
+    PORT: ${PORT:-8080}
+    JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in Dockhand stack variables}
+    API_BASE_URL: ${API_BASE_URL:-}
+    APP_UPDATE_TOKEN: ${APP_UPDATE_TOKEN:?Set APP_UPDATE_TOKEN in Dockhand stack variables}
+    DB_HOST: ${DB_HOST:?Set DB_HOST in Dockhand stack variables}
+    DB_PORT: ${DB_PORT:?Set DB_PORT in Dockhand stack variables}
+    DB_USER: ${DB_USER:?Set DB_USER in Dockhand stack variables}
+    DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in Dockhand stack variables}
+    DB_NAME: ${DB_NAME:?Set DB_NAME in Dockhand stack variables}
+    REDIS_HOST: ${REDIS_HOST:-}
+    REDIS_PORT: ${REDIS_PORT:-}
+    REDIS_ADDR: ${REDIS_ADDR:?Set REDIS_ADDR in Dockhand stack variables}
+    REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    REDIS_DB: ${REDIS_DB:-0}
+    ASYNQ_CONCURRENCY: ${ASYNQ_CONCURRENCY:-10}
+    MERCADO_PAGO_ACCESS_TOKEN: ${MERCADO_PAGO_ACCESS_TOKEN:-}
+    MERCADO_PAGO_API_URL: ${MERCADO_PAGO_API_URL:-}
+    MERCADO_PAGO_WEBHOOK_SECRET: ${MERCADO_PAGO_WEBHOOK_SECRET:-}
+    MERCADO_PAGO_WEBHOOK_URL: ${MERCADO_PAGO_WEBHOOK_URL:-}
+    CREDIT_UNIT_PRICE_CENTS: ${CREDIT_UNIT_PRICE_CENTS:-400}
+    CREDIT_PAYMENT_TITLE: ${CREDIT_PAYMENT_TITLE:-}
+    CREDIT_PIX_EXPIRATION_MINUTES: ${CREDIT_PIX_EXPIRATION_MINUTES:-30}
+    SMTP_HOST: ${SMTP_HOST:?Set SMTP_HOST in Dockhand stack variables}
+    SMTP_PORT: ${SMTP_PORT:-587}
+    SMTP_USERNAME: ${SMTP_USERNAME:?Set SMTP_USERNAME in Dockhand stack variables}
+    SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP_PASSWORD in Dockhand stack variables}
+    SMTP_FROM_NAME: ${SMTP_FROM_NAME:-}
+    SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set SMTP_FROM_EMAIL in Dockhand stack variables}
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    OPENAI_MODEL: ${OPENAI_MODEL:-}
+    CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
 
 services:
   api:
