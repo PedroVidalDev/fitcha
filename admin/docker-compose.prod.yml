@@ -13,7 +13,7 @@ services:
       ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?Set ADMIN_DB_PASSWORD in Dockhand stack variables}
       SERVER_PORT: ${SERVER_PORT:-8081}
     ports:
-      - "${ADMIN_HOST_PORT:-8081}:${SERVER_PORT:-8081}"
+      - "${SERVER_PORT:-8081}:${SERVER_PORT:-8081}"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:$${SERVER_PORT:-8081}/login || exit 1"]
       interval: 15s
