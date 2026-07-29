@@ -1,8 +1,6 @@
 package com.pedro.fitchaadmin.client.services;
 
 import java.util.List;
-import java.util.Optional;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,26 +21,23 @@ public class ClientService {
     }
 
     public List<ClientDTO> getClients() {
-        return repository.findAll().stream()
-                .map(machine -> new ClientDTO(machine))
+        return repository.findAllByDeletedAtIsNull().stream()
+                .map(ClientDTO::new)
                 .toList();
     }
 
     public ClientDTO getClientById(Long id) {
-        Optional<Client> client = repository.findById(id);
-
-        if (client.isEmpty()) {
-            throw new RuntimeException("Client with ID " + id + " not found!");
-        } 
-
-        return new ClientDTO(client.get());
+        Client client = findActiveClient(id);
+        return new ClientDTO(client);
     }
 
     public ClientDTO createClient(CreateClientDTO createClientDTO) {
         CreateClientDTO securedClientDTO = new CreateClientDTO(
                 createClientDTO.name(),
                 createClientDTO.email(),
-                passwordEncoder.encode(createClientDTO.password())
+                passwordEncoder.encode(createClientDTO.password()),
+                createClientDTO.credits(),
+                createClientDTO.verified()
         );
         Client client = new Client(securedClientDTO);
 
@@ -52,8 +47,7 @@ public class ClientService {
     }
 
     public ClientDTO updateClient(Long id, UpdateClientDTO updateClientDTO) {
-        Client client = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Client with ID " + id + " not found!"));
+        Client client = findActiveClient(id);
 
         String encodedPassword = updateClientDTO.password();
         if (encodedPassword != null && !encodedPassword.isBlank()) {
@@ -65,7 +59,9 @@ public class ClientService {
         client.updateFields(new UpdateClientDTO(
                 updateClientDTO.name(),
                 updateClientDTO.email(),
-                encodedPassword
+                encodedPassword,
+                updateClientDTO.credits(),
+                updateClientDTO.verified()
         ));
 
         repository.save(client);
@@ -73,13 +69,18 @@ public class ClientService {
     }
 
     public void deleteClient(Long id) {
-        Client client = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Client with ID " + id + " not found!"));
+        Client client = findActiveClient(id);
 
-        repository.delete(client);
+        client.softDelete();
+        repository.save(client);
     }
 
     public long countClients() {
-        return repository.count();
+        return repository.countByDeletedAtIsNull();
+    }
+
+    private Client findActiveClient(Long id) {
+        return repository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Client with ID " + id + " not found!"));
     }
 }

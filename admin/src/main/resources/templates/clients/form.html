@@ -8,7 +8,7 @@
             <a class="back-link" th:href="@{/clients}">← Voltar para clientes</a>
             <span class="eyebrow">Base do aplicativo</span>
             <h2 th:text="${editing ? 'Editar cliente' : 'Novo cliente'}">Novo cliente</h2>
-            <p th:text="${editing ? 'Atualize as informações do cadastro selecionado.' : 'Adicione uma pessoa à base de clientes do Fitcha.'}">
+            <p th:text="${editing ? 'Atualize o cadastro, os créditos e a verificação da conta.' : 'Adicione uma pessoa à base de clientes do Fitcha.'}">
                 Adicione uma pessoa à base de clientes do Fitcha.
             </p>
         </div>
@@ -29,6 +29,18 @@
                     <input type="email" name="email" th:value="${client.email}" placeholder="cliente@email.com" required>
                 </label>
 
+                <label class="field">
+                    <span>Créditos</span>
+                    <input type="number" name="credits" min="0" step="1" th:value="${client.credits}" required>
+                    <small>Saldo disponível para gerar treinos com IA.</small>
+                </label>
+
+                <label class="check-field check-field-card">
+                    <input type="checkbox" name="verified" value="true" th:checked="${client.verified}">
+                    <span>Conta verificada</span>
+                    <small>Permite que o cliente entre no aplicativo.</small>
+                </label>
+
                 <label class="field field-full">
                     <span th:text="${editing ? 'Nova senha' : 'Senha inicial'}">Senha inicial</span>
                     <input
@@ -37,7 +49,7 @@
                         placeholder="Digite uma senha segura"
                         autocomplete="new-password"
                         th:required="${!editing}">
-                    <small th:if="${editing}">Deixe em branco para manter a senha atual.</small>
+                    <small th:if="${editing}">Deixe em branco para manter a senha atual. Novas senhas usam BCrypt com 14 rounds.</small>
                 </label>
             </div>
 

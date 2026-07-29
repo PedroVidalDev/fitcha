@@ -7,7 +7,7 @@
         <div>
             <span class="eyebrow">Base do aplicativo</span>
             <h2>Clientes</h2>
-            <p>Consulte e mantenha os cadastros das pessoas atendidas pelo Fitcha.</p>
+            <p>Consulte cadastros, créditos e a situação de verificação das contas.</p>
         </div>
         <a class="button button-primary" th:href="@{/clients/new}">Novo cliente</a>
     </div>
@@ -29,7 +29,8 @@
                 <thead>
                     <tr>
                         <th>Cliente</th>
-                        <th>Identificador</th>
+                        <th>Créditos</th>
+                        <th>Situação</th>
                         <th class="actions-column">Ações</th>
                     </tr>
                 </thead>
@@ -47,7 +48,21 @@
                                 </span>
                             </div>
                         </td>
-                        <td><code class="id-code" th:text="${client.id}">id</code></td>
+                        <td>
+                            <strong class="credit-value" th:text="${client.credits}">0</strong>
+                            <small class="table-subtle">créditos disponíveis</small>
+                        </td>
+                        <td>
+                            <span class="status-badge"
+                                  th:classappend="${client.verified} ? ' is-active' : ' is-inactive'">
+                                <span></span>
+                                <span th:text="${client.verified ? 'Verificado' : 'Pendente'}">Pendente</span>
+                            </span>
+                            <small class="table-subtle" th:if="${client.createdAt != null}"
+                                   th:text="${'Desde ' + #temporals.format(client.createdAt, 'dd/MM/yyyy')}">
+                                Desde 01/01/2026
+                            </small>
+                        </td>
                         <td>
                             <div class="row-actions">
                                 <a class="button button-ghost button-small"

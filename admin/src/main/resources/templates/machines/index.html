@@ -7,7 +7,7 @@
         <div>
             <span class="eyebrow">Catálogo de exercícios</span>
             <h2>Máquinas</h2>
-            <p>Organize os equipamentos e descrições disponíveis no aplicativo.</p>
+            <p>Organize equipamentos, imagens, categorias e regras de registro do aplicativo.</p>
         </div>
         <a class="button button-primary" th:href="@{/machines/new}">Nova máquina</a>
     </div>
@@ -16,7 +16,7 @@
         <div class="panel-toolbar">
             <label class="search-field">
                 <span aria-hidden="true">⌕</span>
-                <input type="search" placeholder="Buscar por nome ou descrição" data-table-search="machines-table">
+                <input type="search" placeholder="Buscar por nome, slug ou alias" data-table-search="machines-table">
             </label>
             <span class="result-count">
                 <strong th:text="${machines.size()}">0</strong>
@@ -29,6 +29,7 @@
                 <thead>
                     <tr>
                         <th>Máquina</th>
+                        <th>Categoria e registro</th>
                         <th>Descrição</th>
                         <th class="actions-column">Ações</th>
                     </tr>
@@ -36,14 +37,26 @@
                 <tbody>
                     <tr th:each="machine : ${machines}"
                         data-search-row
-                        th:attr="data-search-value=${machine.name + ' ' + machine.description}">
+                        th:attr="data-search-value=${machine.name + ' ' + machine.slug + ' ' + machine.categoryKey + ' ' + machine.aliasesText()}">
                         <td>
                             <div class="identity-cell">
-                                <span class="list-avatar purple" aria-hidden="true">M</span>
+                                <img th:if="${!#strings.isEmpty(machine.photo)}"
+                                     class="list-machine-photo"
+                                     th:src="${machine.photo}"
+                                     alt="">
+                                <span th:if="${#strings.isEmpty(machine.photo)}" class="list-avatar purple" aria-hidden="true">M</span>
                                 <span>
                                     <strong th:text="${machine.name}">Nome</strong>
-                                    <small>Equipamento do catálogo</small>
+                                    <small th:text="${machine.slug}">slug-da-maquina</small>
                                 </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="machine-meta">
+                                <span class="badge badge-purple" th:text="${machine.categoryKey}">categoria</span>
+                                <small th:text="${machine.trackingType == 'duration' ? 'Registro por duração' : (machine.requiresWeight ? 'Séries com carga' : 'Séries sem carga')}">
+                                    Séries com carga
+                                </small>
                             </div>
                         </td>
                         <td>

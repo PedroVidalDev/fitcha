@@ -8,29 +8,103 @@
             <a class="back-link" th:href="@{/machines}">← Voltar para máquinas</a>
             <span class="eyebrow">Catálogo de exercícios</span>
             <h2 th:text="${editing ? 'Editar máquina' : 'Nova máquina'}">Nova máquina</h2>
-            <p th:text="${editing ? 'Atualize o nome e a descrição deste equipamento.' : 'Adicione um equipamento ao catálogo do Fitcha.'}">
-                Adicione um equipamento ao catálogo do Fitcha.
+            <p th:text="${editing ? 'Atualize as informações e a imagem deste equipamento.' : 'Adicione um equipamento completo ao catálogo do Fitcha.'}">
+                Adicione um equipamento completo ao catálogo do Fitcha.
             </p>
         </div>
     </div>
 
-    <article class="panel form-panel">
+    <article class="panel form-panel form-panel-wide">
         <form class="entity-form"
               th:action="${editing} ? @{/machines/{id}(id=${machine.id})} : @{/machines}"
-              method="post">
+              method="post"
+              enctype="multipart/form-data">
             <div class="form-grid">
-                <label class="field field-full">
+                <label class="field">
                     <span>Nome da máquina</span>
                     <input type="text" name="name" th:value="${machine.name}" placeholder="Ex.: Leg press 45°" required>
+                </label>
+
+                <label class="field">
+                    <span>Slug</span>
+                    <input type="text" name="slug" th:value="${machine.slug}" placeholder="ex.: leg-press-45" required>
+                    <small>Identificador único; espaços e acentos serão normalizados.</small>
+                </label>
+
+                <label class="field">
+                    <span>Categoria</span>
+                    <select name="categoryKey" required>
+                        <option value="peito" th:selected="${machine.categoryKey == 'peito'}">Peito</option>
+                        <option value="costas" th:selected="${machine.categoryKey == 'costas'}">Costas</option>
+                        <option value="pernas" th:selected="${machine.categoryKey == 'pernas'}">Pernas</option>
+                        <option value="ombros" th:selected="${machine.categoryKey == 'ombros'}">Ombros</option>
+                        <option value="biceps" th:selected="${machine.categoryKey == 'biceps'}">Bíceps</option>
+                        <option value="triceps" th:selected="${machine.categoryKey == 'triceps'}">Tríceps</option>
+                        <option value="antebraco" th:selected="${machine.categoryKey == 'antebraco'}">Antebraço</option>
+                        <option value="core" th:selected="${machine.categoryKey == 'core'}">Core</option>
+                        <option value="cardio" th:selected="${machine.categoryKey == 'cardio'}">Cardio</option>
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Tipo de registro</span>
+                    <select name="trackingType" required data-machine-tracking-type>
+                        <option value="sets" th:selected="${machine.trackingType == 'sets'}">Séries e repetições</option>
+                        <option value="duration" th:selected="${machine.trackingType == 'duration'}">Duração</option>
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Grupo de substituição</span>
+                    <input type="text" name="substitutionGroup" th:value="${machine.substitutionGroup}"
+                           placeholder="Ex.: chest_mid_press">
+                    <small>Use o mesmo grupo para exercícios intercambiáveis.</small>
+                </label>
+
+                <label class="field">
+                    <span>Aliases</span>
+                    <input type="text" name="aliases" th:value="${machine.aliasesText()}"
+                           placeholder="Ex.: leg press, leg 45">
+                    <small>Separe termos alternativos por vírgulas.</small>
                 </label>
 
                 <label class="field field-full">
                     <span>Descrição</span>
                     <textarea
                         name="description"
-                        rows="6"
+                        rows="5"
                         placeholder="Descreva o equipamento e sua utilização"
                         th:text="${machine.description}"></textarea>
+                </label>
+
+                <div class="field field-full">
+                    <span>Imagem da máquina</span>
+                    <div class="machine-photo-field">
+                        <img th:if="${!#strings.isEmpty(machine.photo)}"
+                             class="machine-photo-preview"
+                             th:src="${machine.photo}"
+                             alt="Imagem atual da máquina"
+                             data-machine-photo-preview>
+                        <div th:if="${#strings.isEmpty(machine.photo)}"
+                             class="machine-photo-placeholder"
+                             data-machine-photo-placeholder>
+                            Nenhuma imagem selecionada
+                        </div>
+                        <div class="machine-photo-controls">
+                            <input type="file" name="photo" accept="image/jpeg,image/png,image/gif" data-machine-photo-input>
+                            <small>PNG, JPEG ou GIF de até 5 MB. A imagem será exibida no aplicativo.</small>
+                            <label class="check-field" th:if="${editing and !#strings.isEmpty(machine.photo)}">
+                                <input type="checkbox" name="removePhoto" value="true">
+                                <span>Remover a imagem atual</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="check-field field-full" data-machine-requires-weight>
+                    <input type="checkbox" name="requiresWeight" value="true" th:checked="${machine.requiresWeight}">
+                    <span>Este exercício exige registro de carga</span>
+                    <small>Para exercícios por duração, a carga é desativada automaticamente.</small>
                 </label>
             </div>
 

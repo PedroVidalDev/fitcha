@@ -31,7 +31,7 @@ public class ClientController {
 
     @GetMapping("/new")
     public String createClientForm(Model model) {
-        model.addAttribute("client", new ClientDTO(null, "", ""));
+        model.addAttribute("client", ClientDTO.empty());
         model.addAttribute("editing", false);
         return "clients/form";
     }
@@ -41,9 +41,11 @@ public class ClientController {
             @RequestParam String name,
             @RequestParam String email,
             @RequestParam String password,
+            @RequestParam(defaultValue = "0") long credits,
+            @RequestParam(defaultValue = "false") boolean verified,
             RedirectAttributes redirectAttributes
     ) {
-        service.createClient(new CreateClientDTO(name, email, password));
+        service.createClient(new CreateClientDTO(name, email, password, credits, verified));
         redirectAttributes.addFlashAttribute("successMessage", "Cliente criado com sucesso.");
         return "redirect:/clients";
     }
@@ -61,9 +63,11 @@ public class ClientController {
             @RequestParam String name,
             @RequestParam String email,
             @RequestParam(required = false) String password,
+            @RequestParam(defaultValue = "0") long credits,
+            @RequestParam(defaultValue = "false") boolean verified,
             RedirectAttributes redirectAttributes
     ) {
-        service.updateClient(id, new UpdateClientDTO(name, email, password));
+        service.updateClient(id, new UpdateClientDTO(name, email, password, credits, verified));
         redirectAttributes.addFlashAttribute("successMessage", "Cliente atualizado com sucesso.");
         return "redirect:/clients";
     }

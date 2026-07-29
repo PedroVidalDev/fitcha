@@ -98,6 +98,10 @@
                     <span class="flash-icon" aria-hidden="true">✓</span>
                     <span th:text="${successMessage}">Operação concluída.</span>
                 </div>
+                <div class="flash-message flash-message-error" th:if="${errorMessage}">
+                    <span class="flash-icon" aria-hidden="true">!</span>
+                    <span th:text="${errorMessage}">Não foi possível concluir a operação.</span>
+                </div>
                 <div th:replace="${content}"></div>
             </main>
         </div>

@@ -1,5 +1,16 @@
 package com.pedro.fitchaadmin.machine.dtos;
 
-public record CreateMachineDTO(String name, String description) {
-    
+import java.util.List;
+
+public record CreateMachineDTO(
+        String slug,
+        String name,
+        String description,
+        String photo,
+        String categoryKey,
+        String substitutionGroup,
+        String trackingType,
+        boolean requiresWeight,
+        List<String> aliases
+) {
 }
