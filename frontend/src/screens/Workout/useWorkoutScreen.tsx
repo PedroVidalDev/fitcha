@@ -1,4 +1,5 @@
 import { useWorkoutMachines } from '@/src/hooks/useWorkoutMachines'
+import { getHistoryEntryPrimaryMetric } from '@/src/utils/workoutRecords'
 import { useFocusEffect } from '@react-navigation/native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated as RNAnimated, ScrollView } from 'react-native'
@@ -27,6 +28,7 @@ import {
     type WorkoutDraftMap,
     type WorkoutMachineProgressItem,
     type WorkoutModalConfig,
+    type WorkoutPrCelebrationState,
     type WorkoutResult,
     type WorkoutSeriesField,
     type WorkoutSetKey,
@@ -77,7 +79,11 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     const [restStartedAt, setRestStartedAt] = useState<number | null>(null)
     const [restElapsed, setRestElapsed] = useState(0)
     const [modal, setModal] = useState<WorkoutModalConfig | null>(null)
+    const [prCelebration, setPrCelebration] =
+        useState<WorkoutPrCelebrationState | null>(null)
     const [isSessionReady, setIsSessionReady] = useState(!shouldResume)
+    const celebratedMachineIdsRef = useRef(new Set<string>())
+    const celebrationSequenceRef = useRef(0)
     const machineNavScrollRef = useRef<ScrollView | null>(null)
     const slideAnim = useRef(new RNAnimated.Value(30)).current
     const fadeAnim = useRef(new RNAnimated.Value(0)).current
@@ -136,6 +142,10 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
 
     const closeModal = useCallback(() => {
         setModal(null)
+    }, [])
+
+    const handlePrCelebrationFinished = useCallback(() => {
+        setPrCelebration(null)
     }, [])
 
     const handleModalConfirm = useCallback(() => {
@@ -242,6 +252,45 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
                     },
                 }
             })
+
+            if (
+                field === 'set3' &&
+                machine.recordSets &&
+                machine.recordSets.length > 0 &&
+                !celebratedMachineIdsRef.current.has(machine.id)
+            ) {
+                const candidateSets = WORKOUT_SET_KEYS.map((key) => {
+                    const set =
+                        key === field ? normalizedSet : machineDraft.sets[key]
+
+                    return {
+                        weight: machine.requiresWeight
+                            ? parseWeight(set.weight)
+                            : 0,
+                        reps: parseReps(set.reps),
+                        durationSeconds: 0,
+                    }
+                })
+                const previousRecord = getHistoryEntryPrimaryMetric(
+                    { sets: machine.recordSets },
+                    machine,
+                )
+                const currentRecord = getHistoryEntryPrimaryMetric(
+                    { sets: candidateSets },
+                    machine,
+                )
+
+                if (currentRecord > previousRecord) {
+                    celebratedMachineIdsRef.current.add(machine.id)
+                    celebrationSequenceRef.current += 1
+                    setPrCelebration({
+                        id: celebrationSequenceRef.current,
+                        machineName: machine.name,
+                        metricKind: machine.requiresWeight ? 'weight' : 'reps',
+                        metricValue: currentRecord,
+                    })
+                }
+            }
 
             setRestStartedAt(Date.now())
             setRestElapsed(0)
@@ -549,6 +598,9 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         let isCancelled = false
 
         const hydrateSession = async () => {
+            celebratedMachineIdsRef.current.clear()
+            setPrCelebration(null)
+
             if (!shouldResume) {
                 setCurrentIdx(0)
                 setDrafts({})
@@ -785,6 +837,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         canGoNext,
         isLast,
         modal,
+        prCelebration,
         machineProgressItems,
         seriesFields,
         durationConfig,
@@ -793,6 +846,7 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         slideAnim,
         machineNavScrollRef,
         handleCloseModal: closeModal,
+        handlePrCelebrationFinished,
         handleModalConfirm,
         handleQuit,
         handlePreviousMachine: goToPreviousMachine,

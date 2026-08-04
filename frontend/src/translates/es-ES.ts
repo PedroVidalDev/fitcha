@@ -470,6 +470,16 @@ export const esES: TranslationDictionary = {
         'Confirma la serie anterior para desbloquear la siguiente.',
     'workout.series.weightLabel': 'Carga',
     'workout.series.repsLabel': 'Repeticiones',
+    'workout.pr.kicker': 'NUEVO RÉCORD',
+    'workout.pr.title': '¡Superaste tu mejor marca!',
+    'workout.pr.volume': '{value} de volumen total',
+    'workout.pr.reps': '{value} repeticiones en total',
+    'workout.tutorial.cta': 'Ver tutorial',
+    'workout.tutorial.accessibilityLabel':
+        'Ver un tutorial de {name} en YouTube',
+    'workout.tutorial.errorTitle': 'No se pudo abrir YouTube',
+    'workout.tutorial.errorMessage':
+        'Comprueba tu conexión e inténtalo de nuevo en unos instantes.',
     'workout.resume.title': 'Entrenamiento en curso',
     'workout.resume.message':
         'Encontramos un entrenamiento en curso guardado en este dispositivo. Puedes retomarlo desde donde quedaste o descartar este borrador.',

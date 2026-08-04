@@ -463,6 +463,15 @@ export const ptBR = {
         'Confirme a série anterior para liberar a próxima.',
     'workout.series.weightLabel': 'Carga',
     'workout.series.repsLabel': 'Repetições',
+    'workout.pr.kicker': 'NOVO RECORDE',
+    'workout.pr.title': 'Você superou o seu melhor!',
+    'workout.pr.volume': '{value} de volume total',
+    'workout.pr.reps': '{value} repetições no total',
+    'workout.tutorial.cta': 'Ver tutorial',
+    'workout.tutorial.accessibilityLabel': 'Ver tutorial de {name} no YouTube',
+    'workout.tutorial.errorTitle': 'Não foi possível abrir o YouTube',
+    'workout.tutorial.errorMessage':
+        'Confira sua conexão e tente novamente em instantes.',
     'workout.resume.title': 'Treino em andamento',
     'workout.resume.message':
         'Encontramos um treino em andamento salvo neste dispositivo. Você pode retomar de onde parou ou descartar esse rascunho.',

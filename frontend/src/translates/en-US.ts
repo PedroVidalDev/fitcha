@@ -463,6 +463,15 @@ export const enUS: TranslationDictionary = {
         'Confirm the previous set to unlock the next one.',
     'workout.series.weightLabel': 'Weight',
     'workout.series.repsLabel': 'Reps',
+    'workout.pr.kicker': 'NEW RECORD',
+    'workout.pr.title': 'You beat your personal best!',
+    'workout.pr.volume': '{value} total volume',
+    'workout.pr.reps': '{value} total reps',
+    'workout.tutorial.cta': 'Watch tutorial',
+    'workout.tutorial.accessibilityLabel': 'Watch a {name} tutorial on YouTube',
+    'workout.tutorial.errorTitle': 'Could not open YouTube',
+    'workout.tutorial.errorMessage':
+        'Check your connection and try again in a moment.',
     'workout.resume.title': 'Workout in progress',
     'workout.resume.message':
         'We found a workout in progress saved on this device. You can resume where you left off or discard this draft.',

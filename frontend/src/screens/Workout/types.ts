@@ -88,3 +88,10 @@ export type WorkoutMachineProgressItem = {
     hasDraft: boolean
     isComplete: boolean
 }
+
+export type WorkoutPrCelebrationState = {
+    id: number
+    machineName: string
+    metricKind: 'weight' | 'reps'
+    metricValue: number
+}
