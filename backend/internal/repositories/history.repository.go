@@ -9,6 +9,8 @@ import (
 type IHistoryRepository interface {
 	FindByUserID(userID uint) ([]models.HistoryEntry, error)
 	CreateMany(entries []models.HistoryEntry) ([]models.HistoryEntry, error)
+	DeleteByIDAndUserID(historyID string, userID uint) error
+	ReassignAllByUserMachineID(sourceUserMachineID string, targetUserMachineID string) (int64, error)
 }
 
 type historyRepository struct {
@@ -72,6 +74,39 @@ func (r *historyRepository) CreateMany(entries []models.HistoryEntry) ([]models.
 	}
 
 	return r.FindByIDs(ids)
+}
+
+func (r *historyRepository) DeleteByIDAndUserID(historyID string, userID uint) error {
+	result := r.db.Exec(`
+		DELETE FROM tb_history_entries
+		WHERE id = ?
+		  AND EXISTS (
+			SELECT 1
+			FROM tb_user_machines
+			WHERE tb_user_machines.id = tb_history_entries.user_machine_id
+			  AND tb_user_machines.user_id = ?
+		  )
+	`, historyID, userID)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (r *historyRepository) ReassignAllByUserMachineID(sourceUserMachineID string, targetUserMachineID string) (int64, error) {
+	result := r.db.Model(&models.HistoryEntry{}).
+		Where("user_machine_id = ?", sourceUserMachineID).
+		Update("user_machine_id", targetUserMachineID)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return result.RowsAffected, nil
 }
 
 func (r *historyRepository) FindByIDs(ids []string) ([]models.HistoryEntry, error) {

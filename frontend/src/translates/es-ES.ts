@@ -290,6 +290,31 @@ export const esES: TranslationDictionary = {
     'detail.history.title': 'historial',
     'detail.history.empty':
         'Todavia no hay registros. Inicia un entrenamiento para guardar tu evolucion.',
+    'detail.history.holdHint':
+        'Mantén presionado un registro para iniciar su eliminación.',
+    'detail.history.deleteAccessibilityLabel':
+        'Eliminar registro de entrenamiento de {date}',
+    'detail.history.deleteTitle': '¿Eliminar registro?',
+    'detail.history.deleteMessage':
+        'El registro de {date} se eliminará permanentemente.',
+    'detail.history.deleteConfirm': 'Eliminar registro',
+    'detail.history.deleteErrorTitle': 'No se pudo eliminar',
+    'detail.transfer.headerAccessibilityLabel':
+        'Transferir todo el historial a otra máquina',
+    'detail.transfer.title': 'Transferir historial',
+    'detail.transfer.subtitle':
+        'Elige la máquina que recibirá todo el historial de {name}.',
+    'detail.transfer.loadError':
+        'No se pudieron cargar las máquinas disponibles.',
+    'detail.transfer.empty':
+        'No se encontró una máquina compatible para esta transferencia.',
+    'detail.transfer.mineBadge': 'mi máquina',
+    'detail.transfer.catalogBadge': 'catálogo',
+    'detail.transfer.scopeTitle': '¿Sustituirla también en los entrenamientos?',
+    'detail.transfer.scopeMessage':
+        'El historial de {source} se transferirá a {target}. Elige si la máquina también debe sustituirse en todos los entrenamientos donde aparece.',
+    'detail.transfer.historyAndWorkouts': 'Historial y entrenamientos',
+    'detail.transfer.historyOnly': 'Solo historial',
     'home.greetingFallback': 'atleta',
     'home.delta.noBase': 'Sin base',
     'home.delta.zero': '0',
@@ -509,6 +534,9 @@ export const esES: TranslationDictionary = {
     'services.machines.updateError': 'No fue posible actualizar la maquina',
     'services.history.loadError': 'No fue posible cargar el historial',
     'services.history.saveError': 'No fue posible guardar el entrenamiento',
+    'services.history.deleteError':
+        'No fue posible eliminar el registro del historial',
+    'services.history.transferError': 'No fue posible transferir el historial',
     'services.credit.loadError': 'No fue posible cargar tus creditos',
     'services.credit.checkoutError': 'No fue posible generar el Pix',
     'services.axios.missingApiUrl':

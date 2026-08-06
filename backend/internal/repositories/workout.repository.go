@@ -19,6 +19,7 @@ type IWorkoutRepository interface {
 	CreateAssignment(assignment models.WorkoutMachine) (models.WorkoutMachine, error)
 	DeleteAssignment(workoutID uint, userMachineID string) error
 	CountAssignmentsByUserMachineID(userMachineID string) (int64, error)
+	ReplaceMachineAssignmentsByUserID(userID uint, sourceUserMachineID string, targetUserMachineID string) ([]models.Workout, error)
 }
 
 type workoutRepository struct {
@@ -125,4 +126,83 @@ func (r *workoutRepository) CountAssignmentsByUserMachineID(userMachineID string
 	}
 
 	return count, nil
+}
+
+func (r *workoutRepository) ReplaceMachineAssignmentsByUserID(userID uint, sourceUserMachineID string, targetUserMachineID string) ([]models.Workout, error) {
+	var workoutIDs []uint
+
+	if err := r.db.
+		Model(&models.WorkoutMachine{}).
+		Select("tb_workout_machines.workout_id").
+		Joins("JOIN tb_workouts ON tb_workouts.id = tb_workout_machines.workout_id").
+		Where("tb_workouts.user_id = ? AND tb_workout_machines.user_machine_id = ?", userID, sourceUserMachineID).
+		Order("tb_workout_machines.workout_id asc").
+		Pluck("tb_workout_machines.workout_id", &workoutIDs).
+		Error; err != nil {
+		return []models.Workout{}, err
+	}
+
+	if len(workoutIDs) == 0 {
+		return []models.Workout{}, nil
+	}
+
+	if err := r.db.Exec(`
+		DELETE FROM tb_workout_machines AS source
+		USING tb_workouts AS workouts
+		WHERE source.workout_id = workouts.id
+		  AND workouts.user_id = ?
+		  AND source.user_machine_id = ?
+		  AND EXISTS (
+			SELECT 1
+			FROM tb_workout_machines AS target
+			WHERE target.workout_id = source.workout_id
+			  AND target.user_machine_id = ?
+		  )
+	`, userID, sourceUserMachineID, targetUserMachineID).Error; err != nil {
+		return []models.Workout{}, err
+	}
+
+	if err := r.db.Exec(`
+		UPDATE tb_workout_machines AS assignments
+		SET user_machine_id = ?, updated_at = NOW()
+		FROM tb_workouts AS workouts
+		WHERE assignments.workout_id = workouts.id
+		  AND workouts.user_id = ?
+		  AND assignments.user_machine_id = ?
+	`, targetUserMachineID, userID, sourceUserMachineID).Error; err != nil {
+		return []models.Workout{}, err
+	}
+
+	workouts := make([]models.Workout, 0, len(workoutIDs))
+	for _, workoutID := range workoutIDs {
+		var assignments []models.WorkoutMachine
+		if err := r.db.
+			Where("workout_id = ?", workoutID).
+			Order("position asc, id asc").
+			Find(&assignments).
+			Error; err != nil {
+			return []models.Workout{}, err
+		}
+
+		for index, assignment := range assignments {
+			if assignment.Position == index {
+				continue
+			}
+
+			if err := r.db.Model(&models.WorkoutMachine{}).
+				Where("id = ?", assignment.ID).
+				Update("position", index).
+				Error; err != nil {
+				return []models.Workout{}, err
+			}
+		}
+
+		workout, err := r.FindByIDAndUserID(workoutID, userID)
+		if err != nil {
+			return []models.Workout{}, err
+		}
+		workouts = append(workouts, workout)
+	}
+
+	return workouts, nil
 }

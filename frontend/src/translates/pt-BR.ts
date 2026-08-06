@@ -284,6 +284,30 @@ export const ptBR = {
     'detail.history.title': 'histórico',
     'detail.history.empty':
         'Nenhum registro ainda. Inicie um treino para salvar sua evolução.',
+    'detail.history.holdHint': 'Segure um registro para iniciar a exclusão.',
+    'detail.history.deleteAccessibilityLabel':
+        'Excluir registro de treino de {date}',
+    'detail.history.deleteTitle': 'Excluir registro?',
+    'detail.history.deleteMessage':
+        'O registro de {date} será removido permanentemente.',
+    'detail.history.deleteConfirm': 'Excluir registro',
+    'detail.history.deleteErrorTitle': 'Não foi possível excluir',
+    'detail.transfer.headerAccessibilityLabel':
+        'Transferir todo o histórico para outra máquina',
+    'detail.transfer.title': 'Transferir histórico',
+    'detail.transfer.subtitle':
+        'Escolha a máquina que receberá todo o histórico de {name}.',
+    'detail.transfer.loadError':
+        'Não foi possível carregar as máquinas disponíveis.',
+    'detail.transfer.empty':
+        'Nenhuma máquina compatível foi encontrada para essa transferência.',
+    'detail.transfer.mineBadge': 'minha máquina',
+    'detail.transfer.catalogBadge': 'catálogo',
+    'detail.transfer.scopeTitle': 'Substituir também nos treinos?',
+    'detail.transfer.scopeMessage':
+        'O histórico de {source} será transferido para {target}. Escolha se a máquina também deve ser substituída nos treinos em que aparece.',
+    'detail.transfer.historyAndWorkouts': 'Histórico e treinos',
+    'detail.transfer.historyOnly': 'Somente histórico',
     'home.greetingFallback': 'atleta',
     'home.delta.noBase': 'Sem base',
     'home.delta.zero': '0',
@@ -500,6 +524,9 @@ export const ptBR = {
     'services.machines.updateError': 'Não foi possível atualizar a máquina',
     'services.history.loadError': 'Não foi possível carregar o histórico',
     'services.history.saveError': 'Não foi possível salvar o treino',
+    'services.history.deleteError':
+        'Não foi possível excluir o registro do histórico',
+    'services.history.transferError': 'Não foi possível transferir o histórico',
     'services.credit.loadError': 'Não foi possível carregar seus créditos',
     'services.credit.checkoutError': 'Não foi possível gerar o Pix',
     'services.axios.missingApiUrl':

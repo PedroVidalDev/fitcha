@@ -286,6 +286,29 @@ export const enUS: TranslationDictionary = {
     'detail.history.title': 'history',
     'detail.history.empty':
         'No records yet. Start a workout to save your progress.',
+    'detail.history.holdHint': 'Press and hold a record to start deleting it.',
+    'detail.history.deleteAccessibilityLabel':
+        'Delete workout record from {date}',
+    'detail.history.deleteTitle': 'Delete record?',
+    'detail.history.deleteMessage':
+        'The record from {date} will be permanently deleted.',
+    'detail.history.deleteConfirm': 'Delete record',
+    'detail.history.deleteErrorTitle': 'Could not delete',
+    'detail.transfer.headerAccessibilityLabel':
+        'Transfer all history to another machine',
+    'detail.transfer.title': 'Transfer history',
+    'detail.transfer.subtitle':
+        'Choose the machine that will receive all history from {name}.',
+    'detail.transfer.loadError': 'Could not load the available machines.',
+    'detail.transfer.empty':
+        'No compatible machine was found for this transfer.',
+    'detail.transfer.mineBadge': 'my machine',
+    'detail.transfer.catalogBadge': 'catalog',
+    'detail.transfer.scopeTitle': 'Replace it in workouts too?',
+    'detail.transfer.scopeMessage':
+        'The history from {source} will be transferred to {target}. Choose whether the machine should also be replaced in every workout where it appears.',
+    'detail.transfer.historyAndWorkouts': 'History and workouts',
+    'detail.transfer.historyOnly': 'History only',
     'home.greetingFallback': 'athlete',
     'home.delta.noBase': 'No baseline',
     'home.delta.zero': '0',
@@ -500,6 +523,8 @@ export const enUS: TranslationDictionary = {
     'services.machines.updateError': 'Unable to update the machine',
     'services.history.loadError': 'Unable to load the history',
     'services.history.saveError': 'Unable to save the workout',
+    'services.history.deleteError': 'Unable to delete the history record',
+    'services.history.transferError': 'Unable to transfer the history',
     'services.credit.loadError': 'Unable to load your credits',
     'services.credit.checkoutError': 'Unable to generate the Pix',
     'services.axios.missingApiUrl': 'Set EXPO_PUBLIC_API_URL in frontend/.env',

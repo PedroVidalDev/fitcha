@@ -5,4 +5,6 @@ export type HistoryProps = {
     item: HistoryEntry
     index: number
     machine: Machine
+    isBusy?: boolean
+    onRequestDelete: (entry: HistoryEntry) => void
 }

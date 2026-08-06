@@ -4,8 +4,11 @@ import { Machine, MachineTrackingType } from '../dtos/Machine'
 import { WorkoutPlan } from '../dtos/WorkoutPlan'
 import {
     createWorkoutHistory,
+    deleteHistoryEntry as deleteHistoryEntryRequest,
     getMyHistory,
     HistoryApiEntry,
+    transferMachineHistory as transferMachineHistoryRequest,
+    TransferMachineHistoryInput,
     WorkoutHistoryInput,
 } from './history'
 import { getMyMachines, updateMachine } from './machines'
@@ -558,6 +561,56 @@ export async function saveWorkoutResults(results: WorkoutHistoryInput[]) {
     isWorkoutDataStale = true
 
     return createdEntries.map(toHistoryEntry)
+}
+
+export async function deleteMachineHistoryEntry(
+    machineId: string,
+    historyId: string,
+) {
+    await deleteHistoryEntryRequest(historyId)
+    const data = await getNormalizedData()
+
+    data.history[machineId] = (data.history[machineId] ?? []).filter(
+        (entry) => entry.id !== historyId,
+    )
+
+    await saveData(data)
+    isWorkoutDataStale = true
+
+    return data
+}
+
+export async function transferAllMachineHistory(
+    sourceMachineId: string,
+    input: TransferMachineHistoryInput,
+) {
+    const response = await transferMachineHistoryRequest(sourceMachineId, input)
+    const data = await getNormalizedData()
+    const sourceEntries = data.history[sourceMachineId] ?? []
+    const targetEntries = data.history[response.targetMachine.id] ?? []
+    const entriesById = new Map(
+        [...targetEntries, ...sourceEntries].map((entry) => [entry.id, entry]),
+    )
+
+    data.machines[response.targetMachine.id] = response.targetMachine
+    data.history[response.targetMachine.id] = [...entriesById.values()].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    )
+    data.history[sourceMachineId] = []
+    response.updatedWorkouts.forEach((workout) => upsertWorkout(data, workout))
+
+    await saveData(data)
+    isWorkoutDataStale = true
+
+    if (response.updatedWorkouts.length > 0) {
+        try {
+            await clearScheduledNotifications()
+        } catch {
+            // Notification cleanup cannot block history transfer.
+        }
+    }
+
+    return { data, response }
 }
 
 export async function updateMachinePhoto(machineId: string, photo?: string) {
