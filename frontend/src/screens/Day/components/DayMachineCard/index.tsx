@@ -1,10 +1,11 @@
 import { AnimatedCard } from '@/src/components/AnimatedCard'
 import { CategoryBadge } from '@/src/components/CategoryBadge'
 import { GradientCard } from '@/src/components/GradientCard'
+import { MachineImage } from '@/src/components/MachineImage'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
-import { Image, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 import { type DayMachineCardProps } from './types'
 
 export function DayMachineCard(props: DayMachineCardProps) {
@@ -16,8 +17,8 @@ export function DayMachineCard(props: DayMachineCardProps) {
         <AnimatedCard index={index}>
             <GradientCard onPress={onPress} onLongPress={onLongPress}>
                 {item.photo ? (
-                    <Image
-                        source={{ uri: item.photo }}
+                    <MachineImage
+                        uri={item.photo}
                         style={{
                             width: 50,
                             height: 50,
@@ -25,7 +26,6 @@ export function DayMachineCard(props: DayMachineCardProps) {
                             borderWidth: 1,
                             borderColor: t.border,
                         }}
-                        resizeMode='cover'
                     />
                 ) : (
                     <View

@@ -1,4 +1,7 @@
-import { getCatalogMachines } from '@/src/services/catalogMachines'
+import {
+    getCachedCatalogMachines,
+    getCatalogMachines,
+} from '@/src/services/catalogMachines'
 import { useEffect, useMemo, useState } from 'react'
 import { ScrollView } from 'react-native'
 import { AppModal } from '../AppModal'
@@ -41,15 +44,25 @@ export function AddMachineModal(props: AddMachineModalProps) {
         let mounted = true
         setIsLoading(true)
 
-        void getCatalogMachines()
-            .then((response) => {
+        void (async () => {
+            try {
+                const cachedMachines = await getCachedCatalogMachines()
+                if (!mounted) return
+
+                if (cachedMachines.length > 0) {
+                    setMachines(cachedMachines)
+                    setIsLoading(false)
+                }
+
+                const response = await getCatalogMachines()
                 if (!mounted) return
                 setMachines(response)
-            })
-            .finally(() => {
-                if (!mounted) return
-                setIsLoading(false)
-            })
+            } catch {
+                if (mounted) setMachines([])
+            } finally {
+                if (mounted) setIsLoading(false)
+            }
+        })()
 
         return () => {
             mounted = false

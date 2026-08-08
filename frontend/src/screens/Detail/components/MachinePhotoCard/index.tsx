@@ -1,7 +1,8 @@
+import { MachineImage } from '@/src/components/MachineImage'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
-import { Image, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { MachinePhotoCardProps } from './types'
 
 export function MachinePhotoCard(props: MachinePhotoCardProps) {
@@ -27,10 +28,10 @@ export function MachinePhotoCard(props: MachinePhotoCardProps) {
             }}
         >
             {photo ? (
-                <Image
-                    source={{ uri: photo }}
+                <MachineImage
+                    uri={photo}
+                    priority='high'
                     style={{ width: '100%', height: '100%' }}
-                    resizeMode='cover'
                 />
             ) : (
                 <View style={{ alignItems: 'center', gap: 6 }}>

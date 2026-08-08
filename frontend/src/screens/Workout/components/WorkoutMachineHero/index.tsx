@@ -1,16 +1,10 @@
 import { CategoryBadge } from '@/src/components/CategoryBadge'
+import { MachineImage } from '@/src/components/MachineImage'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { buildYouTubeTutorialUrl } from '@/src/screens/Workout/helpers'
 import { Ionicons } from '@expo/vector-icons'
-import {
-    Alert,
-    Image,
-    Linking,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native'
+import { Alert, Linking, Text, TouchableOpacity, View } from 'react-native'
 import { type WorkoutMachineHeroProps } from './types'
 
 export function WorkoutMachineHero(props: WorkoutMachineHeroProps) {
@@ -32,15 +26,15 @@ export function WorkoutMachineHero(props: WorkoutMachineHeroProps) {
     return (
         <View style={{ alignItems: 'center', marginBottom: 24 }}>
             {machine.photo ? (
-                <Image
-                    source={{ uri: machine.photo }}
+                <MachineImage
+                    uri={machine.photo}
+                    priority='high'
                     style={{
                         width: '100%',
                         height: 140,
                         borderRadius: 16,
                         marginBottom: 14,
                     }}
-                    resizeMode='cover'
                 />
             ) : (
                 <View

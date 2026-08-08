@@ -1,4 +1,5 @@
 import { AppModal } from '@/src/components/AppModal'
+import { MachineImage } from '@/src/components/MachineImage'
 import { AddMachineCategoryFilters } from '@/src/components/AddMachineModal/components/AddMachineCategoryFilters'
 import { AddMachineSearchField } from '@/src/components/AddMachineModal/components/AddMachineSearchField'
 import { AddMachineCategoryFilter } from '@/src/components/AddMachineModal/types'
@@ -8,13 +9,12 @@ import { useTheme } from '@/src/contexts/ThemeContext'
 import { CatalogMachine } from '@/src/dtos/CatalogMachine'
 import { Machine } from '@/src/dtos/Machine'
 import { getCatalogMachines } from '@/src/services/catalogMachines'
-import { getMyMachines } from '@/src/services/machines'
+import { getCachedWorkoutData } from '@/src/services/workoutData'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useState } from 'react'
 import {
     ActivityIndicator,
-    Image,
     ScrollView,
     Text,
     TouchableOpacity,
@@ -56,10 +56,11 @@ export function HistoryTransferModal(props: HistoryTransferModalProps) {
         setIsLoading(true)
         setErrorMessage('')
 
-        void Promise.all([getMyMachines(), getCatalogMachines()])
-            .then(([userMachines, catalogMachines]) => {
+        void Promise.all([getCachedWorkoutData(), getCatalogMachines()])
+            .then(([workoutData, catalogMachines]) => {
                 if (!active) return
 
+                const userMachines = Object.values(workoutData.machines)
                 const linkedCatalogIDs = new Set(
                     userMachines
                         .map((machine) => machine.catalogMachineId)
@@ -241,8 +242,8 @@ export function HistoryTransferModal(props: HistoryTransferModalProps) {
                                     }}
                                 >
                                     {target.photo ? (
-                                        <Image
-                                            source={{ uri: target.photo }}
+                                        <MachineImage
+                                            uri={target.photo}
                                             style={{
                                                 width: 56,
                                                 height: 56,
