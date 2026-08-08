@@ -1,7 +1,7 @@
-import { type AddMachineCatalogMachine } from '../../types'
+import { type AddMachineOption } from '../../types'
 
 export type AddMachineMachineListProps = {
-    machines: AddMachineCatalogMachine[]
+    machines: AddMachineOption[]
     selectedMachineId: string | null
     onSelectMachine: (machineId: string) => void
 }

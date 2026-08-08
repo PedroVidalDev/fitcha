@@ -50,6 +50,7 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         handleReplaceCurrentMachine,
         canReplaceCurrentMachine,
         sessionCatalogMachineIds,
+        sessionUserMachineIds,
         handleRemoveMachine,
         handleSelectMachine,
         handleUpdateDraftField,
@@ -165,6 +166,8 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 visible={isAddMachineModalVisible}
                 onClose={() => setIsAddMachineModalVisible(false)}
                 onAdd={handleAddTemporaryMachine}
+                excludedMachineIds={sessionCatalogMachineIds}
+                excludedUserMachineIds={sessionUserMachineIds}
             />
 
             <AddMachineModal

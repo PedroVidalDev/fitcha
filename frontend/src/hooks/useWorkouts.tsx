@@ -10,6 +10,7 @@ import {
     removeMachineFromWorkout as removeMachineFromWorkoutRequest,
     updateWorkoutPlan,
 } from '../services/workoutData'
+import { WorkoutMachineInput } from '../services/workouts'
 
 export type WorkoutWithMachines = WorkoutPlan & {
     machines: Machine[]
@@ -77,10 +78,8 @@ export function useWorkouts() {
     )
 
     const addMachineToWorkout = useCallback(
-        async (workoutId: number, catalogMachineId: string) => {
-            await addMachineToWorkoutRequest(workoutId, {
-                catalogMachineId,
-            })
+        async (workoutId: number, input: WorkoutMachineInput) => {
+            await addMachineToWorkoutRequest(workoutId, input)
             const data = await getCachedWorkoutData()
             setWorkoutsFromData(data)
         },

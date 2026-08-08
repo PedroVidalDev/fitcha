@@ -11,8 +11,8 @@ export function AddMachineMachineList(props: AddMachineMachineListProps) {
                 <AddMachineMachineCard
                     key={machine.id}
                     machine={machine}
-                    isSelected={selectedMachineId === machine.id}
-                    onPress={() => onSelectMachine(machine.id)}
+                    isSelected={selectedMachineId === machine.key}
+                    onPress={() => onSelectMachine(machine.key)}
                 />
             ))}
         </View>

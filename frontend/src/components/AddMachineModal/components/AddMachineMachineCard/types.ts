@@ -1,7 +1,7 @@
-import { type AddMachineCatalogMachine } from '../../types'
+import { type AddMachineOption } from '../../types'
 
 export type AddMachineMachineCardProps = {
-    machine: AddMachineCatalogMachine
+    machine: AddMachineOption
     isSelected: boolean
     onPress: () => void
 }

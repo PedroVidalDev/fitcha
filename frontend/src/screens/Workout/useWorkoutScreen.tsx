@@ -1,10 +1,10 @@
 import { useWorkoutMachines } from '@/src/hooks/useWorkoutMachines'
+import { AddMachineOption } from '@/src/components/AddMachineModal/types'
 import { getHistoryEntryPrimaryMetric } from '@/src/utils/workoutRecords'
 import { useFocusEffect } from '@react-navigation/native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated as RNAnimated, ScrollView } from 'react-native'
 import { useI18n } from '../../contexts/I18nContext'
-import { type CatalogMachine } from '../../dtos/CatalogMachine'
 import {
     clearActiveWorkoutSession,
     getActiveWorkoutSession,
@@ -38,21 +38,26 @@ import {
 } from './types'
 
 function createTemporaryMachine(
-    catalogMachine: CatalogMachine,
+    selectedMachine: AddMachineOption,
     replacesMachineId?: string,
 ): TemporaryWorkoutMachine {
     return {
-        id: `temporary:${catalogMachine.id}`,
-        catalogMachineId: catalogMachine.id,
+        id:
+            selectedMachine.kind === 'catalog'
+                ? `temporary:${selectedMachine.id}`
+                : selectedMachine.id,
+        ...(selectedMachine.kind === 'catalog'
+            ? { catalogMachineId: selectedMachine.id }
+            : {}),
         isTemporary: true,
         ...(replacesMachineId ? { replacesMachineId } : {}),
-        name: catalogMachine.name,
-        description: catalogMachine.description,
-        photo: catalogMachine.photo,
-        categoryKey: catalogMachine.categoryKey,
-        substitutionGroup: catalogMachine.substitutionGroup,
-        trackingType: catalogMachine.trackingType,
-        requiresWeight: catalogMachine.requiresWeight,
+        name: selectedMachine.name,
+        description: selectedMachine.description,
+        photo: selectedMachine.photo,
+        categoryKey: selectedMachine.categoryKey,
+        substitutionGroup: selectedMachine.substitutionGroup,
+        trackingType: selectedMachine.trackingType,
+        requiresWeight: selectedMachine.requiresWeight,
         lastWeight: null,
         lastSets: null,
         recordSets: null,
@@ -376,13 +381,15 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     )
 
     const handleAddTemporaryMachine = useCallback(
-        (catalogMachine: CatalogMachine) => {
-            const alreadyInSession = sessionMachines.some(
-                (item) => item.catalogMachineId === catalogMachine.id,
+        (selectedMachine: AddMachineOption) => {
+            const alreadyInSession = sessionMachines.some((item) =>
+                selectedMachine.kind === 'catalog'
+                    ? item.catalogMachineId === selectedMachine.id
+                    : item.id === selectedMachine.id,
             )
             if (alreadyInSession) return
 
-            const temporaryMachine = createTemporaryMachine(catalogMachine)
+            const temporaryMachine = createTemporaryMachine(selectedMachine)
 
             setTemporaryMachines((previous) => [...previous, temporaryMachine])
             setCurrentIdx(sessionMachines.length)
@@ -391,19 +398,20 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
     )
 
     const handleReplaceCurrentMachine = useCallback(
-        (catalogMachine: CatalogMachine) => {
+        (selectedMachine: AddMachineOption) => {
             if (
+                selectedMachine.kind !== 'catalog' ||
                 !machine ||
                 !machine.substitutionGroup ||
                 machine.substitutionGroup !==
-                    catalogMachine.substitutionGroup ||
+                    selectedMachine.substitutionGroup ||
                 hasDraftValue(machine, drafts[machine.id])
             ) {
                 return
             }
 
             const temporaryMachine = createTemporaryMachine(
-                catalogMachine,
+                selectedMachine,
                 machine.isTemporary ? machine.replacesMachineId : machine.id,
             )
 
@@ -861,6 +869,9 @@ export function useWorkoutScreen(params: UseWorkoutScreenParams) {
         sessionCatalogMachineIds: sessionMachines
             .map((item) => item.catalogMachineId)
             .filter((id): id is string => !!id),
+        sessionUserMachineIds: sessionMachines
+            .filter((item) => !item.catalogMachineId)
+            .map((item) => item.id),
         handleRemoveMachine,
         handleSelectMachine: goToMachine,
         handleUpdateDraftField: updateDraftField,

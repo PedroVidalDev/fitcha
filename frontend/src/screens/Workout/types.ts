@@ -24,7 +24,7 @@ export type WorkoutMachine = ReturnType<
 }
 
 export type TemporaryWorkoutMachine = WorkoutMachine & {
-    catalogMachineId: string
+    catalogMachineId?: string
     isTemporary: true
 }
 

@@ -21,6 +21,7 @@ FROM alpine:3.22
 WORKDIR /app
 
 RUN addgroup -S fitcha && adduser -S -G fitcha -h /app fitcha
+RUN mkdir -p /app/uploads/machines && chown -R fitcha:fitcha /app/uploads
 
 # Copy only the binaries from the previous stage
 COPY --from=builder --chown=fitcha:fitcha /app/api .

@@ -11,7 +11,16 @@ import {
     TransferMachineHistoryInput,
     WorkoutHistoryInput,
 } from './history'
-import { getMyMachines, updateMachine } from './machines'
+import {
+    createMachine,
+    CreateMachineInput,
+    deleteMachine,
+    deleteMachinePhoto,
+    getMyMachines,
+    updateMachine,
+    UpdateMachineInput,
+    uploadMachinePhoto,
+} from './machines'
 import { clearScheduledNotifications } from './notifications'
 import { createEmptyAppData, getData, saveData } from './storage'
 import {
@@ -408,6 +417,14 @@ export async function getCachedWorkoutData() {
     return getNormalizedData()
 }
 
+export async function getCachedCustomMachines() {
+    const data = await getNormalizedData()
+
+    return Object.values(data.machines).filter(
+        (machine) => !machine.catalogMachineId,
+    )
+}
+
 export async function loadWorkoutData(options?: { forceSync?: boolean }) {
     const cachedData = await getNormalizedData()
     const shouldSync = options?.forceSync || isWorkoutDataStale
@@ -614,9 +631,9 @@ export async function transferAllMachineHistory(
 }
 
 export async function updateMachinePhoto(machineId: string, photo?: string) {
-    const machine = await updateMachine(machineId, {
-        photo: photo ?? '',
-    })
+    const machine = photo
+        ? await uploadMachinePhoto(machineId, photo)
+        : await deleteMachinePhoto(machineId)
     const data = await getNormalizedData()
 
     data.machines[machine.id] = {
@@ -628,4 +645,73 @@ export async function updateMachinePhoto(machineId: string, photo?: string) {
     isWorkoutDataStale = true
 
     return machine.photo || undefined
+}
+
+export async function createCustomMachine(input: CreateMachineInput) {
+    const { photo, ...machineInput } = input
+    const shouldUploadPhoto =
+        !!photo && !/^https?:\/\//i.test(photo) && !photo.startsWith('data:')
+    let machine = await createMachine({
+        ...machineInput,
+        ...(!shouldUploadPhoto && photo ? { photo } : {}),
+    })
+
+    if (shouldUploadPhoto) {
+        try {
+            machine = await uploadMachinePhoto(machine.id, photo)
+        } catch (error) {
+            await deleteMachine(machine.id).catch(() => undefined)
+            throw error
+        }
+    }
+    const data = await getNormalizedData()
+
+    data.machines[machine.id] = machine
+    data.history[machine.id] = data.history[machine.id] ?? []
+    await saveData(data)
+
+    isWorkoutDataStale = true
+    return machine
+}
+
+export async function updateCustomMachine(
+    machineId: string,
+    input: UpdateMachineInput,
+) {
+    const { photo, ...machineInput } = input
+    const data = await getNormalizedData()
+    const currentPhoto = data.machines[machineId]?.photo ?? ''
+    const isLocalPhoto =
+        !!photo && !/^https?:\/\//i.test(photo) && !photo.startsWith('data:')
+    let machine = await updateMachine(machineId, machineInput)
+
+    if (photo !== undefined && (photo !== currentPhoto || isLocalPhoto)) {
+        if (!photo) {
+            machine = await deleteMachinePhoto(machineId)
+        } else if (isLocalPhoto) {
+            machine = await uploadMachinePhoto(machineId, photo)
+        } else {
+            machine = await updateMachine(machineId, { photo })
+        }
+    }
+
+    data.machines[machine.id] = {
+        ...(data.machines[machine.id] ?? machine),
+        ...machine,
+    }
+    await saveData(data)
+
+    isWorkoutDataStale = true
+    return machine
+}
+
+export async function deleteCustomMachine(machineId: string) {
+    await deleteMachine(machineId)
+    const data = await getNormalizedData()
+
+    delete data.machines[machineId]
+    delete data.history[machineId]
+    await saveData(data)
+
+    isWorkoutDataStale = true
 }

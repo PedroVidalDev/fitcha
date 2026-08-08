@@ -71,6 +71,19 @@ export function AddMachineMachineCard(props: AddMachineMachineCardProps) {
                         )?.labelKey ?? 'categories.peito',
                     )}
                 </Text>
+                {machine.kind === 'custom' ? (
+                    <Text
+                        style={{
+                            color: t.accent,
+                            fontSize: 10,
+                            fontWeight: '800',
+                            marginTop: 4,
+                            textTransform: 'uppercase',
+                        }}
+                    >
+                        {translate('customMachines.badge')}
+                    </Text>
+                ) : null}
                 {!!machine.description && (
                     <Text
                         style={{

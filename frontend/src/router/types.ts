@@ -7,5 +7,6 @@ export type RootStackParamList = {
     Profile: undefined
     Day: { workoutId: number }
     MachineDetail: { machineId: string }
+    CustomMachines: undefined
     Workout: { workoutId: number; resume?: boolean }
 }

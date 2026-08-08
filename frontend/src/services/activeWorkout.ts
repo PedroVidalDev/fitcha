@@ -61,7 +61,8 @@ function normalizeActiveWorkoutSession(
                   typeof machine === 'object' &&
                   machine.isTemporary === true &&
                   typeof machine.id === 'string' &&
-                  typeof machine.catalogMachineId === 'string',
+                  (machine.catalogMachineId === undefined ||
+                      typeof machine.catalogMachineId === 'string'),
           )
         : []
     const removedMachineIds = Array.isArray(candidate.removedMachineIds)

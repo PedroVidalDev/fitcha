@@ -1,10 +1,13 @@
 x-backend: &backend
   image: fitcha-backend:local
   restart: unless-stopped
+  volumes:
+    - fitcha_uploads:/app/uploads
   environment:
     PORT: ${PORT:-8080}
     JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in Dockhand stack variables}
     API_BASE_URL: ${API_BASE_URL:-}
+    MACHINE_PHOTO_DIR: ${MACHINE_PHOTO_DIR:-/app/uploads/machines}
     APP_UPDATE_TOKEN: ${APP_UPDATE_TOKEN:?Set APP_UPDATE_TOKEN in Dockhand stack variables}
     DB_HOST: ${DB_HOST:?Set DB_HOST in Dockhand stack variables}
     DB_PORT: ${DB_PORT:?Set DB_PORT in Dockhand stack variables}
@@ -51,3 +54,6 @@ services:
   worker:
     <<: *backend
     command: ["./worker"]
+
+volumes:
+  fitcha_uploads:

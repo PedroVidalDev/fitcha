@@ -16,6 +16,7 @@ import {
 } from '../services/appUpdate'
 
 import DayScreen from '../screens/Day'
+import CustomMachinesScreen from '../screens/CustomMachines'
 import HomeScreen from '../screens/Home'
 import LoginScreen from '../screens/Login'
 import ProfileScreen from '../screens/Profile'
@@ -245,6 +246,17 @@ export function AppNavigator() {
                                 options={{
                                     title: translate(
                                         'navigation.machineDetail',
+                                    ),
+                                    headerRight: HeaderActions,
+                                }}
+                            />
+
+                            <Stack.Screen
+                                name='CustomMachines'
+                                component={CustomMachinesScreen}
+                                options={{
+                                    title: translate(
+                                        'customMachines.navigationTitle',
                                     ),
                                     headerRight: HeaderActions,
                                 }}

@@ -49,7 +49,11 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	creditService := services.NewCreditService(db, paymentRepo, authRepo, mpClient, mpErr, emailJobs)
 	creditController := controllers.NewCreditController(creditService)
 	machineService := services.NewMachineService(userMachineRepo, machineRepo)
-	machineController := controllers.NewMachineController(machineService)
+	machinePhotoStorage, err := services.NewMachinePhotoStorage(os.Getenv("MACHINE_PHOTO_DIR"))
+	if err != nil {
+		panic(err)
+	}
+	machineController := controllers.NewMachineController(machineService, machinePhotoStorage)
 	workoutService := services.NewWorkoutService(db, workoutRepo)
 	workoutController := controllers.NewWorkoutController(workoutService)
 	historyService := services.NewHistoryService(db, historyRepo)
@@ -62,6 +66,12 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	RegisterMachineRoutes(r, machineController)
 	RegisterWorkoutRoutes(r, workoutController)
 	RegisterHistoryRoutes(r, historyController)
+	uploads := r.Group("/uploads/machines")
+	uploads.Use(func(ctx *gin.Context) {
+		ctx.Header("Cache-Control", "public, max-age=31536000, immutable")
+		ctx.Next()
+	})
+	uploads.Static("/", machinePhotoStorage.RootDir())
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{

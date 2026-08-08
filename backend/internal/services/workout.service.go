@@ -228,7 +228,8 @@ func (s *WorkoutService) RemoveMachine(userID uint, workoutID uint, machineID st
 			return err
 		}
 
-		if _, err := userMachineRepo.FindByIDAndUserID(machineID, userID); err != nil {
+		userMachine, err := userMachineRepo.FindByIDAndUserID(machineID, userID)
+		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errors.New("maquina nao encontrada")
 			}
@@ -257,7 +258,7 @@ func (s *WorkoutService) RemoveMachine(userID uint, workoutID uint, machineID st
 			return err
 		}
 
-		if assignmentsCount == 0 {
+		if assignmentsCount == 0 && userMachine.MachineID != nil {
 			hasHistory, err := hasHistoryForUserMachine(tx, machineID)
 			if err != nil {
 				return err
