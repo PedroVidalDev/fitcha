@@ -16,6 +16,8 @@ export type AddMachineModalProps = {
 
 export type AddMachineCategoryFilter = MachineCategoryKey | 'all'
 
+export type AddMachineSourceFilter = 'custom' | 'catalog'
+
 export type AddMachineOption = {
     key: string
     kind: 'catalog' | 'custom'

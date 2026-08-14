@@ -1,6 +1,11 @@
 import { useDashboardSummary } from '@/src/hooks/useDashboardSummary'
-import { RootStackParamList } from '@/src/router/types'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import { MainTabParamList, RootStackParamList } from '@/src/router/types'
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
+import {
+    CompositeNavigationProp,
+    useFocusEffect,
+    useNavigation,
+} from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useCallback, useState } from 'react'
 import {
@@ -18,11 +23,6 @@ import {
     clearActiveWorkoutSession,
     getActiveWorkoutSession,
 } from '../../services/activeWorkout'
-import {
-    getCachedCustomMachines,
-    loadWorkoutData,
-} from '../../services/workoutData'
-import { HomeCustomMachinesShortcut } from './components/HomeCustomMachinesShortcut'
 import { HomeFeaturedPlanSection } from './components/HomeFeaturedPlanSection'
 import { HomeHeroCard } from './components/HomeHeroCard'
 import { HomeRhythmSection } from './components/HomeRhythmSection'
@@ -31,7 +31,10 @@ import { ResumeWorkoutModal } from './components/ResumeWorkoutModal'
 import { getFirstName } from './helpers'
 import { type HomeScreenProps } from './types'
 
-type Navigation = NativeStackNavigationProp<RootStackParamList, 'Home'>
+type Navigation = CompositeNavigationProp<
+    BottomTabNavigationProp<MainTabParamList, 'Home'>,
+    NativeStackNavigationProp<RootStackParamList>
+>
 
 export default function HomeScreen(props: HomeScreenProps) {
     void props
@@ -44,26 +47,12 @@ export default function HomeScreen(props: HomeScreenProps) {
     const { summary, isLoading, refresh } = useDashboardSummary()
     const [activeWorkoutSession, setActiveWorkoutSession] =
         useState<ActiveWorkoutSession | null>(null)
-    const [customMachineCount, setCustomMachineCount] = useState(0)
 
     useFocusEffect(
         useCallback(() => {
             let isActive = true
 
             void refresh()
-            void (async () => {
-                const cachedMachines = await getCachedCustomMachines()
-                if (!isActive) return
-                setCustomMachineCount(cachedMachines.length)
-
-                const data = await loadWorkoutData()
-                if (!isActive) return
-                setCustomMachineCount(
-                    Object.values(data.machines).filter(
-                        (machine) => !machine.catalogMachineId,
-                    ).length,
-                )
-            })()
             void (async () => {
                 const session = await getActiveWorkoutSession()
 
@@ -76,14 +65,6 @@ export default function HomeScreen(props: HomeScreenProps) {
             }
         }, [refresh]),
     )
-
-    const handleOpenWeek = useCallback(() => {
-        navigation.navigate('Week')
-    }, [navigation])
-
-    const handleOpenCustomMachines = useCallback(() => {
-        navigation.navigate('CustomMachines')
-    }, [navigation])
 
     const handleCloseActiveWorkoutSession = useCallback(() => {
         void (async () => {
@@ -135,11 +116,7 @@ export default function HomeScreen(props: HomeScreenProps) {
                 showsVerticalScrollIndicator={false}
             >
                 <AnimatedCard index={0}>
-                    <HomeHeroCard
-                        summary={summary}
-                        firstName={firstName}
-                        onOpenWeek={handleOpenWeek}
-                    />
+                    <HomeHeroCard summary={summary} firstName={firstName} />
                 </AnimatedCard>
 
                 <AnimatedCard index={1}>
@@ -151,20 +128,13 @@ export default function HomeScreen(props: HomeScreenProps) {
                 </AnimatedCard>
 
                 <AnimatedCard index={3}>
-                    <HomeCustomMachinesShortcut
-                        count={customMachineCount}
-                        onPress={handleOpenCustomMachines}
-                    />
-                </AnimatedCard>
-
-                <AnimatedCard index={4}>
                     <HomeFeaturedPlanSection
                         summary={summary}
                         progressCardWidth={progressCardWidth}
                     />
                 </AnimatedCard>
 
-                <AnimatedCard index={5}>
+                <AnimatedCard index={4}>
                     <HomeRhythmSection summary={summary} />
                 </AnimatedCard>
             </ScrollView>

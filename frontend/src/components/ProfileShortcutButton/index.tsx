@@ -18,7 +18,9 @@ export function ProfileShortcutButton() {
 
     return (
         <TouchableOpacity
-            onPress={() => navigation.navigate('Profile')}
+            onPress={() =>
+                navigation.navigate('MainTabs', { screen: 'Profile' })
+            }
             style={{
                 width: 34,
                 height: 34,

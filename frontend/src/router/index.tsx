@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useEffect, useState } from 'react'
@@ -25,9 +27,83 @@ import WeekScreen from '../screens/Week'
 import WorkoutScreen from '../screens/Workout'
 
 import MachineDetailScreen from '../screens/Detail'
-import { RootStackParamList } from './types'
+import { MainTabParamList, RootStackParamList } from './types'
+import { TAB_ICONS } from './consts'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
+const Tab = createBottomTabNavigator<MainTabParamList>()
+
+function MainTabsNavigator() {
+    const { t } = useTheme()
+    const { t: translate } = useI18n()
+
+    return (
+        <Tab.Navigator
+            screenOptions={({ route }) => ({
+                headerStyle: { backgroundColor: t.headerBg },
+                headerTintColor: t.accent,
+                headerTitleStyle: { fontWeight: '800', fontSize: 20 },
+                headerShadowVisible: false,
+                sceneStyle: { backgroundColor: t.bg },
+                tabBarShowLabel: false,
+                tabBarHideOnKeyboard: true,
+                tabBarActiveTintColor: t.accent,
+                tabBarInactiveTintColor: t.textDim,
+                tabBarStyle: {
+                    backgroundColor: t.headerBg,
+                    borderTopColor: t.border,
+                    borderTopWidth: 1,
+                    paddingTop: 7,
+                    paddingBottom: 7,
+                },
+                tabBarIcon: ({ color, focused }) => {
+                    const icon = TAB_ICONS[route.name]
+
+                    return (
+                        <Ionicons
+                            name={focused ? icon.active : icon.inactive}
+                            size={focused ? 25 : 24}
+                            color={color}
+                        />
+                    )
+                },
+            })}
+        >
+            <Tab.Screen
+                name='Home'
+                component={HomeScreen}
+                options={{
+                    title: 'Fitcha',
+                    tabBarAccessibilityLabel: translate('navigation.home'),
+                }}
+            />
+            <Tab.Screen
+                name='Week'
+                component={WeekScreen}
+                options={{
+                    title: translate('navigation.workouts'),
+                    tabBarAccessibilityLabel: translate('navigation.workouts'),
+                }}
+            />
+            <Tab.Screen
+                name='CustomMachines'
+                component={CustomMachinesScreen}
+                options={{
+                    title: translate('navigation.machines'),
+                    tabBarAccessibilityLabel: translate('navigation.machines'),
+                }}
+            />
+            <Tab.Screen
+                name='Profile'
+                component={ProfileScreen}
+                options={{
+                    title: translate('navigation.account'),
+                    tabBarAccessibilityLabel: translate('navigation.account'),
+                }}
+            />
+        </Tab.Navigator>
+    )
+}
 
 export function AppNavigator() {
     const {
@@ -205,30 +281,9 @@ export function AppNavigator() {
                     {user ? (
                         <>
                             <Stack.Screen
-                                name='Home'
-                                component={HomeScreen}
-                                options={{
-                                    title: 'Fitcha',
-                                    headerBackVisible: false,
-                                    headerRight: HeaderActions,
-                                }}
-                            />
-
-                            <Stack.Screen
-                                name='Week'
-                                component={WeekScreen}
-                                options={{
-                                    title: translate('week.title'),
-                                    headerRight: HeaderActions,
-                                }}
-                            />
-
-                            <Stack.Screen
-                                name='Profile'
-                                component={ProfileScreen}
-                                options={{
-                                    title: translate('navigation.profile'),
-                                }}
+                                name='MainTabs'
+                                component={MainTabsNavigator}
+                                options={{ headerShown: false }}
                             />
 
                             <Stack.Screen
@@ -246,17 +301,6 @@ export function AppNavigator() {
                                 options={{
                                     title: translate(
                                         'navigation.machineDetail',
-                                    ),
-                                    headerRight: HeaderActions,
-                                }}
-                            />
-
-                            <Stack.Screen
-                                name='CustomMachines'
-                                component={CustomMachinesScreen}
-                                options={{
-                                    title: translate(
-                                        'customMachines.navigationTitle',
                                     ),
                                     headerRight: HeaderActions,
                                 }}

@@ -108,6 +108,10 @@ export const enUS: TranslationDictionary = {
     'auth.register.successTitle': 'Check your email',
     'auth.register.successMessage':
         'Your account has been created. We sent a verification link to {email}. After that, come back to the app and sign in.',
+    'navigation.home': 'Home',
+    'navigation.workouts': 'Workouts',
+    'navigation.machines': 'Machines',
+    'navigation.account': 'Account',
     'navigation.profile': 'Profile',
     'navigation.machineDetail': 'Detail',
     'profile.kicker': 'profile',
@@ -211,6 +215,12 @@ export const enUS: TranslationDictionary = {
     'addMachine.emptyTitle': 'No machines found',
     'addMachine.emptyMessage':
         'Try another term or adjust the category filter.',
+    'addMachine.emptyCustomTitle': 'No custom machines found',
+    'addMachine.emptyCustomMessage':
+        'Create a custom machine or adjust the search filters.',
+    'addMachine.emptyCatalogTitle': 'No catalog machines found',
+    'addMachine.emptyCatalogMessage':
+        'Try another term or adjust the category filter.',
     'week.title': 'Your workouts',
     'week.todayBadge': 'TODAY',
     'week.emptyDay': 'No workout created yet.',
@@ -242,18 +252,22 @@ export const enUS: TranslationDictionary = {
     'day.removeWorkout.title': 'Remove workout',
     'day.removeWorkout.message':
         'Remove the workout "{name}"? Machines without history and without use in other workouts will also be cleaned up.',
-    'customMachines.navigationTitle': 'My machines',
-    'customMachines.title': 'Custom machines',
-    'customMachines.summary': '{count} machine(s) created by you.',
+    'customMachines.navigationTitle': 'Machines',
+    'customMachines.title': 'Machines',
+    'customMachines.summary':
+        'Manage your custom machines and explore {catalogCount} options from the online catalog.',
     'customMachines.homeTitle': 'My machines',
     'customMachines.homeSubtitle': '{count} custom machine(s) to manage',
     'customMachines.createAction': 'Create custom machine',
     'customMachines.createFromPickerHint':
         'Create a new one and add it directly to the workout.',
     'customMachines.badge': 'Custom',
+    'customMachines.catalogBadge': 'Online catalog',
     'customMachines.pickerMyMachines': 'My machines',
     'customMachines.pickerCatalog': 'Catalog',
     'customMachines.empty': 'You have not created any custom machines yet.',
+    'customMachines.catalogEmpty':
+        'No machines are available in the catalog right now.',
     'customMachines.noResults': 'No machines found with these filters.',
     'customMachines.editAccessibility': 'Edit custom machine',
     'customMachines.deleteAccessibility': 'Delete custom machine',

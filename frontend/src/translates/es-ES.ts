@@ -109,6 +109,10 @@ export const esES: TranslationDictionary = {
     'auth.register.successTitle': 'Revisa tu correo',
     'auth.register.successMessage':
         'Tu cuenta fue creada. Enviamos un enlace de verificacion a {email}. Despues de eso, vuelve a la app para entrar.',
+    'navigation.home': 'Inicio',
+    'navigation.workouts': 'Entrenamientos',
+    'navigation.machines': 'Maquinas',
+    'navigation.account': 'Cuenta',
     'navigation.profile': 'Perfil',
     'navigation.machineDetail': 'Detalle',
     'profile.kicker': 'perfil',
@@ -213,6 +217,12 @@ export const esES: TranslationDictionary = {
     'addMachine.emptyTitle': 'No se encontraron maquinas',
     'addMachine.emptyMessage':
         'Prueba otro termino o ajusta el filtro de categoria.',
+    'addMachine.emptyCustomTitle': 'No se encontraron maquinas personalizadas',
+    'addMachine.emptyCustomMessage':
+        'Crea una maquina personalizada o ajusta los filtros de busqueda.',
+    'addMachine.emptyCatalogTitle': 'No se encontraron maquinas en el catalogo',
+    'addMachine.emptyCatalogMessage':
+        'Prueba otro termino o ajusta el filtro de categoria.',
     'week.title': 'Tus entrenamientos',
     'week.todayBadge': 'HOY',
     'week.emptyDay': 'Todavia no has creado ningun entrenamiento.',
@@ -245,18 +255,22 @@ export const esES: TranslationDictionary = {
     'day.removeWorkout.title': 'Eliminar entrenamiento',
     'day.removeWorkout.message':
         'Eliminar el entrenamiento "{name}"? Las maquinas sin historial y sin uso en otros entrenamientos tambien se limpiaran.',
-    'customMachines.navigationTitle': 'Mis máquinas',
-    'customMachines.title': 'Máquinas personalizadas',
-    'customMachines.summary': '{count} máquina(s) creada(s) por ti.',
+    'customMachines.navigationTitle': 'Máquinas',
+    'customMachines.title': 'Máquinas',
+    'customMachines.summary':
+        'Administra tus máquinas personalizadas y explora {catalogCount} opciones del catálogo en línea.',
     'customMachines.homeTitle': 'Mis máquinas',
     'customMachines.homeSubtitle': '{count} personalizada(s) para administrar',
     'customMachines.createAction': 'Crear máquina personalizada',
     'customMachines.createFromPickerHint':
         'Crea una nueva y agrégala directamente al entrenamiento.',
     'customMachines.badge': 'Personalizada',
+    'customMachines.catalogBadge': 'Catálogo en línea',
     'customMachines.pickerMyMachines': 'Mis máquinas',
     'customMachines.pickerCatalog': 'Catálogo',
     'customMachines.empty': 'Todavía no has creado máquinas personalizadas.',
+    'customMachines.catalogEmpty':
+        'No hay máquinas disponibles en el catálogo en este momento.',
     'customMachines.noResults': 'No se encontraron máquinas con estos filtros.',
     'customMachines.editAccessibility': 'Editar máquina personalizada',
     'customMachines.deleteAccessibility': 'Eliminar máquina personalizada',

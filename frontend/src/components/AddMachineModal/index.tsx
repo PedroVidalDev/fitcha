@@ -22,42 +22,14 @@ import { AddMachineLoadingState } from './components/AddMachineLoadingState'
 import { AddMachineMachineList } from './components/AddMachineMachineList'
 import { AddMachineModalHeader } from './components/AddMachineModalHeader'
 import { AddMachineSearchField } from './components/AddMachineSearchField'
+import { AddMachineSourceFilters } from './components/AddMachineSourceFilters'
 import {
     type AddMachineCategoryFilter,
     type AddMachineModalProps,
     type AddMachineOption,
+    type AddMachineSourceFilter,
 } from './types'
-
-function toCatalogOption(machine: CatalogMachine): AddMachineOption {
-    return {
-        key: `catalog:${machine.id}`,
-        kind: 'catalog',
-        id: machine.id,
-        name: machine.name,
-        description: machine.description,
-        photo: machine.photo,
-        categoryKey: machine.categoryKey,
-        substitutionGroup: machine.substitutionGroup,
-        trackingType: machine.trackingType,
-        requiresWeight: machine.requiresWeight,
-        searchTerms: [machine.name, machine.slug, ...(machine.aliases ?? [])],
-    }
-}
-
-function toCustomOption(machine: Machine): AddMachineOption {
-    return {
-        key: `custom:${machine.id}`,
-        kind: 'custom',
-        id: machine.id,
-        name: machine.name,
-        description: machine.description,
-        photo: machine.photo,
-        categoryKey: machine.categoryKey,
-        trackingType: machine.trackingType,
-        requiresWeight: machine.requiresWeight,
-        searchTerms: [machine.name, machine.description ?? ''],
-    }
-}
+import { toCatalogOption, toCustomOption } from './helpers'
 
 export function AddMachineModal(props: AddMachineModalProps) {
     const {
@@ -78,6 +50,8 @@ export function AddMachineModal(props: AddMachineModalProps) {
     const [query, setQuery] = useState('')
     const [categoryFilter, setCategoryFilter] =
         useState<AddMachineCategoryFilter>('all')
+    const [sourceFilter, setSourceFilter] =
+        useState<AddMachineSourceFilter>('custom')
     const [selectedMachineKey, setSelectedMachineKey] = useState<string | null>(
         null,
     )
@@ -90,6 +64,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
         if (!visible) return
 
         let mounted = true
+        setSourceFilter(substitutionGroup ? 'catalog' : 'custom')
         setIsLoading(true)
         setErrorMessage('')
 
@@ -123,7 +98,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
         return () => {
             mounted = false
         }
-    }, [visible])
+    }, [substitutionGroup, visible])
 
     const options = useMemo(() => {
         const customOptions = substitutionGroup
@@ -168,21 +143,32 @@ export function AddMachineModal(props: AddMachineModalProps) {
         }
     }, [categoryFilter, options, query])
 
+    const visibleOptions =
+        sourceFilter === 'custom'
+            ? filteredOptions.customOptions
+            : filteredOptions.catalogOptions
     const allOptions = [...options.customOptions, ...options.catalogOptions]
     const selectedMachine = allOptions.find(
         (machine) => machine.key === selectedMachineKey,
     )
-    const hasResults =
-        filteredOptions.customOptions.length > 0 ||
-        filteredOptions.catalogOptions.length > 0
+    const hasResults = visibleOptions.length > 0
 
     const resetAndClose = () => {
         setQuery('')
         setCategoryFilter('all')
+        setSourceFilter(substitutionGroup ? 'catalog' : 'custom')
         setSelectedMachineKey(null)
         setIsCustomFormVisible(false)
         setErrorMessage('')
         onClose()
+    }
+
+    const handleSelectSourceFilter = (nextFilter: AddMachineSourceFilter) => {
+        if (nextFilter === sourceFilter) return
+
+        setSourceFilter(nextFilter)
+        setSelectedMachineKey(null)
+        setErrorMessage('')
     }
 
     const handleAdd = async () => {
@@ -221,6 +207,13 @@ export function AddMachineModal(props: AddMachineModalProps) {
                     <AddMachineModalHeader titleKey={titleKey} />
 
                     {!substitutionGroup ? (
+                        <AddMachineSourceFilters
+                            sourceFilter={sourceFilter}
+                            onSelectFilter={handleSelectSourceFilter}
+                        />
+                    ) : null}
+
+                    {!substitutionGroup && sourceFilter === 'custom' ? (
                         <TouchableOpacity
                             activeOpacity={0.78}
                             onPress={() => setIsCustomFormVisible(true)}
@@ -280,57 +273,13 @@ export function AddMachineModal(props: AddMachineModalProps) {
                     {isLoading ? (
                         <AddMachineLoadingState />
                     ) : !hasResults ? (
-                        <AddMachineEmptyState />
+                        <AddMachineEmptyState sourceFilter={sourceFilter} />
                     ) : (
-                        <View style={{ gap: 16 }}>
-                            {filteredOptions.customOptions.length > 0 ? (
-                                <View style={{ gap: 9 }}>
-                                    <Text
-                                        style={{
-                                            color: t.accent,
-                                            fontSize: 11,
-                                            fontWeight: '900',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: 1.1,
-                                        }}
-                                    >
-                                        {translate(
-                                            'customMachines.pickerMyMachines',
-                                        )}
-                                    </Text>
-                                    <AddMachineMachineList
-                                        machines={filteredOptions.customOptions}
-                                        selectedMachineId={selectedMachineKey}
-                                        onSelectMachine={setSelectedMachineKey}
-                                    />
-                                </View>
-                            ) : null}
-
-                            {filteredOptions.catalogOptions.length > 0 ? (
-                                <View style={{ gap: 9 }}>
-                                    <Text
-                                        style={{
-                                            color: t.textDim,
-                                            fontSize: 11,
-                                            fontWeight: '900',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: 1.1,
-                                        }}
-                                    >
-                                        {translate(
-                                            'customMachines.pickerCatalog',
-                                        )}
-                                    </Text>
-                                    <AddMachineMachineList
-                                        machines={
-                                            filteredOptions.catalogOptions
-                                        }
-                                        selectedMachineId={selectedMachineKey}
-                                        onSelectMachine={setSelectedMachineKey}
-                                    />
-                                </View>
-                            ) : null}
-                        </View>
+                        <AddMachineMachineList
+                            machines={visibleOptions}
+                            selectedMachineId={selectedMachineKey}
+                            onSelectMachine={setSelectedMachineKey}
+                        />
                     )}
                 </ScrollView>
 

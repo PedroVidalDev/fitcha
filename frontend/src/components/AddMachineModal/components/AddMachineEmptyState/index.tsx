@@ -1,10 +1,14 @@
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { Text, View } from 'react-native'
+import { type AddMachineEmptyStateProps } from './types'
 
-export function AddMachineEmptyState() {
+export function AddMachineEmptyState(props: AddMachineEmptyStateProps) {
+    const { sourceFilter } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
+
+    const isCustomFilter = sourceFilter === 'custom'
 
     return (
         <View
@@ -23,7 +27,11 @@ export function AddMachineEmptyState() {
                     fontWeight: '700',
                 }}
             >
-                {translate('addMachine.emptyTitle')}
+                {translate(
+                    isCustomFilter
+                        ? 'addMachine.emptyCustomTitle'
+                        : 'addMachine.emptyCatalogTitle',
+                )}
             </Text>
             <Text
                 style={{
@@ -33,7 +41,11 @@ export function AddMachineEmptyState() {
                     marginTop: 6,
                 }}
             >
-                {translate('addMachine.emptyMessage')}
+                {translate(
+                    isCustomFilter
+                        ? 'addMachine.emptyCustomMessage'
+                        : 'addMachine.emptyCatalogMessage',
+                )}
             </Text>
         </View>
     )

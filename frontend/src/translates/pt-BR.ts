@@ -106,6 +106,10 @@ export const ptBR = {
     'auth.register.successTitle': 'Verifique seu e-mail',
     'auth.register.successMessage':
         'Sua conta foi criada. Enviamos um link de verificação para {email}. Depois disso, volte ao app para entrar.',
+    'navigation.home': 'Início',
+    'navigation.workouts': 'Treinos',
+    'navigation.machines': 'Máquinas',
+    'navigation.account': 'Conta',
     'navigation.profile': 'Perfil',
     'navigation.machineDetail': 'Detalhe',
     'profile.kicker': 'perfil',
@@ -210,6 +214,12 @@ export const ptBR = {
     'addMachine.emptyTitle': 'Nenhuma máquina encontrada',
     'addMachine.emptyMessage':
         'Tente outro nome ou ajuste o filtro de categoria.',
+    'addMachine.emptyCustomTitle': 'Nenhuma máquina personalizada encontrada',
+    'addMachine.emptyCustomMessage':
+        'Crie uma máquina personalizada ou ajuste os filtros da busca.',
+    'addMachine.emptyCatalogTitle': 'Nenhuma máquina no catálogo encontrada',
+    'addMachine.emptyCatalogMessage':
+        'Tente outro nome ou ajuste o filtro de categoria.',
     'week.title': 'Seus treinos',
     'week.todayBadge': 'HOJE',
     'week.emptyDay': 'Nenhum treino criado ainda.',
@@ -242,19 +252,23 @@ export const ptBR = {
     'day.removeWorkout.title': 'Remover treino',
     'day.removeWorkout.message':
         'Remover o treino "{name}"? As máquinas sem histórico e sem uso em outros treinos também serão limpas.',
-    'customMachines.navigationTitle': 'Minhas máquinas',
-    'customMachines.title': 'Máquinas personalizadas',
-    'customMachines.summary': '{count} máquina(s) criada(s) por você.',
+    'customMachines.navigationTitle': 'Máquinas',
+    'customMachines.title': 'Máquinas',
+    'customMachines.summary':
+        'Gerencie suas máquinas personalizadas e explore {catalogCount} opções do catálogo online.',
     'customMachines.homeTitle': 'Minhas máquinas',
     'customMachines.homeSubtitle': '{count} personalizada(s) para gerenciar',
     'customMachines.createAction': 'Criar máquina personalizada',
     'customMachines.createFromPickerHint':
         'Cadastre uma nova e adicione diretamente ao treino.',
     'customMachines.badge': 'Personalizada',
+    'customMachines.catalogBadge': 'Catálogo online',
     'customMachines.pickerMyMachines': 'Minhas máquinas',
     'customMachines.pickerCatalog': 'Catálogo',
     'customMachines.empty':
         'Você ainda não criou nenhuma máquina personalizada.',
+    'customMachines.catalogEmpty':
+        'Nenhuma máquina disponível no catálogo no momento.',
     'customMachines.noResults': 'Nenhuma máquina encontrada com esses filtros.',
     'customMachines.editAccessibility': 'Editar máquina personalizada',
     'customMachines.deleteAccessibility': 'Excluir máquina personalizada',

@@ -66,7 +66,10 @@ export function WorkoutMachineHero(props: WorkoutMachineHeroProps) {
             >
                 {machine.name}
             </Text>
-            <CategoryBadge categoryKey={machine.categoryKey} />
+            <CategoryBadge
+                categoryKey={machine.categoryKey}
+                containerStyle={{ alignSelf: 'center', marginTop: 8 }}
+            />
 
             <TouchableOpacity
                 activeOpacity={0.78}
