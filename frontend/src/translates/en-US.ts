@@ -34,6 +34,9 @@ export const enUS: TranslationDictionary = {
     'common.actions.save': 'Save',
     'common.actions.delete': 'Delete',
     'common.actions.startWorkout': 'Start workout',
+    'common.pagination.previous': 'Previous page',
+    'common.pagination.next': 'Next page',
+    'common.pagination.summary': 'Page {page} of {totalPages}',
     'common.units.cm': 'cm',
     'common.units.kg': 'kg',
     'common.relative.today': 'today',
@@ -255,7 +258,7 @@ export const enUS: TranslationDictionary = {
     'customMachines.navigationTitle': 'Machines',
     'customMachines.title': 'Machines',
     'customMachines.summary':
-        'Manage your custom machines and explore {catalogCount} options from the online catalog.',
+        'Manage your custom machines and explore the online catalog.',
     'customMachines.homeTitle': 'My machines',
     'customMachines.homeSubtitle': '{count} custom machine(s) to manage',
     'customMachines.createAction': 'Create custom machine',

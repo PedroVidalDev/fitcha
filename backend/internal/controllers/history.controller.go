@@ -3,6 +3,7 @@ package controllers
 import (
 	dtos "fitcha/internal/dtos/history"
 	machineDtos "fitcha/internal/dtos/machine"
+	paginationDtos "fitcha/internal/dtos/pagination"
 	workoutDtos "fitcha/internal/dtos/workout"
 	"fitcha/internal/services"
 	"net/http"
@@ -32,6 +33,60 @@ func (c *HistoryController) List(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, dtos.FromHistoryEntryModels(entries))
+}
+
+func (c *HistoryController) ListByMachine(ctx *gin.Context) {
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	page, limit, err := getPagination(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	entries, total, err := c.service.ListByMachine(
+		userID,
+		ctx.Param("machineId"),
+		page,
+		limit,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, paginationDtos.NewPageResponse(
+		dtos.FromHistoryEntryModels(entries),
+		page,
+		limit,
+		total,
+	))
+}
+
+func (c *HistoryController) GetMachineRecord(ctx *gin.Context) {
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	entry, err := c.service.GetMachineRecord(userID, ctx.Param("machineId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if entry == nil {
+		ctx.JSON(http.StatusOK, gin.H{"recordEntry": nil})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"recordEntry": dtos.FromHistoryEntryModel(*entry),
+	})
 }
 
 func (c *HistoryController) Delete(ctx *gin.Context) {

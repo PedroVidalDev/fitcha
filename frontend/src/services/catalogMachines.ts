@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { isAxiosError } from 'axios'
 import { CatalogMachine } from '../dtos/CatalogMachine'
+import { PageResponse } from '../dtos/Page'
 import { translateRuntime } from '../translates/runtime'
 import { axiosApp, ensureApiUrlConfigured } from './axios'
 
@@ -15,6 +16,17 @@ type CatalogCache = {
 let memoryCache: CatalogCache | null = null
 let cacheReadPromise: Promise<CatalogCache | null> | null = null
 let refreshPromise: Promise<CatalogMachine[]> | null = null
+
+export type CatalogMachineSearchParams = {
+    q?: string
+    categoryKey?: string
+    substitutionGroup?: string
+    trackingType?: CatalogMachine['trackingType']
+    requiresWeight?: boolean
+    excludeIds?: string
+    page?: number
+    limit?: number
+}
 
 function isCatalogMachineList(value: unknown): value is CatalogMachine[] {
     return (
@@ -144,6 +156,27 @@ export async function getCatalogMachines(options?: { forceRefresh?: boolean }) {
     } catch (error) {
         if (cache) return cache.machines
 
+        throw new Error(
+            getCatalogMachineErrorMessage(
+                error,
+                translateRuntime('services.machines.loadError'),
+            ),
+        )
+    }
+}
+
+export async function searchCatalogMachines(
+    params: CatalogMachineSearchParams,
+) {
+    ensureApiUrlConfigured()
+
+    try {
+        const response = await axiosApp.get<PageResponse<CatalogMachine>>(
+            '/machines/catalog/search',
+            { params },
+        )
+        return response.data
+    } catch (error) {
         throw new Error(
             getCatalogMachineErrorMessage(
                 error,

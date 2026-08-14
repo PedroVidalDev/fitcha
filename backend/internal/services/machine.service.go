@@ -27,6 +27,18 @@ type CreateMachineInput struct {
 	RequiresWeight *bool
 }
 
+type MachineSearchInput struct {
+	Source            string
+	Query             string
+	CategoryKey       string
+	SubstitutionGroup string
+	TrackingType      string
+	RequiresWeight    *bool
+	ExcludeIDs        []string
+	Page              int
+	Limit             int
+}
+
 type MachineService struct {
 	userMachines repositories.IUserMachineRepository
 	catalog      repositories.IMachineRepository
@@ -45,6 +57,57 @@ func (s *MachineService) ListByUserID(userID uint) ([]models.UserMachine, error)
 
 func (s *MachineService) ListCatalog() ([]models.Machine, error) {
 	return s.catalog.FindAll()
+}
+
+func (s *MachineService) SearchByUserID(userID uint, input MachineSearchInput) ([]models.UserMachine, int64, error) {
+	source := strings.TrimSpace(input.Source)
+	if source != "" && source != "custom" && source != "catalog" {
+		return []models.UserMachine{}, 0, errors.New("origem de maquina invalida")
+	}
+
+	categoryKey := strings.TrimSpace(input.CategoryKey)
+	if categoryKey != "" && !models.IsValidMachineCategoryKey(categoryKey) {
+		return []models.UserMachine{}, 0, errors.New("categoria da maquina invalida")
+	}
+
+	trackingType := strings.TrimSpace(input.TrackingType)
+	if trackingType != "" && !models.IsValidMachineTrackingType(trackingType) {
+		return []models.UserMachine{}, 0, errors.New("tipo de registro da maquina invalido")
+	}
+
+	return s.userMachines.FindPageByUserID(userID, repositories.UserMachineSearchFilters{
+		Source:         source,
+		Query:          strings.TrimSpace(input.Query),
+		CategoryKey:    categoryKey,
+		TrackingType:   trackingType,
+		RequiresWeight: input.RequiresWeight,
+		ExcludeIDs:     input.ExcludeIDs,
+		Page:           input.Page,
+		Limit:          input.Limit,
+	})
+}
+
+func (s *MachineService) SearchCatalog(input MachineSearchInput) ([]models.Machine, int64, error) {
+	categoryKey := strings.TrimSpace(input.CategoryKey)
+	if categoryKey != "" && !models.IsValidMachineCategoryKey(categoryKey) {
+		return []models.Machine{}, 0, errors.New("categoria da maquina invalida")
+	}
+
+	trackingType := strings.TrimSpace(input.TrackingType)
+	if trackingType != "" && !models.IsValidMachineTrackingType(trackingType) {
+		return []models.Machine{}, 0, errors.New("tipo de registro da maquina invalido")
+	}
+
+	return s.catalog.FindPage(repositories.MachineSearchFilters{
+		Query:             strings.TrimSpace(input.Query),
+		CategoryKey:       categoryKey,
+		SubstitutionGroup: strings.TrimSpace(input.SubstitutionGroup),
+		TrackingType:      trackingType,
+		RequiresWeight:    input.RequiresWeight,
+		ExcludeIDs:        input.ExcludeIDs,
+		Page:              input.Page,
+		Limit:             input.Limit,
+	})
 }
 
 func (s *MachineService) Get(userID uint, machineID string) (models.UserMachine, error) {

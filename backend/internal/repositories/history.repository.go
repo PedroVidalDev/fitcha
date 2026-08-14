@@ -8,6 +8,8 @@ import (
 
 type IHistoryRepository interface {
 	FindByUserID(userID uint) ([]models.HistoryEntry, error)
+	FindPageByUserMachineIDAndUserID(userMachineID string, userID uint, page int, limit int) ([]models.HistoryEntry, int64, error)
+	FindRecordByUserMachineIDAndUserID(userMachineID string, userID uint, metricKind string) (models.HistoryEntry, error)
 	CreateMany(entries []models.HistoryEntry) ([]models.HistoryEntry, error)
 	DeleteByIDAndUserID(historyID string, userID uint) error
 	ReassignAllByUserMachineID(sourceUserMachineID string, targetUserMachineID string) (int64, error)
@@ -39,6 +41,79 @@ func (r *historyRepository) FindByUserID(userID uint) ([]models.HistoryEntry, er
 	}
 
 	return entries, nil
+}
+
+func (r *historyRepository) FindPageByUserMachineIDAndUserID(userMachineID string, userID uint, page int, limit int) ([]models.HistoryEntry, int64, error) {
+	query := r.db.
+		Model(&models.HistoryEntry{}).
+		Joins("JOIN tb_user_machines ON tb_user_machines.id = tb_history_entries.user_machine_id").
+		Where("tb_history_entries.user_machine_id = ?", userMachineID).
+		Where("tb_user_machines.user_id = ?", userID)
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return []models.HistoryEntry{}, 0, err
+	}
+
+	var entries []models.HistoryEntry
+	if err := query.
+		Select("tb_history_entries.*").
+		Preload("Sets", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position asc")
+		}).
+		Order("tb_history_entries.performed_at desc, tb_history_entries.id desc").
+		Offset((page - 1) * limit).
+		Limit(limit).
+		Find(&entries).
+		Error; err != nil {
+		return []models.HistoryEntry{}, 0, err
+	}
+
+	return entries, total, nil
+}
+
+func (r *historyRepository) FindRecordByUserMachineIDAndUserID(userMachineID string, userID uint, metricKind string) (models.HistoryEntry, error) {
+	metricExpression := "COALESCE(SUM(CASE WHEN tb_history_sets.reps > 0 THEN tb_history_sets.weight * tb_history_sets.reps ELSE tb_history_sets.weight END), 0)"
+	if metricKind == "duration" {
+		metricExpression = "COALESCE(SUM(tb_history_sets.duration_seconds), 0)"
+	} else if metricKind == "reps" {
+		metricExpression = "COALESCE(SUM(tb_history_sets.reps), 0)"
+	}
+
+	type recordCandidate struct {
+		ID string
+	}
+	var candidate recordCandidate
+	err := r.db.
+		Table("tb_history_entries").
+		Select("tb_history_entries.id").
+		Joins("JOIN tb_user_machines ON tb_user_machines.id = tb_history_entries.user_machine_id").
+		Joins("LEFT JOIN tb_history_sets ON tb_history_sets.history_entry_id = tb_history_entries.id").
+		Where("tb_history_entries.user_machine_id = ?", userMachineID).
+		Where("tb_user_machines.user_id = ?", userID).
+		Group("tb_history_entries.id, tb_history_entries.performed_at").
+		Order(metricExpression + " desc").
+		Order("COALESCE(MAX(tb_history_sets.weight), 0) desc").
+		Order("tb_history_entries.performed_at desc").
+		Limit(1).
+		Take(&candidate).
+		Error
+	if err != nil {
+		return models.HistoryEntry{}, err
+	}
+
+	var entry models.HistoryEntry
+	if err := r.db.
+		Where("id = ?", candidate.ID).
+		Preload("Sets", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position asc")
+		}).
+		First(&entry).
+		Error; err != nil {
+		return models.HistoryEntry{}, err
+	}
+
+	return entry, nil
 }
 
 func (r *historyRepository) CreateMany(entries []models.HistoryEntry) ([]models.HistoryEntry, error) {

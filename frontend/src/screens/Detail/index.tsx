@@ -2,8 +2,7 @@ import { ConfirmModal } from '@/src/components/ConfirmModal'
 import { ProfileShortcutButton } from '@/src/components/ProfileShortcutButton'
 import { HistoryEntry } from '@/src/dtos/HistoryEntry'
 import { RootStackParamList } from '@/src/router/types'
-import { useMachineHistory } from '@/src/screens/Detail/hooks/useMachineHistory'
-import { useMachinePhoto } from '@/src/screens/Detail/hooks/useMachinePhoto'
+import { useMachineDetail } from '@/src/screens/Detail/hooks/useMachineDetail'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
@@ -33,9 +32,21 @@ export default function MachineDetailScreen() {
     const navigation = useNavigation<Navigation>()
     const { machineId } = route.params
 
-    const { machine, history, deleteHistoryEntry, transferHistory } =
-        useMachineHistory(machineId)
-    const { photo, updatePhoto, removePhoto } = useMachinePhoto(machineId)
+    const {
+        machine,
+        history,
+        statsHistory,
+        historyPage,
+        historyTotalPages,
+        isHistoryLoading,
+        historyError,
+        changeHistoryPage,
+        updatePhoto,
+        removePhoto,
+        deleteHistoryEntry,
+        transferHistory,
+    } = useMachineDetail(machineId)
+    const photo = machine?.photo
 
     const [photoModal, setPhotoModal] = useState<PhotoModalState | null>(null)
     const [deleteTarget, setDeleteTarget] = useState<HistoryEntry | null>(null)
@@ -315,10 +326,18 @@ export default function MachineDetailScreen() {
             >
                 <MachinePhotoCard photo={photo} onPress={handlePhotoPress} />
                 <MachineIntro machine={machine} />
-                <MachineStatsCarousel machine={machine} history={history} />
+                <MachineStatsCarousel
+                    machine={machine}
+                    history={statsHistory}
+                />
                 <MachineHistorySection
                     machine={machine}
                     history={history}
+                    page={historyPage}
+                    totalPages={historyTotalPages}
+                    isLoading={isHistoryLoading}
+                    errorMessage={historyError}
+                    onChangePage={(page) => void changeHistoryPage(page)}
                     deletingHistoryId={deletingHistoryId}
                     onRequestDelete={setDeleteTarget}
                 />

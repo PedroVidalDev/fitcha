@@ -2,6 +2,7 @@ package controllers
 
 import (
 	dtos "fitcha/internal/dtos/machine"
+	paginationDtos "fitcha/internal/dtos/pagination"
 	"fitcha/internal/services"
 	"net/http"
 	"os"
@@ -43,6 +44,98 @@ func (c *MachineController) ListCatalog(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, dtos.FromCatalogMachineModels(machines))
+}
+
+func (c *MachineController) Search(ctx *gin.Context) {
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	page, limit, err := getPagination(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	requiresWeight, err := getOptionalBoolQuery(ctx, "requiresWeight")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	machines, total, err := c.service.SearchByUserID(userID, services.MachineSearchInput{
+		Source:         ctx.Query("source"),
+		Query:          ctx.Query("q"),
+		CategoryKey:    ctx.Query("categoryKey"),
+		TrackingType:   ctx.Query("trackingType"),
+		RequiresWeight: requiresWeight,
+		ExcludeIDs:     getStringListQuery(ctx, "excludeIds"),
+		Page:           page,
+		Limit:          limit,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, paginationDtos.NewPageResponse(
+		dtos.FromMachineModels(machines),
+		page,
+		limit,
+		total,
+	))
+}
+
+func (c *MachineController) SearchCatalog(ctx *gin.Context) {
+	page, limit, err := getPagination(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	requiresWeight, err := getOptionalBoolQuery(ctx, "requiresWeight")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	machines, total, err := c.service.SearchCatalog(services.MachineSearchInput{
+		Query:             ctx.Query("q"),
+		CategoryKey:       ctx.Query("categoryKey"),
+		SubstitutionGroup: ctx.Query("substitutionGroup"),
+		TrackingType:      ctx.Query("trackingType"),
+		RequiresWeight:    requiresWeight,
+		ExcludeIDs:        getStringListQuery(ctx, "excludeIds"),
+		Page:              page,
+		Limit:             limit,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, paginationDtos.NewPageResponse(
+		dtos.FromCatalogMachineModels(machines),
+		page,
+		limit,
+		total,
+	))
+}
+
+func (c *MachineController) Get(ctx *gin.Context) {
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	machine, err := c.service.Get(userID, ctx.Param("machineId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dtos.FromMachineModel(machine))
 }
 
 func (c *MachineController) Create(ctx *gin.Context) {

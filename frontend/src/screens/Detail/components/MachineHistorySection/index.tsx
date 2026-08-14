@@ -1,11 +1,22 @@
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
-import { Text, View } from 'react-native'
+import { PaginationControls } from '@/src/components/PaginationControls'
+import { ActivityIndicator, Text, View } from 'react-native'
 import { History } from '../History'
 import { MachineHistorySectionProps } from './types'
 
 export function MachineHistorySection(props: MachineHistorySectionProps) {
-    const { machine, history, deletingHistoryId, onRequestDelete } = props
+    const {
+        machine,
+        history,
+        page,
+        totalPages,
+        isLoading,
+        errorMessage,
+        onChangePage,
+        deletingHistoryId,
+        onRequestDelete,
+    } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
 
@@ -39,7 +50,24 @@ export function MachineHistorySection(props: MachineHistorySectionProps) {
                 </Text>
             ) : null}
 
-            {history.length === 0 ? (
+            {isLoading && history.length === 0 ? (
+                <ActivityIndicator
+                    size='small'
+                    color={t.accent}
+                    style={{ marginTop: 24 }}
+                />
+            ) : errorMessage && history.length === 0 ? (
+                <Text
+                    style={{
+                        color: '#EF5350',
+                        textAlign: 'center',
+                        marginTop: 24,
+                        fontSize: 13,
+                    }}
+                >
+                    {errorMessage}
+                </Text>
+            ) : history.length === 0 ? (
                 <Text
                     style={{
                         color: t.textDim,
@@ -62,6 +90,12 @@ export function MachineHistorySection(props: MachineHistorySectionProps) {
                             onRequestDelete={onRequestDelete}
                         />
                     ))}
+                    <PaginationControls
+                        page={page}
+                        totalPages={totalPages}
+                        disabled={isLoading}
+                        onChangePage={onChangePage}
+                    />
                 </View>
             )}
         </>
