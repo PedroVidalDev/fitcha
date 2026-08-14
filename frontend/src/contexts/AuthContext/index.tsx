@@ -28,6 +28,8 @@ import {
 import { clearScheduledNotifications } from '../../services/notifications'
 import { clearData } from '../../services/storage'
 import { resetWorkoutSyncState } from '../../services/workoutData'
+import { clearMachineCache } from '../../services/machineCache'
+import { clearCachedMachineHistory } from '../../services/machineHistoryCache'
 
 const AUTH_KEY = 'auth_session'
 const LEGACY_AUTH_KEY = 'auth_user'
@@ -317,7 +319,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
 
     const clearSession = useCallback(async () => {
-        await Promise.all([clearData(), clearScheduledNotifications()])
+        await Promise.all([
+            clearData(),
+            clearMachineCache(),
+            clearCachedMachineHistory(),
+            clearScheduledNotifications(),
+        ])
         resetWorkoutSyncState()
         setAxiosAuthToken(null)
         await AsyncStorage.multiRemove([AUTH_KEY, LEGACY_AUTH_KEY])

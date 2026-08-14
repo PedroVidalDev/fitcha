@@ -1,19 +1,15 @@
 import { CustomMachineFormModal } from '@/src/components/CustomMachineFormModal'
-import { Machine } from '@/src/dtos/Machine'
+import { PaginationControls } from '@/src/components/PaginationControls'
+import { searchCatalogMachines } from '@/src/services/catalogMachines'
 import {
-    getCachedCatalogMachines,
-    getCatalogMachines,
-} from '@/src/services/catalogMachines'
-import {
-    createCustomMachine,
-    getCachedWorkoutData,
-} from '@/src/services/workoutData'
+    createCustomMachineData,
+    searchMachineData,
+} from '@/src/services/machineData'
 import { Ionicons } from '@expo/vector-icons'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
-import { CatalogMachine } from '../../dtos/CatalogMachine'
 import { AppModal } from '../AppModal'
 import { AddMachineCategoryFilters } from './components/AddMachineCategoryFilters'
 import { AddMachineEmptyState } from './components/AddMachineEmptyState'
@@ -31,6 +27,8 @@ import {
 } from './types'
 import { toCatalogOption, toCustomOption } from './helpers'
 
+const PAGE_LIMIT = 20
+
 export function AddMachineModal(props: AddMachineModalProps) {
     const {
         visible,
@@ -45,13 +43,14 @@ export function AddMachineModal(props: AddMachineModalProps) {
     } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
-    const [catalogMachines, setCatalogMachines] = useState<CatalogMachine[]>([])
-    const [customMachines, setCustomMachines] = useState<Machine[]>([])
+    const [options, setOptions] = useState<AddMachineOption[]>([])
     const [query, setQuery] = useState('')
+    const [debouncedQuery, setDebouncedQuery] = useState('')
     const [categoryFilter, setCategoryFilter] =
         useState<AddMachineCategoryFilter>('all')
-    const [sourceFilter, setSourceFilter] =
-        useState<AddMachineSourceFilter>('custom')
+    const [sourceFilter, setSourceFilter] = useState<AddMachineSourceFilter>(
+        substitutionGroup ? 'catalog' : 'custom',
+    )
     const [selectedMachineKey, setSelectedMachineKey] = useState<string | null>(
         null,
     )
@@ -59,105 +58,115 @@ export function AddMachineModal(props: AddMachineModalProps) {
     const [isAdding, setIsAdding] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const [isCustomFormVisible, setIsCustomFormVisible] = useState(false)
+    const [page, setPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(0)
+    const requestIdRef = useRef(0)
+    const excludedCatalogIDs = excludedMachineIds.join(',')
+    const excludedUserMachineIDs = excludedUserMachineIds.join(',')
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => setDebouncedQuery(query.trim()), 300)
+        return () => clearTimeout(timeoutId)
+    }, [query])
 
     useEffect(() => {
         if (!visible) return
-
-        let mounted = true
         setSourceFilter(substitutionGroup ? 'catalog' : 'custom')
-        setIsLoading(true)
-        setErrorMessage('')
-
-        void (async () => {
-            try {
-                const [cachedCatalog, workoutData] = await Promise.all([
-                    getCachedCatalogMachines(),
-                    getCachedWorkoutData(),
-                ])
-                if (!mounted) return
-
-                setCustomMachines(
-                    Object.values(workoutData.machines).filter(
-                        (machine) => !machine.catalogMachineId,
-                    ),
-                )
-                if (cachedCatalog.length > 0) {
-                    setCatalogMachines(cachedCatalog)
-                    setIsLoading(false)
-                }
-
-                const response = await getCatalogMachines()
-                if (mounted) setCatalogMachines(response)
-            } catch {
-                if (mounted) setCatalogMachines([])
-            } finally {
-                if (mounted) setIsLoading(false)
-            }
-        })()
-
-        return () => {
-            mounted = false
-        }
+        setPage(1)
     }, [substitutionGroup, visible])
 
-    const options = useMemo(() => {
-        const customOptions = substitutionGroup
-            ? []
-            : customMachines
-                  .filter(
-                      (machine) => !excludedUserMachineIds.includes(machine.id),
-                  )
-                  .map(toCustomOption)
-        const catalogOptions = catalogMachines
-            .filter(
-                (machine) =>
-                    (!substitutionGroup ||
-                        machine.substitutionGroup === substitutionGroup) &&
-                    !excludedMachineIds.includes(machine.id),
-            )
-            .map(toCatalogOption)
+    const loadPage = useCallback(
+        async (targetPage: number) => {
+            if (!visible || isCustomFormVisible) return
 
-        return { customOptions, catalogOptions }
-    }, [
-        catalogMachines,
-        customMachines,
-        excludedMachineIds,
-        excludedUserMachineIds,
-        substitutionGroup,
-    ])
+            const requestId = ++requestIdRef.current
+            setIsLoading(true)
+            setErrorMessage('')
+            setSelectedMachineKey(null)
 
-    const filteredOptions = useMemo(() => {
-        const normalizedQuery = query.trim().toLowerCase()
-        const filter = (machine: AddMachineOption) =>
-            (categoryFilter === 'all' ||
-                machine.categoryKey === categoryFilter) &&
-            (!normalizedQuery ||
-                machine.searchTerms
-                    .join(' ')
-                    .toLowerCase()
-                    .includes(normalizedQuery))
+            try {
+                const commonFilters = {
+                    q: debouncedQuery || undefined,
+                    categoryKey:
+                        categoryFilter === 'all' ? undefined : categoryFilter,
+                    page: targetPage,
+                    limit: PAGE_LIMIT,
+                }
+                let nextOptions: AddMachineOption[]
+                let nextPage: number
+                let nextTotalPages: number
 
-        return {
-            customOptions: options.customOptions.filter(filter),
-            catalogOptions: options.catalogOptions.filter(filter),
+                if (sourceFilter === 'custom') {
+                    const response = await searchMachineData({
+                        ...commonFilters,
+                        source: 'custom',
+                        excludeIds: excludedUserMachineIDs || undefined,
+                    })
+                    nextOptions = response.items.map(toCustomOption)
+                    nextPage = response.page
+                    nextTotalPages = response.totalPages
+                } else {
+                    const response = await searchCatalogMachines({
+                        ...commonFilters,
+                        substitutionGroup,
+                        excludeIds: excludedCatalogIDs || undefined,
+                    })
+                    nextOptions = response.items.map(toCatalogOption)
+                    nextPage = response.page
+                    nextTotalPages = response.totalPages
+                }
+
+                if (requestId !== requestIdRef.current) return
+                setOptions(nextOptions)
+                setPage(nextPage)
+                setTotalPages(nextTotalPages)
+            } catch (error) {
+                if (requestId !== requestIdRef.current) return
+                setOptions([])
+                setTotalPages(0)
+                setErrorMessage(
+                    error instanceof Error
+                        ? error.message
+                        : translate('services.machines.loadError'),
+                )
+            } finally {
+                if (requestId === requestIdRef.current) setIsLoading(false)
+            }
+        },
+        [
+            categoryFilter,
+            debouncedQuery,
+            excludedCatalogIDs,
+            excludedUserMachineIDs,
+            isCustomFormVisible,
+            sourceFilter,
+            substitutionGroup,
+            translate,
+            visible,
+        ],
+    )
+
+    useEffect(() => {
+        if (!visible) return
+        void loadPage(1)
+        return () => {
+            requestIdRef.current += 1
         }
-    }, [categoryFilter, options, query])
+    }, [loadPage, visible])
 
-    const visibleOptions =
-        sourceFilter === 'custom'
-            ? filteredOptions.customOptions
-            : filteredOptions.catalogOptions
-    const allOptions = [...options.customOptions, ...options.catalogOptions]
-    const selectedMachine = allOptions.find(
+    const selectedMachine = options.find(
         (machine) => machine.key === selectedMachineKey,
     )
-    const hasResults = visibleOptions.length > 0
+    const hasResults = options.length > 0
 
     const resetAndClose = () => {
         setQuery('')
         setCategoryFilter('all')
         setSourceFilter(substitutionGroup ? 'catalog' : 'custom')
         setSelectedMachineKey(null)
+        setOptions([])
+        setPage(1)
+        setTotalPages(0)
         setIsCustomFormVisible(false)
         setErrorMessage('')
         onClose()
@@ -168,6 +177,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
 
         setSourceFilter(nextFilter)
         setSelectedMachineKey(null)
+        setPage(1)
         setErrorMessage('')
     }
 
@@ -262,12 +272,20 @@ export function AddMachineModal(props: AddMachineModalProps) {
                     {!hideCategoryFilters && (
                         <AddMachineCategoryFilters
                             categoryFilter={categoryFilter}
-                            onSelectFilter={setCategoryFilter}
+                            onSelectFilter={(nextCategory) => {
+                                setCategoryFilter(nextCategory)
+                                setSelectedMachineKey(null)
+                                setPage(1)
+                            }}
                         />
                     )}
                     <AddMachineSearchField
                         value={query}
-                        onChangeText={setQuery}
+                        onChangeText={(value) => {
+                            setQuery(value)
+                            setSelectedMachineKey(null)
+                            setPage(1)
+                        }}
                     />
 
                     {isLoading ? (
@@ -275,11 +293,21 @@ export function AddMachineModal(props: AddMachineModalProps) {
                     ) : !hasResults ? (
                         <AddMachineEmptyState sourceFilter={sourceFilter} />
                     ) : (
-                        <AddMachineMachineList
-                            machines={visibleOptions}
-                            selectedMachineId={selectedMachineKey}
-                            onSelectMachine={setSelectedMachineKey}
-                        />
+                        <>
+                            <AddMachineMachineList
+                                machines={options}
+                                selectedMachineId={selectedMachineKey}
+                                onSelectMachine={setSelectedMachineKey}
+                            />
+                            <PaginationControls
+                                page={page}
+                                totalPages={totalPages}
+                                disabled={isLoading}
+                                onChangePage={(nextPage) =>
+                                    void loadPage(nextPage)
+                                }
+                            />
+                        </>
                     )}
                 </ScrollView>
 
@@ -309,8 +337,7 @@ export function AddMachineModal(props: AddMachineModalProps) {
                 visible={visible && isCustomFormVisible}
                 onClose={() => setIsCustomFormVisible(false)}
                 onSubmit={async (input) => {
-                    const machine = await createCustomMachine(input)
-                    setCustomMachines((current) => [...current, machine])
+                    const machine = await createCustomMachineData(input)
                     await onAdd(toCustomOption(machine))
                     resetAndClose()
                 }}

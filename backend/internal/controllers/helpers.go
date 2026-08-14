@@ -3,8 +3,14 @@ package controllers
 import (
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	defaultPageLimit = 20
+	maxPageLimit     = 100
 )
 
 func getAuthenticatedUserID(ctx *gin.Context) (uint, error) {
@@ -54,4 +60,56 @@ func getUintParam(ctx *gin.Context, key string) (uint, error) {
 	}
 
 	return uint(value), nil
+}
+
+func getPagination(ctx *gin.Context) (int, int, error) {
+	page := 1
+	limit := defaultPageLimit
+
+	if rawPage := strings.TrimSpace(ctx.Query("page")); rawPage != "" {
+		parsedPage, err := strconv.Atoi(rawPage)
+		if err != nil || parsedPage < 1 {
+			return 0, 0, errors.New("pagina invalida")
+		}
+		page = parsedPage
+	}
+
+	if rawLimit := strings.TrimSpace(ctx.Query("limit")); rawLimit != "" {
+		parsedLimit, err := strconv.Atoi(rawLimit)
+		if err != nil || parsedLimit < 1 || parsedLimit > maxPageLimit {
+			return 0, 0, errors.New("limite invalido")
+		}
+		limit = parsedLimit
+	}
+
+	return page, limit, nil
+}
+
+func getOptionalBoolQuery(ctx *gin.Context, key string) (*bool, error) {
+	rawValue := strings.TrimSpace(ctx.Query(key))
+	if rawValue == "" {
+		return nil, nil
+	}
+
+	value, err := strconv.ParseBool(rawValue)
+	if err != nil {
+		return nil, errors.New("filtro booleano invalido")
+	}
+
+	return &value, nil
+}
+
+func getStringListQuery(ctx *gin.Context, key string) []string {
+	rawValue := strings.TrimSpace(ctx.Query(key))
+	if rawValue == "" {
+		return nil
+	}
+
+	values := make([]string, 0)
+	for _, value := range strings.Split(rawValue, ",") {
+		if trimmed := strings.TrimSpace(value); trimmed != "" {
+			values = append(values, trimmed)
+		}
+	}
+	return values
 }

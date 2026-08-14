@@ -32,6 +32,9 @@ export const ptBR = {
     'common.actions.save': 'Salvar',
     'common.actions.delete': 'Excluir',
     'common.actions.startWorkout': 'Iniciar treino',
+    'common.pagination.previous': 'Página anterior',
+    'common.pagination.next': 'Próxima página',
+    'common.pagination.summary': 'Página {page} de {totalPages}',
     'common.units.cm': 'cm',
     'common.units.kg': 'kg',
     'common.relative.today': 'hoje',
@@ -255,7 +258,7 @@ export const ptBR = {
     'customMachines.navigationTitle': 'Máquinas',
     'customMachines.title': 'Máquinas',
     'customMachines.summary':
-        'Gerencie suas máquinas personalizadas e explore {catalogCount} opções do catálogo online.',
+        'Gerencie suas máquinas personalizadas e explore o catálogo online.',
     'customMachines.homeTitle': 'Minhas máquinas',
     'customMachines.homeSubtitle': '{count} personalizada(s) para gerenciar',
     'customMachines.createAction': 'Criar máquina personalizada',

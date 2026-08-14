@@ -51,6 +51,52 @@ func (s *HistoryService) ListByUserID(userID uint) ([]models.HistoryEntry, error
 	return s.history.FindByUserID(userID)
 }
 
+func (s *HistoryService) ListByMachine(userID uint, machineID string, page int, limit int) ([]models.HistoryEntry, int64, error) {
+	machineID = strings.TrimSpace(machineID)
+	if machineID == "" {
+		return []models.HistoryEntry{}, 0, errors.New("maquina nao informada")
+	}
+
+	userMachineRepo := repositories.NewUserMachineRepository(s.db)
+	if _, err := userMachineRepo.FindByIDAndUserID(machineID, userID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return []models.HistoryEntry{}, 0, errors.New("maquina nao encontrada")
+		}
+		return []models.HistoryEntry{}, 0, err
+	}
+
+	return s.history.FindPageByUserMachineIDAndUserID(machineID, userID, page, limit)
+}
+
+func (s *HistoryService) GetMachineRecord(userID uint, machineID string) (*models.HistoryEntry, error) {
+	machineID = strings.TrimSpace(machineID)
+	userMachineRepo := repositories.NewUserMachineRepository(s.db)
+	machine, err := userMachineRepo.FindByIDAndUserID(machineID, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("maquina nao encontrada")
+		}
+		return nil, err
+	}
+
+	metricKind := "weight"
+	if machine.EffectiveTrackingType() == string(models.MachineTrackingTypeDuration) {
+		metricKind = "duration"
+	} else if !machine.EffectiveRequiresWeight() {
+		metricKind = "reps"
+	}
+
+	entry, err := s.history.FindRecordByUserMachineIDAndUserID(machineID, userID, metricKind)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &entry, nil
+}
+
 func (s *HistoryService) Delete(userID uint, historyID string) error {
 	historyID = strings.TrimSpace(historyID)
 	if historyID == "" {

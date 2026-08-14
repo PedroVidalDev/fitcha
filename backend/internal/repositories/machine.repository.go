@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fitcha/internal/models"
+	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -9,10 +10,22 @@ import (
 
 type IMachineRepository interface {
 	FindAll() ([]models.Machine, error)
+	FindPage(filters MachineSearchFilters) ([]models.Machine, int64, error)
 	FindByID(machineID string) (models.Machine, error)
 	Create(machine models.Machine) (models.Machine, error)
 	Update(machine models.Machine) (models.Machine, error)
 	UpsertMany(machines []models.Machine) error
+}
+
+type MachineSearchFilters struct {
+	Query             string
+	CategoryKey       string
+	SubstitutionGroup string
+	TrackingType      string
+	RequiresWeight    *bool
+	ExcludeIDs        []string
+	Page              int
+	Limit             int
 }
 
 type machineRepository struct {
@@ -31,6 +44,54 @@ func (r *machineRepository) FindAll() ([]models.Machine, error) {
 	}
 
 	return machines, nil
+}
+
+func (r *machineRepository) FindPage(filters MachineSearchFilters) ([]models.Machine, int64, error) {
+	query := r.db.Model(&models.Machine{})
+
+	if filters.Query != "" {
+		search := "%" + strings.ToLower(filters.Query) + "%"
+		query = query.Where(
+			"LOWER(name) LIKE ? OR LOWER(description) LIKE ? OR LOWER(slug) LIKE ? OR LOWER(CAST(aliases AS TEXT)) LIKE ?",
+			search,
+			search,
+			search,
+			search,
+		)
+	}
+	if filters.CategoryKey != "" {
+		query = query.Where("category_key = ?", filters.CategoryKey)
+	}
+	if filters.SubstitutionGroup != "" {
+		query = query.Where("substitution_group = ?", filters.SubstitutionGroup)
+	}
+	if filters.TrackingType != "" {
+		query = query.Where("tracking_type = ?", filters.TrackingType)
+	}
+	if filters.RequiresWeight != nil {
+		query = query.Where("requires_weight = ?", *filters.RequiresWeight)
+	}
+	if len(filters.ExcludeIDs) > 0 {
+		query = query.Where("id NOT IN ?", filters.ExcludeIDs)
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return []models.Machine{}, 0, err
+	}
+
+	var machines []models.Machine
+	if err := query.
+		Select("tb_machines.*").
+		Order("LOWER(name) asc, id asc").
+		Offset((filters.Page - 1) * filters.Limit).
+		Limit(filters.Limit).
+		Find(&machines).
+		Error; err != nil {
+		return []models.Machine{}, 0, err
+	}
+
+	return machines, total, nil
 }
 
 func (r *machineRepository) FindByID(machineID string) (models.Machine, error) {

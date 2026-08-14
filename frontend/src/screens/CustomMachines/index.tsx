@@ -9,22 +9,19 @@ import { CategoryBadge } from '@/src/components/CategoryBadge'
 import { ConfirmModal } from '@/src/components/ConfirmModal'
 import { CustomMachineFormModal } from '@/src/components/CustomMachineFormModal'
 import { MachineImage } from '@/src/components/MachineImage'
+import { PaginationControls } from '@/src/components/PaginationControls'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { CatalogMachine } from '@/src/dtos/CatalogMachine'
 import { Machine } from '@/src/dtos/Machine'
 import { MainTabParamList, RootStackParamList } from '@/src/router/types'
+import { searchCatalogMachines } from '@/src/services/catalogMachines'
 import {
-    getCachedCatalogMachines,
-    getCatalogMachines,
-} from '@/src/services/catalogMachines'
-import {
-    createCustomMachine,
-    deleteCustomMachine,
-    getCachedCustomMachines,
-    loadWorkoutData,
-    updateCustomMachine,
-} from '@/src/services/workoutData'
+    createCustomMachineData,
+    deleteCustomMachineData,
+    searchMachineData,
+    updateCustomMachineData,
+} from '@/src/services/machineData'
 import { Ionicons } from '@expo/vector-icons'
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import {
@@ -34,7 +31,7 @@ import {
 } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
     ActivityIndicator,
     Alert,
@@ -51,82 +48,80 @@ type Navigation = CompositeNavigationProp<
 
 type MachineListItem = Machine | CatalogMachine
 
-type LoadingState = Record<AddMachineSourceFilter, boolean>
+const PAGE_LIMIT = 20
 
 export default function CustomMachinesScreen() {
     const { t } = useTheme()
     const { t: translate } = useI18n()
     const navigation = useNavigation<Navigation>()
-    const [customMachines, setCustomMachines] = useState<Machine[]>([])
-    const [catalogMachines, setCatalogMachines] = useState<CatalogMachine[]>([])
+    const [machines, setMachines] = useState<MachineListItem[]>([])
     const [source, setSource] = useState<AddMachineSourceFilter>('custom')
     const [query, setQuery] = useState('')
+    const [debouncedQuery, setDebouncedQuery] = useState('')
     const [category, setCategory] = useState<AddMachineCategoryFilter>('all')
-    const [loading, setLoading] = useState<LoadingState>({
-        custom: true,
-        catalog: true,
-    })
+    const [page, setPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(0)
+    const [isLoading, setIsLoading] = useState(true)
+    const [loadError, setLoadError] = useState('')
     const [formMachine, setFormMachine] = useState<Machine | null>()
     const [deleteTarget, setDeleteTarget] = useState<Machine | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
+    const requestIdRef = useRef(0)
 
-    const refresh = useCallback(async () => {
-        const [cachedCustomMachines, cachedCatalogMachines] = await Promise.all(
-            [getCachedCustomMachines(), getCachedCatalogMachines()],
-        )
+    useEffect(() => {
+        const timeoutId = setTimeout(() => setDebouncedQuery(query.trim()), 300)
+        return () => clearTimeout(timeoutId)
+    }, [query])
 
-        setCustomMachines(cachedCustomMachines)
-        setCatalogMachines(cachedCatalogMachines)
-        setLoading({
-            custom: cachedCustomMachines.length === 0,
-            catalog: cachedCatalogMachines.length === 0,
-        })
+    const loadPage = useCallback(
+        async (targetPage: number) => {
+            const requestId = ++requestIdRef.current
+            setIsLoading(true)
+            setLoadError('')
 
-        const [customResult, catalogResult] = await Promise.allSettled([
-            loadWorkoutData({ forceSync: true }),
-            getCatalogMachines({ forceRefresh: true }),
-        ])
+            try {
+                const filters = {
+                    q: debouncedQuery || undefined,
+                    categoryKey: category === 'all' ? undefined : category,
+                    page: targetPage,
+                    limit: PAGE_LIMIT,
+                }
+                const response =
+                    source === 'custom'
+                        ? await searchMachineData({
+                              ...filters,
+                              source: 'custom',
+                          })
+                        : await searchCatalogMachines(filters)
 
-        if (customResult.status === 'fulfilled') {
-            setCustomMachines(
-                Object.values(customResult.value.machines).filter(
-                    (machine) => !machine.catalogMachineId,
-                ),
-            )
-        }
-
-        if (catalogResult.status === 'fulfilled') {
-            setCatalogMachines(catalogResult.value)
-        }
-
-        setLoading({ custom: false, catalog: false })
-    }, [])
+                if (requestId !== requestIdRef.current) return
+                setMachines(response.items)
+                setPage(response.page)
+                setTotalPages(response.totalPages)
+            } catch (error) {
+                if (requestId !== requestIdRef.current) return
+                setMachines([])
+                setTotalPages(0)
+                setLoadError(
+                    error instanceof Error
+                        ? error.message
+                        : translate('services.machines.loadError'),
+                )
+            } finally {
+                if (requestId === requestIdRef.current) setIsLoading(false)
+            }
+        },
+        [category, debouncedQuery, source, translate],
+    )
 
     useFocusEffect(
         useCallback(() => {
-            void refresh()
-        }, [refresh]),
+            void loadPage(1)
+            return () => {
+                requestIdRef.current += 1
+            }
+        }, [loadPage]),
     )
-
-    const sourceMachines: MachineListItem[] =
-        source === 'custom' ? customMachines : catalogMachines
-
-    const filteredMachines = useMemo(() => {
-        const normalizedQuery = query.trim().toLowerCase()
-
-        return sourceMachines.filter((machine) => {
-            const aliases = 'aliases' in machine ? machine.aliases : []
-
-            return (
-                (category === 'all' || machine.categoryKey === category) &&
-                (!normalizedQuery ||
-                    [machine.name, machine.description ?? '', ...aliases]
-                        .join(' ')
-                        .toLowerCase()
-                        .includes(normalizedQuery))
-            )
-        })
-    }, [category, query, sourceMachines])
 
     const closeForm = () => setFormMachine(undefined)
 
@@ -135,10 +130,9 @@ export default function CustomMachinesScreen() {
 
         setIsDeleting(true)
         try {
-            await deleteCustomMachine(deleteTarget.id)
-            setCustomMachines((current) =>
-                current.filter((machine) => machine.id !== deleteTarget.id),
-            )
+            await deleteCustomMachineData(deleteTarget.id)
+            const nextPage = machines.length === 1 && page > 1 ? page - 1 : page
+            await loadPage(nextPage)
             setDeleteTarget(null)
         } catch (error) {
             setDeleteTarget(null)
@@ -154,9 +148,8 @@ export default function CustomMachinesScreen() {
     }
 
     const isCustomSource = source === 'custom'
-    const isLoading = loading[source]
     const emptyMessage = translate(
-        sourceMachines.length === 0
+        !query.trim() && category === 'all'
             ? isCustomSource
                 ? 'customMachines.empty'
                 : 'customMachines.catalogEmpty'
@@ -210,15 +203,16 @@ export default function CustomMachinesScreen() {
                             maxWidth: '82%',
                         }}
                     >
-                        {translate('customMachines.summary', {
-                            catalogCount: catalogMachines.length,
-                        })}
+                        {translate('customMachines.summary')}
                     </Text>
                 </LinearGradient>
 
                 <AddMachineSourceFilters
                     sourceFilter={source}
-                    onSelectFilter={setSource}
+                    onSelectFilter={(nextSource) => {
+                        setSource(nextSource)
+                        setPage(1)
+                    }}
                 />
 
                 {isCustomSource && (
@@ -258,7 +252,10 @@ export default function CustomMachinesScreen() {
 
                 <AddMachineCategoryFilters
                     categoryFilter={category}
-                    onSelectFilter={setCategory}
+                    onSelectFilter={(nextCategory) => {
+                        setCategory(nextCategory)
+                        setPage(1)
+                    }}
                 />
                 <AddMachineSearchField value={query} onChangeText={setQuery} />
 
@@ -266,7 +263,17 @@ export default function CustomMachinesScreen() {
                     <View style={{ paddingVertical: 48, alignItems: 'center' }}>
                         <ActivityIndicator size='large' color={t.accent} />
                     </View>
-                ) : filteredMachines.length === 0 ? (
+                ) : loadError ? (
+                    <Text
+                        style={{
+                            color: '#EF5350',
+                            textAlign: 'center',
+                            paddingVertical: 30,
+                        }}
+                    >
+                        {loadError}
+                    </Text>
+                ) : machines.length === 0 ? (
                     <View
                         style={{
                             paddingVertical: 46,
@@ -292,7 +299,7 @@ export default function CustomMachinesScreen() {
                     </View>
                 ) : (
                     <View style={{ gap: 10 }}>
-                        {filteredMachines.map((machine) => (
+                        {machines.map((machine) => (
                             <TouchableOpacity
                                 key={machine.id}
                                 activeOpacity={isCustomSource ? 0.8 : 1}
@@ -420,6 +427,12 @@ export default function CustomMachinesScreen() {
                                 )}
                             </TouchableOpacity>
                         ))}
+                        <PaginationControls
+                            page={page}
+                            totalPages={totalPages}
+                            disabled={isLoading}
+                            onChangePage={(nextPage) => void loadPage(nextPage)}
+                        />
                     </View>
                 )}
             </ScrollView>
@@ -430,20 +443,13 @@ export default function CustomMachinesScreen() {
                 onClose={closeForm}
                 onSubmit={async (input) => {
                     if (formMachine) {
-                        const updated = await updateCustomMachine(
-                            formMachine.id,
-                            input,
-                        )
-                        setCustomMachines((current) =>
-                            current.map((machine) =>
-                                machine.id === updated.id ? updated : machine,
-                            ),
-                        )
+                        await updateCustomMachineData(formMachine.id, input)
+                        await loadPage(page)
                         return
                     }
 
-                    const created = await createCustomMachine(input)
-                    setCustomMachines((current) => [...current, created])
+                    await createCustomMachineData(input)
+                    await loadPage(1)
                 }}
             />
 

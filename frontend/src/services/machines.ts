@@ -1,5 +1,6 @@
 import { isAxiosError } from 'axios'
 import { Machine } from '../dtos/Machine'
+import { PageResponse } from '../dtos/Page'
 import { translateRuntime } from '../translates/runtime'
 import { axiosApp, ensureApiUrlConfigured } from './axios'
 
@@ -20,6 +21,17 @@ export type CreateMachineInput = Pick<
     'name' | 'categoryKey' | 'trackingType' | 'requiresWeight'
 > &
     Partial<Pick<Machine, 'description' | 'photo'>>
+
+export type MachineSearchParams = {
+    source?: 'custom' | 'catalog'
+    q?: string
+    categoryKey?: string
+    trackingType?: Machine['trackingType']
+    requiresWeight?: boolean
+    excludeIds?: string
+    page?: number
+    limit?: number
+}
 
 function getMachineErrorMessage(error: unknown, fallback: string) {
     if (isAxiosError(error)) {
@@ -48,6 +60,43 @@ export async function getMyMachines() {
 
     try {
         const response = await axiosApp.get<Machine[]>('/me/machines')
+        return response.data
+    } catch (error) {
+        throw new Error(
+            getMachineErrorMessage(
+                error,
+                translateRuntime('services.machines.loadError'),
+            ),
+        )
+    }
+}
+
+export async function getMachine(machineId: string) {
+    ensureApiUrlConfigured()
+
+    try {
+        const response = await axiosApp.get<Machine>(
+            `/me/machines/${machineId}`,
+        )
+        return response.data
+    } catch (error) {
+        throw new Error(
+            getMachineErrorMessage(
+                error,
+                translateRuntime('services.machines.loadError'),
+            ),
+        )
+    }
+}
+
+export async function searchMyMachines(params: MachineSearchParams) {
+    ensureApiUrlConfigured()
+
+    try {
+        const response = await axiosApp.get<PageResponse<Machine>>(
+            '/me/machines/search',
+            { params },
+        )
         return response.data
     } catch (error) {
         throw new Error(

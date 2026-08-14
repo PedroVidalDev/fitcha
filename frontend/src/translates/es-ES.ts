@@ -34,6 +34,9 @@ export const esES: TranslationDictionary = {
     'common.actions.save': 'Guardar',
     'common.actions.delete': 'Eliminar',
     'common.actions.startWorkout': 'Iniciar entrenamiento',
+    'common.pagination.previous': 'Página anterior',
+    'common.pagination.next': 'Página siguiente',
+    'common.pagination.summary': 'Página {page} de {totalPages}',
     'common.units.cm': 'cm',
     'common.units.kg': 'kg',
     'common.relative.today': 'hoy',
@@ -258,7 +261,7 @@ export const esES: TranslationDictionary = {
     'customMachines.navigationTitle': 'Máquinas',
     'customMachines.title': 'Máquinas',
     'customMachines.summary':
-        'Administra tus máquinas personalizadas y explora {catalogCount} opciones del catálogo en línea.',
+        'Administra tus máquinas personalizadas y explora el catálogo en línea.',
     'customMachines.homeTitle': 'Mis máquinas',
     'customMachines.homeSubtitle': '{count} personalizada(s) para administrar',
     'customMachines.createAction': 'Crear máquina personalizada',
