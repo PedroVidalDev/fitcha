@@ -6,8 +6,6 @@ import { AddMachineCategoryFilter } from '@/src/components/AddMachineModal/types
 import { MACHINE_CATEGORIES } from '@/src/constants/categories'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
-import { CatalogMachine } from '@/src/dtos/CatalogMachine'
-import { Machine } from '@/src/dtos/Machine'
 import { getCatalogMachines } from '@/src/services/catalogMachines'
 import { getCachedWorkoutData } from '@/src/services/workoutData'
 import { Ionicons } from '@expo/vector-icons'
@@ -24,13 +22,7 @@ import {
     type HistoryTransferModalProps,
     type HistoryTransferTarget,
 } from './types'
-
-function isCompatible(source: Machine, target: Machine | CatalogMachine) {
-    return (
-        source.trackingType === target.trackingType &&
-        source.requiresWeight === target.requiresWeight
-    )
-}
+import { isCompatible } from './helpers'
 
 export function HistoryTransferModal(props: HistoryTransferModalProps) {
     const { visible, sourceMachine, onClose, onContinue } = props

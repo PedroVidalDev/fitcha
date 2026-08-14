@@ -1,9 +1,5 @@
-import { Image, type ImageProps } from 'expo-image'
-
-type MachineImageProps = Omit<ImageProps, 'cachePolicy' | 'source'> & {
-    uri: string
-    cacheKey?: string
-}
+import { Image } from 'expo-image'
+import { MachineImageProps } from './types'
 
 export function MachineImage(props: MachineImageProps) {
     const {
