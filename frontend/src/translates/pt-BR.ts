@@ -29,6 +29,8 @@ export const ptBR = {
     'common.actions.finish': 'Finalizar',
     'common.actions.finishWorkout': 'Finalizar treino',
     'common.actions.remove': 'Remover',
+    'common.actions.save': 'Salvar',
+    'common.actions.delete': 'Excluir',
     'common.actions.startWorkout': 'Iniciar treino',
     'common.units.cm': 'cm',
     'common.units.kg': 'kg',
@@ -104,6 +106,10 @@ export const ptBR = {
     'auth.register.successTitle': 'Verifique seu e-mail',
     'auth.register.successMessage':
         'Sua conta foi criada. Enviamos um link de verificação para {email}. Depois disso, volte ao app para entrar.',
+    'navigation.home': 'Início',
+    'navigation.workouts': 'Treinos',
+    'navigation.machines': 'Máquinas',
+    'navigation.account': 'Conta',
     'navigation.profile': 'Perfil',
     'navigation.machineDetail': 'Detalhe',
     'profile.kicker': 'perfil',
@@ -208,6 +214,12 @@ export const ptBR = {
     'addMachine.emptyTitle': 'Nenhuma máquina encontrada',
     'addMachine.emptyMessage':
         'Tente outro nome ou ajuste o filtro de categoria.',
+    'addMachine.emptyCustomTitle': 'Nenhuma máquina personalizada encontrada',
+    'addMachine.emptyCustomMessage':
+        'Crie uma máquina personalizada ou ajuste os filtros da busca.',
+    'addMachine.emptyCatalogTitle': 'Nenhuma máquina no catálogo encontrada',
+    'addMachine.emptyCatalogMessage':
+        'Tente outro nome ou ajuste o filtro de categoria.',
     'week.title': 'Seus treinos',
     'week.todayBadge': 'HOJE',
     'week.emptyDay': 'Nenhum treino criado ainda.',
@@ -240,6 +252,56 @@ export const ptBR = {
     'day.removeWorkout.title': 'Remover treino',
     'day.removeWorkout.message':
         'Remover o treino "{name}"? As máquinas sem histórico e sem uso em outros treinos também serão limpas.',
+    'customMachines.navigationTitle': 'Máquinas',
+    'customMachines.title': 'Máquinas',
+    'customMachines.summary':
+        'Gerencie suas máquinas personalizadas e explore {catalogCount} opções do catálogo online.',
+    'customMachines.homeTitle': 'Minhas máquinas',
+    'customMachines.homeSubtitle': '{count} personalizada(s) para gerenciar',
+    'customMachines.createAction': 'Criar máquina personalizada',
+    'customMachines.createFromPickerHint':
+        'Cadastre uma nova e adicione diretamente ao treino.',
+    'customMachines.badge': 'Personalizada',
+    'customMachines.catalogBadge': 'Catálogo online',
+    'customMachines.pickerMyMachines': 'Minhas máquinas',
+    'customMachines.pickerCatalog': 'Catálogo',
+    'customMachines.empty':
+        'Você ainda não criou nenhuma máquina personalizada.',
+    'customMachines.catalogEmpty':
+        'Nenhuma máquina disponível no catálogo no momento.',
+    'customMachines.noResults': 'Nenhuma máquina encontrada com esses filtros.',
+    'customMachines.editAccessibility': 'Editar máquina personalizada',
+    'customMachines.deleteAccessibility': 'Excluir máquina personalizada',
+    'customMachines.deleteTitle': 'Excluir máquina?',
+    'customMachines.deleteMessage':
+        'Excluir "{name}"? Isso só será possível se ela não estiver em treinos e não possuir histórico.',
+    'customMachines.deleteErrorTitle': 'Não foi possível excluir',
+    'customMachines.deleteError': 'Não foi possível excluir esta máquina.',
+    'customMachines.form.createTitle': 'Nova máquina',
+    'customMachines.form.editTitle': 'Editar máquina',
+    'customMachines.form.subtitle':
+        'Defina como esta máquina deve aparecer e registrar seus exercícios.',
+    'customMachines.form.choosePhoto': 'Adicionar foto opcional',
+    'customMachines.form.removePhoto': 'Remover foto',
+    'customMachines.form.galleryPermission':
+        'Permita o acesso à galeria para selecionar uma foto.',
+    'customMachines.form.name': 'Nome',
+    'customMachines.form.namePlaceholder': 'Ex.: Remada articulada da academia',
+    'customMachines.form.nameRequired': 'Informe o nome da máquina',
+    'customMachines.form.description': 'Descrição (opcional)',
+    'customMachines.form.descriptionPlaceholder':
+        'Inclua ajustes, posição ou observações importantes.',
+    'customMachines.form.category': 'Categoria',
+    'customMachines.form.trackingType': 'Tipo de registro',
+    'customMachines.form.sets': 'Séries e repetições',
+    'customMachines.form.duration': 'Duração',
+    'customMachines.form.requiresWeight': 'Registrar carga',
+    'customMachines.form.requiresWeightHint':
+        'Ative quando o exercício utilizar peso ou resistência ajustável.',
+    'customMachines.form.saveError': 'Não foi possível salvar esta máquina.',
+    'services.machines.createError': 'Não foi possível criar a máquina',
+    'services.machines.deleteError': 'Não foi possível excluir a máquina',
+    'services.machines.photoError': 'Não foi possível enviar a foto da máquina',
     'workoutForm.createTitle': 'Novo treino',
     'workoutForm.editTitle': 'Editar treino',
     'workoutForm.nameLabel': 'título',
@@ -284,6 +346,30 @@ export const ptBR = {
     'detail.history.title': 'histórico',
     'detail.history.empty':
         'Nenhum registro ainda. Inicie um treino para salvar sua evolução.',
+    'detail.history.holdHint': 'Segure um registro para iniciar a exclusão.',
+    'detail.history.deleteAccessibilityLabel':
+        'Excluir registro de treino de {date}',
+    'detail.history.deleteTitle': 'Excluir registro?',
+    'detail.history.deleteMessage':
+        'O registro de {date} será removido permanentemente.',
+    'detail.history.deleteConfirm': 'Excluir registro',
+    'detail.history.deleteErrorTitle': 'Não foi possível excluir',
+    'detail.transfer.headerAccessibilityLabel':
+        'Transferir todo o histórico para outra máquina',
+    'detail.transfer.title': 'Transferir histórico',
+    'detail.transfer.subtitle':
+        'Escolha a máquina que receberá todo o histórico de {name}.',
+    'detail.transfer.loadError':
+        'Não foi possível carregar as máquinas disponíveis.',
+    'detail.transfer.empty':
+        'Nenhuma máquina compatível foi encontrada para essa transferência.',
+    'detail.transfer.mineBadge': 'minha máquina',
+    'detail.transfer.catalogBadge': 'catálogo',
+    'detail.transfer.scopeTitle': 'Substituir também nos treinos?',
+    'detail.transfer.scopeMessage':
+        'O histórico de {source} será transferido para {target}. Escolha se a máquina também deve ser substituída nos treinos em que aparece.',
+    'detail.transfer.historyAndWorkouts': 'Histórico e treinos',
+    'detail.transfer.historyOnly': 'Somente histórico',
     'home.greetingFallback': 'atleta',
     'home.delta.noBase': 'Sem base',
     'home.delta.zero': '0',
@@ -463,6 +549,15 @@ export const ptBR = {
         'Confirme a série anterior para liberar a próxima.',
     'workout.series.weightLabel': 'Carga',
     'workout.series.repsLabel': 'Repetições',
+    'workout.pr.kicker': 'NOVO RECORDE',
+    'workout.pr.title': 'Você superou o seu melhor!',
+    'workout.pr.volume': '{value} de volume total',
+    'workout.pr.reps': '{value} repetições no total',
+    'workout.tutorial.cta': 'Ver tutorial',
+    'workout.tutorial.accessibilityLabel': 'Ver tutorial de {name} no YouTube',
+    'workout.tutorial.errorTitle': 'Não foi possível abrir o YouTube',
+    'workout.tutorial.errorMessage':
+        'Confira sua conexão e tente novamente em instantes.',
     'workout.resume.title': 'Treino em andamento',
     'workout.resume.message':
         'Encontramos um treino em andamento salvo neste dispositivo. Você pode retomar de onde parou ou descartar esse rascunho.',
@@ -491,6 +586,9 @@ export const ptBR = {
     'services.machines.updateError': 'Não foi possível atualizar a máquina',
     'services.history.loadError': 'Não foi possível carregar o histórico',
     'services.history.saveError': 'Não foi possível salvar o treino',
+    'services.history.deleteError':
+        'Não foi possível excluir o registro do histórico',
+    'services.history.transferError': 'Não foi possível transferir o histórico',
     'services.credit.loadError': 'Não foi possível carregar seus créditos',
     'services.credit.checkoutError': 'Não foi possível gerar o Pix',
     'services.axios.missingApiUrl':

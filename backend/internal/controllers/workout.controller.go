@@ -133,6 +133,7 @@ func (c *WorkoutController) AddMachine(ctx *gin.Context) {
 	}
 
 	workout, machine, err := c.service.AddMachine(userID, workoutID, services.CreateWorkoutMachineInput{
+		UserMachineID:    input.UserMachineID,
 		CatalogMachineID: input.CatalogMachineID,
 		Name:             input.Name,
 		Description:      input.Description,

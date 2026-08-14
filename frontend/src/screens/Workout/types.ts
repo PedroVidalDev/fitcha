@@ -24,7 +24,7 @@ export type WorkoutMachine = ReturnType<
 }
 
 export type TemporaryWorkoutMachine = WorkoutMachine & {
-    catalogMachineId: string
+    catalogMachineId?: string
     isTemporary: true
 }
 
@@ -87,4 +87,11 @@ export type WorkoutMachineProgressItem = {
     isCurrent: boolean
     hasDraft: boolean
     isComplete: boolean
+}
+
+export type WorkoutPrCelebrationState = {
+    id: number
+    machineName: string
+    metricKind: 'weight' | 'reps'
+    metricValue: number
 }

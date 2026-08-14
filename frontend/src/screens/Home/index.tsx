@@ -1,6 +1,11 @@
 import { useDashboardSummary } from '@/src/hooks/useDashboardSummary'
-import { RootStackParamList } from '@/src/router/types'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import { MainTabParamList, RootStackParamList } from '@/src/router/types'
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
+import {
+    CompositeNavigationProp,
+    useFocusEffect,
+    useNavigation,
+} from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useCallback, useState } from 'react'
 import {
@@ -26,7 +31,10 @@ import { ResumeWorkoutModal } from './components/ResumeWorkoutModal'
 import { getFirstName } from './helpers'
 import { type HomeScreenProps } from './types'
 
-type Navigation = NativeStackNavigationProp<RootStackParamList, 'Home'>
+type Navigation = CompositeNavigationProp<
+    BottomTabNavigationProp<MainTabParamList, 'Home'>,
+    NativeStackNavigationProp<RootStackParamList>
+>
 
 export default function HomeScreen(props: HomeScreenProps) {
     void props
@@ -57,10 +65,6 @@ export default function HomeScreen(props: HomeScreenProps) {
             }
         }, [refresh]),
     )
-
-    const handleOpenWeek = useCallback(() => {
-        navigation.navigate('Week')
-    }, [navigation])
 
     const handleCloseActiveWorkoutSession = useCallback(() => {
         void (async () => {
@@ -112,11 +116,7 @@ export default function HomeScreen(props: HomeScreenProps) {
                 showsVerticalScrollIndicator={false}
             >
                 <AnimatedCard index={0}>
-                    <HomeHeroCard
-                        summary={summary}
-                        firstName={firstName}
-                        onOpenWeek={handleOpenWeek}
-                    />
+                    <HomeHeroCard summary={summary} firstName={firstName} />
                 </AnimatedCard>
 
                 <AnimatedCard index={1}>

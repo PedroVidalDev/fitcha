@@ -1,1 +1,5 @@
-export type AddMachineEmptyStateProps = Record<string, never>
+import { type AddMachineSourceFilter } from '../../types'
+
+export type AddMachineEmptyStateProps = {
+    sourceFilter: AddMachineSourceFilter
+}

@@ -12,4 +12,6 @@ func RegisterHistoryRoutes(r *gin.Engine, controller *controllers.HistoryControl
 	authenticated.Use(middlewares.AuthMiddleware())
 	authenticated.GET("", controller.List)
 	authenticated.POST("/workouts", controller.CreateWorkout)
+	authenticated.DELETE("/:historyId", controller.Delete)
+	authenticated.PATCH("/machines/:machineId/transfer", controller.TransferMachineHistory)
 }

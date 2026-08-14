@@ -1,4 +1,4 @@
-import { RootStackParamList } from '@/src/router/types'
-import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { MainTabParamList } from '@/src/router/types'
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
 
-export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>
+export type HomeScreenProps = BottomTabScreenProps<MainTabParamList, 'Home'>

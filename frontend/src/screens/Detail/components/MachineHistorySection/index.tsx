@@ -5,7 +5,7 @@ import { History } from '../History'
 import { MachineHistorySectionProps } from './types'
 
 export function MachineHistorySection(props: MachineHistorySectionProps) {
-    const { machine, history } = props
+    const { machine, history, deletingHistoryId, onRequestDelete } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
 
@@ -24,6 +24,20 @@ export function MachineHistorySection(props: MachineHistorySectionProps) {
             >
                 {translate('detail.history.title')}
             </Text>
+
+            {history.length > 0 ? (
+                <Text
+                    style={{
+                        color: t.textDim,
+                        fontSize: 12,
+                        lineHeight: 18,
+                        marginBottom: 12,
+                        marginLeft: 2,
+                    }}
+                >
+                    {translate('detail.history.holdHint')}
+                </Text>
+            ) : null}
 
             {history.length === 0 ? (
                 <Text
@@ -44,6 +58,8 @@ export function MachineHistorySection(props: MachineHistorySectionProps) {
                             item={item}
                             index={index}
                             machine={machine}
+                            isBusy={deletingHistoryId === item.id}
+                            onRequestDelete={onRequestDelete}
                         />
                     ))}
                 </View>

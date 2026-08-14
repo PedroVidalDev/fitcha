@@ -31,6 +31,8 @@ export const enUS: TranslationDictionary = {
     'common.actions.finish': 'Finish',
     'common.actions.finishWorkout': 'Finish workout',
     'common.actions.remove': 'Remove',
+    'common.actions.save': 'Save',
+    'common.actions.delete': 'Delete',
     'common.actions.startWorkout': 'Start workout',
     'common.units.cm': 'cm',
     'common.units.kg': 'kg',
@@ -106,6 +108,10 @@ export const enUS: TranslationDictionary = {
     'auth.register.successTitle': 'Check your email',
     'auth.register.successMessage':
         'Your account has been created. We sent a verification link to {email}. After that, come back to the app and sign in.',
+    'navigation.home': 'Home',
+    'navigation.workouts': 'Workouts',
+    'navigation.machines': 'Machines',
+    'navigation.account': 'Account',
     'navigation.profile': 'Profile',
     'navigation.machineDetail': 'Detail',
     'profile.kicker': 'profile',
@@ -209,6 +215,12 @@ export const enUS: TranslationDictionary = {
     'addMachine.emptyTitle': 'No machines found',
     'addMachine.emptyMessage':
         'Try another term or adjust the category filter.',
+    'addMachine.emptyCustomTitle': 'No custom machines found',
+    'addMachine.emptyCustomMessage':
+        'Create a custom machine or adjust the search filters.',
+    'addMachine.emptyCatalogTitle': 'No catalog machines found',
+    'addMachine.emptyCatalogMessage':
+        'Try another term or adjust the category filter.',
     'week.title': 'Your workouts',
     'week.todayBadge': 'TODAY',
     'week.emptyDay': 'No workout created yet.',
@@ -240,6 +252,55 @@ export const enUS: TranslationDictionary = {
     'day.removeWorkout.title': 'Remove workout',
     'day.removeWorkout.message':
         'Remove the workout "{name}"? Machines without history and without use in other workouts will also be cleaned up.',
+    'customMachines.navigationTitle': 'Machines',
+    'customMachines.title': 'Machines',
+    'customMachines.summary':
+        'Manage your custom machines and explore {catalogCount} options from the online catalog.',
+    'customMachines.homeTitle': 'My machines',
+    'customMachines.homeSubtitle': '{count} custom machine(s) to manage',
+    'customMachines.createAction': 'Create custom machine',
+    'customMachines.createFromPickerHint':
+        'Create a new one and add it directly to the workout.',
+    'customMachines.badge': 'Custom',
+    'customMachines.catalogBadge': 'Online catalog',
+    'customMachines.pickerMyMachines': 'My machines',
+    'customMachines.pickerCatalog': 'Catalog',
+    'customMachines.empty': 'You have not created any custom machines yet.',
+    'customMachines.catalogEmpty':
+        'No machines are available in the catalog right now.',
+    'customMachines.noResults': 'No machines found with these filters.',
+    'customMachines.editAccessibility': 'Edit custom machine',
+    'customMachines.deleteAccessibility': 'Delete custom machine',
+    'customMachines.deleteTitle': 'Delete machine?',
+    'customMachines.deleteMessage':
+        'Delete "{name}"? This is only possible if it is not assigned to workouts and has no history.',
+    'customMachines.deleteErrorTitle': 'Unable to delete',
+    'customMachines.deleteError': 'Unable to delete this machine.',
+    'customMachines.form.createTitle': 'New machine',
+    'customMachines.form.editTitle': 'Edit machine',
+    'customMachines.form.subtitle':
+        'Define how this machine should appear and track exercises.',
+    'customMachines.form.choosePhoto': 'Add optional photo',
+    'customMachines.form.removePhoto': 'Remove photo',
+    'customMachines.form.galleryPermission':
+        'Allow gallery access to select a photo.',
+    'customMachines.form.name': 'Name',
+    'customMachines.form.namePlaceholder': 'E.g. Gym plate-loaded row',
+    'customMachines.form.nameRequired': 'Enter the machine name',
+    'customMachines.form.description': 'Description (optional)',
+    'customMachines.form.descriptionPlaceholder':
+        'Add adjustments, position, or important notes.',
+    'customMachines.form.category': 'Category',
+    'customMachines.form.trackingType': 'Tracking type',
+    'customMachines.form.sets': 'Sets and reps',
+    'customMachines.form.duration': 'Duration',
+    'customMachines.form.requiresWeight': 'Track weight',
+    'customMachines.form.requiresWeightHint':
+        'Enable when the exercise uses weight or adjustable resistance.',
+    'customMachines.form.saveError': 'Unable to save this machine.',
+    'services.machines.createError': 'Unable to create the machine',
+    'services.machines.deleteError': 'Unable to delete the machine',
+    'services.machines.photoError': 'Unable to upload the machine photo',
     'workoutForm.createTitle': 'New workout',
     'workoutForm.editTitle': 'Edit workout',
     'workoutForm.nameLabel': 'title',
@@ -286,6 +347,29 @@ export const enUS: TranslationDictionary = {
     'detail.history.title': 'history',
     'detail.history.empty':
         'No records yet. Start a workout to save your progress.',
+    'detail.history.holdHint': 'Press and hold a record to start deleting it.',
+    'detail.history.deleteAccessibilityLabel':
+        'Delete workout record from {date}',
+    'detail.history.deleteTitle': 'Delete record?',
+    'detail.history.deleteMessage':
+        'The record from {date} will be permanently deleted.',
+    'detail.history.deleteConfirm': 'Delete record',
+    'detail.history.deleteErrorTitle': 'Could not delete',
+    'detail.transfer.headerAccessibilityLabel':
+        'Transfer all history to another machine',
+    'detail.transfer.title': 'Transfer history',
+    'detail.transfer.subtitle':
+        'Choose the machine that will receive all history from {name}.',
+    'detail.transfer.loadError': 'Could not load the available machines.',
+    'detail.transfer.empty':
+        'No compatible machine was found for this transfer.',
+    'detail.transfer.mineBadge': 'my machine',
+    'detail.transfer.catalogBadge': 'catalog',
+    'detail.transfer.scopeTitle': 'Replace it in workouts too?',
+    'detail.transfer.scopeMessage':
+        'The history from {source} will be transferred to {target}. Choose whether the machine should also be replaced in every workout where it appears.',
+    'detail.transfer.historyAndWorkouts': 'History and workouts',
+    'detail.transfer.historyOnly': 'History only',
     'home.greetingFallback': 'athlete',
     'home.delta.noBase': 'No baseline',
     'home.delta.zero': '0',
@@ -463,6 +547,15 @@ export const enUS: TranslationDictionary = {
         'Confirm the previous set to unlock the next one.',
     'workout.series.weightLabel': 'Weight',
     'workout.series.repsLabel': 'Reps',
+    'workout.pr.kicker': 'NEW RECORD',
+    'workout.pr.title': 'You beat your personal best!',
+    'workout.pr.volume': '{value} total volume',
+    'workout.pr.reps': '{value} total reps',
+    'workout.tutorial.cta': 'Watch tutorial',
+    'workout.tutorial.accessibilityLabel': 'Watch a {name} tutorial on YouTube',
+    'workout.tutorial.errorTitle': 'Could not open YouTube',
+    'workout.tutorial.errorMessage':
+        'Check your connection and try again in a moment.',
     'workout.resume.title': 'Workout in progress',
     'workout.resume.message':
         'We found a workout in progress saved on this device. You can resume where you left off or discard this draft.',
@@ -491,6 +584,8 @@ export const enUS: TranslationDictionary = {
     'services.machines.updateError': 'Unable to update the machine',
     'services.history.loadError': 'Unable to load the history',
     'services.history.saveError': 'Unable to save the workout',
+    'services.history.deleteError': 'Unable to delete the history record',
+    'services.history.transferError': 'Unable to transfer the history',
     'services.credit.loadError': 'Unable to load your credits',
     'services.credit.checkoutError': 'Unable to generate the Pix',
     'services.axios.missingApiUrl': 'Set EXPO_PUBLIC_API_URL in frontend/.env',

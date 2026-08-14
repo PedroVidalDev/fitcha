@@ -13,6 +13,7 @@ type IUserMachineRepository interface {
 	Create(machine models.UserMachine) (models.UserMachine, error)
 	Update(machine models.UserMachine) (models.UserMachine, error)
 	DeleteByIDAndUserID(userMachineID string, userID uint) error
+	DeleteCustomUnusedByIDAndUserID(userMachineID string, userID uint) (bool, error)
 	DeleteUnassignedWithoutHistoryByUserID(userID uint) error
 }
 
@@ -90,10 +91,35 @@ func (r *userMachineRepository) DeleteByIDAndUserID(userMachineID string, userID
 	return r.db.Where("id = ? AND user_id = ?", userMachineID, userID).Delete(&models.UserMachine{}).Error
 }
 
+func (r *userMachineRepository) DeleteCustomUnusedByIDAndUserID(userMachineID string, userID uint) (bool, error) {
+	result := r.db.Exec(`
+		DELETE FROM tb_user_machines
+		WHERE id = ?
+		  AND user_id = ?
+		  AND machine_id IS NULL
+		  AND NOT EXISTS (
+			SELECT 1
+			FROM tb_workout_machines
+			WHERE tb_workout_machines.user_machine_id = tb_user_machines.id
+		  )
+		  AND NOT EXISTS (
+			SELECT 1
+			FROM tb_history_entries
+			WHERE tb_history_entries.user_machine_id = tb_user_machines.id
+		  )
+	`, userMachineID, userID)
+	if result.Error != nil {
+		return false, result.Error
+	}
+
+	return result.RowsAffected > 0, nil
+}
+
 func (r *userMachineRepository) DeleteUnassignedWithoutHistoryByUserID(userID uint) error {
 	return r.db.Exec(`
 		DELETE FROM tb_user_machines
 		WHERE user_id = ?
+		  AND machine_id IS NOT NULL
 		  AND NOT EXISTS (
 			SELECT 1
 			FROM tb_workout_machines

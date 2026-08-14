@@ -2,6 +2,8 @@ package controllers
 
 import (
 	dtos "fitcha/internal/dtos/history"
+	machineDtos "fitcha/internal/dtos/machine"
+	workoutDtos "fitcha/internal/dtos/workout"
 	"fitcha/internal/services"
 	"net/http"
 
@@ -30,6 +32,52 @@ func (c *HistoryController) List(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, dtos.FromHistoryEntryModels(entries))
+}
+
+func (c *HistoryController) Delete(ctx *gin.Context) {
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := c.service.Delete(userID, ctx.Param("historyId")); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
+
+func (c *HistoryController) TransferMachineHistory(ctx *gin.Context) {
+	var input dtos.TransferMachineHistoryType
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	result, err := c.service.TransferMachineHistory(userID, ctx.Param("machineId"), services.TransferMachineHistoryInput{
+		TargetUserMachineID: input.TargetUserMachineID,
+		TargetCatalogID:     input.TargetCatalogID,
+		ReplaceInWorkouts:   input.ReplaceInWorkouts,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dtos.TransferMachineHistoryResponseType{
+		SourceMachineID:  result.SourceMachineID,
+		TargetMachine:    machineDtos.FromMachineModel(result.TargetMachine),
+		TransferredCount: result.TransferredCount,
+		UpdatedWorkouts:  workoutDtos.FromWorkoutModels(result.UpdatedWorkouts),
+	})
 }
 
 func (c *HistoryController) CreateWorkout(ctx *gin.Context) {

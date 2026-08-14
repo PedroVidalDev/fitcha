@@ -1,33 +1,50 @@
+import { ConfirmModal } from '@/src/components/ConfirmModal'
+import { ProfileShortcutButton } from '@/src/components/ProfileShortcutButton'
+import { HistoryEntry } from '@/src/dtos/HistoryEntry'
 import { RootStackParamList } from '@/src/router/types'
 import { useMachineHistory } from '@/src/screens/Detail/hooks/useMachineHistory'
 import { useMachinePhoto } from '@/src/screens/Detail/hooks/useMachinePhoto'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
-import { useEffect, useState } from 'react'
-import { ScrollView } from 'react-native'
+import { useCallback, useLayoutEffect, useState } from 'react'
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native'
 import { useI18n } from '../../contexts/I18nContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { MachineHistorySection } from './components/MachineHistorySection'
+import { HistoryTransferModal } from './components/HistoryTransferModal'
+import { HistoryTransferTarget } from './components/HistoryTransferModal/types'
 import { MachineIntro } from './components/MachineIntro'
 import { MachinePhotoCard } from './components/MachinePhotoCard'
 import { MachineStatsCarousel } from './components/MachineStatsCarousel'
 import { PhotoModal } from './components/PhotoModal'
 import { PhotoModalState } from './components/PhotoModal/types'
+import { TransferHistoryScopeModal } from './components/TransferHistoryScopeModal'
 
 type Route = RouteProp<RootStackParamList, 'MachineDetail'>
+type Navigation = NativeStackNavigationProp<RootStackParamList, 'MachineDetail'>
 
 export default function MachineDetailScreen() {
     const { t } = useTheme()
     const { t: translate } = useI18n()
 
     const route = useRoute<Route>()
-    const navigation = useNavigation()
+    const navigation = useNavigation<Navigation>()
     const { machineId } = route.params
 
-    const { machine, history } = useMachineHistory(machineId)
+    const { machine, history, deleteHistoryEntry, transferHistory } =
+        useMachineHistory(machineId)
     const { photo, updatePhoto, removePhoto } = useMachinePhoto(machineId)
 
     const [photoModal, setPhotoModal] = useState<PhotoModalState | null>(null)
+    const [deleteTarget, setDeleteTarget] = useState<HistoryEntry | null>(null)
+    const [deletingHistoryId, setDeletingHistoryId] = useState<string>()
+    const [isTransferModalVisible, setIsTransferModalVisible] = useState(false)
+    const [transferTarget, setTransferTarget] =
+        useState<HistoryTransferTarget | null>(null)
+    const [isTransferring, setIsTransferring] = useState(false)
+    const [transferError, setTransferError] = useState('')
 
     const closePhotoModal = () => {
         setPhotoModal(null)
@@ -168,11 +185,124 @@ export default function MachineDetailScreen() {
         openPhotoActionsModal()
     }
 
-    useEffect(() => {
-        if (machine?.name) {
-            navigation.setOptions({ title: machine.name })
+    const handleOpenTransfer = useCallback(() => {
+        if (history.length === 0 || isTransferring) return
+        setTransferError('')
+        setIsTransferModalVisible(true)
+    }, [history.length, isTransferring])
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            ...(machine?.name ? { title: machine.name } : {}),
+            headerRight: () => (
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 12,
+                    }}
+                >
+                    <TouchableOpacity
+                        disabled={history.length === 0 || isTransferring}
+                        accessibilityRole='button'
+                        accessibilityLabel={translate(
+                            'detail.transfer.headerAccessibilityLabel',
+                        )}
+                        onPress={handleOpenTransfer}
+                        style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 999,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: t.inputBg,
+                            borderWidth: 0.5,
+                            borderColor: t.border,
+                            opacity:
+                                history.length === 0 || isTransferring
+                                    ? 0.4
+                                    : 1,
+                        }}
+                    >
+                        <Ionicons
+                            name='swap-horizontal-outline'
+                            size={19}
+                            color={t.accent}
+                        />
+                    </TouchableOpacity>
+                    <ProfileShortcutButton />
+                </View>
+            ),
+        })
+    }, [
+        handleOpenTransfer,
+        history.length,
+        isTransferring,
+        machine?.name,
+        navigation,
+        t.accent,
+        t.border,
+        t.inputBg,
+        translate,
+    ])
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget || deletingHistoryId) return
+
+        try {
+            setDeletingHistoryId(deleteTarget.id)
+            await deleteHistoryEntry(deleteTarget.id)
+            setDeleteTarget(null)
+        } catch (error) {
+            Alert.alert(
+                translate('detail.history.deleteErrorTitle'),
+                error instanceof Error
+                    ? error.message
+                    : translate('services.history.deleteError'),
+            )
+        } finally {
+            setDeletingHistoryId(undefined)
         }
-    }, [machine?.name, navigation])
+    }
+
+    const handleSelectTransferTarget = (target: HistoryTransferTarget) => {
+        setIsTransferModalVisible(false)
+        setTransferError('')
+        setTransferTarget(target)
+    }
+
+    const handleTransfer = async (replaceInWorkouts: boolean) => {
+        if (!transferTarget || isTransferring) return
+
+        try {
+            setIsTransferring(true)
+            setTransferError('')
+            const response = await transferHistory(
+                transferTarget.kind === 'userMachine'
+                    ? {
+                          targetUserMachineId: transferTarget.id,
+                          replaceInWorkouts,
+                      }
+                    : {
+                          targetCatalogMachineId: transferTarget.id,
+                          replaceInWorkouts,
+                      },
+            )
+
+            setTransferTarget(null)
+            navigation.replace('MachineDetail', {
+                machineId: response.targetMachine.id,
+            })
+        } catch (error) {
+            setTransferError(
+                error instanceof Error
+                    ? error.message
+                    : translate('services.history.transferError'),
+            )
+        } finally {
+            setIsTransferring(false)
+        }
+    }
 
     if (!machine) return null
 
@@ -186,12 +316,50 @@ export default function MachineDetailScreen() {
                 <MachinePhotoCard photo={photo} onPress={handlePhotoPress} />
                 <MachineIntro machine={machine} />
                 <MachineStatsCarousel machine={machine} history={history} />
-                <MachineHistorySection machine={machine} history={history} />
+                <MachineHistorySection
+                    machine={machine}
+                    history={history}
+                    deletingHistoryId={deletingHistoryId}
+                    onRequestDelete={setDeleteTarget}
+                />
             </ScrollView>
 
             <PhotoModal
                 photoModal={photoModal}
                 closePhotoModal={closePhotoModal}
+            />
+
+            <ConfirmModal
+                visible={!!deleteTarget}
+                title={translate('detail.history.deleteTitle')}
+                message={translate('detail.history.deleteMessage', {
+                    date: deleteTarget?.label ?? '',
+                })}
+                confirmLabel={translate('detail.history.deleteConfirm')}
+                isBusy={!!deletingHistoryId}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={() => void handleConfirmDelete()}
+            />
+
+            <HistoryTransferModal
+                visible={isTransferModalVisible}
+                sourceMachine={machine}
+                onClose={() => setIsTransferModalVisible(false)}
+                onContinue={handleSelectTransferTarget}
+            />
+
+            <TransferHistoryScopeModal
+                sourceName={machine.name}
+                target={transferTarget}
+                isBusy={isTransferring}
+                errorMessage={transferError}
+                onCancel={() => {
+                    setTransferTarget(null)
+                    setTransferError('')
+                }}
+                onTransfer={(replaceInWorkouts) =>
+                    void handleTransfer(replaceInWorkouts)
+                }
             />
         </>
     )

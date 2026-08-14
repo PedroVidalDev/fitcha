@@ -31,6 +31,8 @@ export const esES: TranslationDictionary = {
     'common.actions.finish': 'Finalizar',
     'common.actions.finishWorkout': 'Finalizar entrenamiento',
     'common.actions.remove': 'Eliminar',
+    'common.actions.save': 'Guardar',
+    'common.actions.delete': 'Eliminar',
     'common.actions.startWorkout': 'Iniciar entrenamiento',
     'common.units.cm': 'cm',
     'common.units.kg': 'kg',
@@ -107,6 +109,10 @@ export const esES: TranslationDictionary = {
     'auth.register.successTitle': 'Revisa tu correo',
     'auth.register.successMessage':
         'Tu cuenta fue creada. Enviamos un enlace de verificacion a {email}. Despues de eso, vuelve a la app para entrar.',
+    'navigation.home': 'Inicio',
+    'navigation.workouts': 'Entrenamientos',
+    'navigation.machines': 'Maquinas',
+    'navigation.account': 'Cuenta',
     'navigation.profile': 'Perfil',
     'navigation.machineDetail': 'Detalle',
     'profile.kicker': 'perfil',
@@ -211,6 +217,12 @@ export const esES: TranslationDictionary = {
     'addMachine.emptyTitle': 'No se encontraron maquinas',
     'addMachine.emptyMessage':
         'Prueba otro termino o ajusta el filtro de categoria.',
+    'addMachine.emptyCustomTitle': 'No se encontraron maquinas personalizadas',
+    'addMachine.emptyCustomMessage':
+        'Crea una maquina personalizada o ajusta los filtros de busqueda.',
+    'addMachine.emptyCatalogTitle': 'No se encontraron maquinas en el catalogo',
+    'addMachine.emptyCatalogMessage':
+        'Prueba otro termino o ajusta el filtro de categoria.',
     'week.title': 'Tus entrenamientos',
     'week.todayBadge': 'HOY',
     'week.emptyDay': 'Todavia no has creado ningun entrenamiento.',
@@ -243,6 +255,55 @@ export const esES: TranslationDictionary = {
     'day.removeWorkout.title': 'Eliminar entrenamiento',
     'day.removeWorkout.message':
         'Eliminar el entrenamiento "{name}"? Las maquinas sin historial y sin uso en otros entrenamientos tambien se limpiaran.',
+    'customMachines.navigationTitle': 'Máquinas',
+    'customMachines.title': 'Máquinas',
+    'customMachines.summary':
+        'Administra tus máquinas personalizadas y explora {catalogCount} opciones del catálogo en línea.',
+    'customMachines.homeTitle': 'Mis máquinas',
+    'customMachines.homeSubtitle': '{count} personalizada(s) para administrar',
+    'customMachines.createAction': 'Crear máquina personalizada',
+    'customMachines.createFromPickerHint':
+        'Crea una nueva y agrégala directamente al entrenamiento.',
+    'customMachines.badge': 'Personalizada',
+    'customMachines.catalogBadge': 'Catálogo en línea',
+    'customMachines.pickerMyMachines': 'Mis máquinas',
+    'customMachines.pickerCatalog': 'Catálogo',
+    'customMachines.empty': 'Todavía no has creado máquinas personalizadas.',
+    'customMachines.catalogEmpty':
+        'No hay máquinas disponibles en el catálogo en este momento.',
+    'customMachines.noResults': 'No se encontraron máquinas con estos filtros.',
+    'customMachines.editAccessibility': 'Editar máquina personalizada',
+    'customMachines.deleteAccessibility': 'Eliminar máquina personalizada',
+    'customMachines.deleteTitle': '¿Eliminar máquina?',
+    'customMachines.deleteMessage':
+        '¿Eliminar "{name}"? Solo será posible si no está en entrenamientos y no tiene historial.',
+    'customMachines.deleteErrorTitle': 'No se pudo eliminar',
+    'customMachines.deleteError': 'No se pudo eliminar esta máquina.',
+    'customMachines.form.createTitle': 'Nueva máquina',
+    'customMachines.form.editTitle': 'Editar máquina',
+    'customMachines.form.subtitle':
+        'Define cómo debe aparecer esta máquina y registrar ejercicios.',
+    'customMachines.form.choosePhoto': 'Agregar foto opcional',
+    'customMachines.form.removePhoto': 'Eliminar foto',
+    'customMachines.form.galleryPermission':
+        'Permite el acceso a la galería para seleccionar una foto.',
+    'customMachines.form.name': 'Nombre',
+    'customMachines.form.namePlaceholder': 'Ej.: Remo articulado del gimnasio',
+    'customMachines.form.nameRequired': 'Ingresa el nombre de la máquina',
+    'customMachines.form.description': 'Descripción (opcional)',
+    'customMachines.form.descriptionPlaceholder':
+        'Agrega ajustes, posición u observaciones importantes.',
+    'customMachines.form.category': 'Categoría',
+    'customMachines.form.trackingType': 'Tipo de registro',
+    'customMachines.form.sets': 'Series y repeticiones',
+    'customMachines.form.duration': 'Duración',
+    'customMachines.form.requiresWeight': 'Registrar peso',
+    'customMachines.form.requiresWeightHint':
+        'Activa cuando el ejercicio use peso o resistencia ajustable.',
+    'customMachines.form.saveError': 'No se pudo guardar esta máquina.',
+    'services.machines.createError': 'No se pudo crear la máquina',
+    'services.machines.deleteError': 'No se pudo eliminar la máquina',
+    'services.machines.photoError': 'No se pudo subir la foto de la máquina',
     'workoutForm.createTitle': 'Nuevo entrenamiento',
     'workoutForm.editTitle': 'Editar entrenamiento',
     'workoutForm.nameLabel': 'titulo',
@@ -290,6 +351,31 @@ export const esES: TranslationDictionary = {
     'detail.history.title': 'historial',
     'detail.history.empty':
         'Todavia no hay registros. Inicia un entrenamiento para guardar tu evolucion.',
+    'detail.history.holdHint':
+        'Mantén presionado un registro para iniciar su eliminación.',
+    'detail.history.deleteAccessibilityLabel':
+        'Eliminar registro de entrenamiento de {date}',
+    'detail.history.deleteTitle': '¿Eliminar registro?',
+    'detail.history.deleteMessage':
+        'El registro de {date} se eliminará permanentemente.',
+    'detail.history.deleteConfirm': 'Eliminar registro',
+    'detail.history.deleteErrorTitle': 'No se pudo eliminar',
+    'detail.transfer.headerAccessibilityLabel':
+        'Transferir todo el historial a otra máquina',
+    'detail.transfer.title': 'Transferir historial',
+    'detail.transfer.subtitle':
+        'Elige la máquina que recibirá todo el historial de {name}.',
+    'detail.transfer.loadError':
+        'No se pudieron cargar las máquinas disponibles.',
+    'detail.transfer.empty':
+        'No se encontró una máquina compatible para esta transferencia.',
+    'detail.transfer.mineBadge': 'mi máquina',
+    'detail.transfer.catalogBadge': 'catálogo',
+    'detail.transfer.scopeTitle': '¿Sustituirla también en los entrenamientos?',
+    'detail.transfer.scopeMessage':
+        'El historial de {source} se transferirá a {target}. Elige si la máquina también debe sustituirse en todos los entrenamientos donde aparece.',
+    'detail.transfer.historyAndWorkouts': 'Historial y entrenamientos',
+    'detail.transfer.historyOnly': 'Solo historial',
     'home.greetingFallback': 'atleta',
     'home.delta.noBase': 'Sin base',
     'home.delta.zero': '0',
@@ -470,6 +556,16 @@ export const esES: TranslationDictionary = {
         'Confirma la serie anterior para desbloquear la siguiente.',
     'workout.series.weightLabel': 'Carga',
     'workout.series.repsLabel': 'Repeticiones',
+    'workout.pr.kicker': 'NUEVO RÉCORD',
+    'workout.pr.title': '¡Superaste tu mejor marca!',
+    'workout.pr.volume': '{value} de volumen total',
+    'workout.pr.reps': '{value} repeticiones en total',
+    'workout.tutorial.cta': 'Ver tutorial',
+    'workout.tutorial.accessibilityLabel':
+        'Ver un tutorial de {name} en YouTube',
+    'workout.tutorial.errorTitle': 'No se pudo abrir YouTube',
+    'workout.tutorial.errorMessage':
+        'Comprueba tu conexión e inténtalo de nuevo en unos instantes.',
     'workout.resume.title': 'Entrenamiento en curso',
     'workout.resume.message':
         'Encontramos un entrenamiento en curso guardado en este dispositivo. Puedes retomarlo desde donde quedaste o descartar este borrador.',
@@ -499,6 +595,9 @@ export const esES: TranslationDictionary = {
     'services.machines.updateError': 'No fue posible actualizar la maquina',
     'services.history.loadError': 'No fue posible cargar el historial',
     'services.history.saveError': 'No fue posible guardar el entrenamiento',
+    'services.history.deleteError':
+        'No fue posible eliminar el registro del historial',
+    'services.history.transferError': 'No fue posible transferir el historial',
     'services.credit.loadError': 'No fue posible cargar tus creditos',
     'services.credit.checkoutError': 'No fue posible generar el Pix',
     'services.axios.missingApiUrl':

@@ -5,6 +5,7 @@ import { translateRuntime } from '../translates/runtime'
 import { axiosApp, ensureApiUrlConfigured } from './axios'
 
 export type WorkoutMachineInput = {
+    userMachineId?: string
     catalogMachineId?: string
     name?: string
     description?: string

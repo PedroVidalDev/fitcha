@@ -10,6 +10,7 @@ import { WorkoutHeader } from './components/WorkoutHeader'
 import { WorkoutLoadingState } from './components/WorkoutLoadingState'
 import { WorkoutMachineHero } from './components/WorkoutMachineHero'
 import { WorkoutMachineNavigator } from './components/WorkoutMachineNavigator'
+import { WorkoutPrCelebration } from './components/WorkoutPrCelebration'
 import { WorkoutRestTimerCard } from './components/WorkoutRestTimerCard'
 import { WorkoutSeriesList } from './components/WorkoutSeriesList'
 import { type WorkoutScreenProps } from './types'
@@ -30,6 +31,7 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         canGoNext,
         isLast,
         modal,
+        prCelebration,
         machineProgressItems,
         seriesFields,
         durationConfig,
@@ -38,6 +40,7 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         slideAnim,
         machineNavScrollRef,
         handleCloseModal,
+        handlePrCelebrationFinished,
         handleModalConfirm,
         handleQuit,
         handlePreviousMachine,
@@ -47,6 +50,7 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
         handleReplaceCurrentMachine,
         canReplaceCurrentMachine,
         sessionCatalogMachineIds,
+        sessionUserMachineIds,
         handleRemoveMachine,
         handleSelectMachine,
         handleUpdateDraftField,
@@ -162,6 +166,8 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 visible={isAddMachineModalVisible}
                 onClose={() => setIsAddMachineModalVisible(false)}
                 onAdd={handleAddTemporaryMachine}
+                excludedMachineIds={sessionCatalogMachineIds}
+                excludedUserMachineIds={sessionUserMachineIds}
             />
 
             <AddMachineModal
@@ -175,6 +181,11 @@ export default function WorkoutScreen(props: WorkoutScreenProps) {
                 hideCategoryFilters
                 titleKey='workout.replaceMachine.title'
                 actionLabelKey='workout.replaceMachine.confirm'
+            />
+
+            <WorkoutPrCelebration
+                celebration={prCelebration}
+                onFinished={handlePrCelebrationFinished}
             />
         </View>
     )

@@ -1,7 +1,8 @@
 import { MACHINE_CATEGORIES } from '@/src/constants/categories'
+import { MachineImage } from '@/src/components/MachineImage'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
-import { Image, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { type AddMachineMachineCardProps } from './types'
 
 export function AddMachineMachineCard(props: AddMachineMachineCardProps) {
@@ -24,14 +25,13 @@ export function AddMachineMachineCard(props: AddMachineMachineCardProps) {
             }}
         >
             {machine.photo ? (
-                <Image
-                    source={{ uri: machine.photo }}
+                <MachineImage
+                    uri={machine.photo}
                     style={{
                         width: 56,
                         height: 56,
                         borderRadius: 12,
                     }}
-                    resizeMode='cover'
                 />
             ) : (
                 <View
@@ -71,6 +71,19 @@ export function AddMachineMachineCard(props: AddMachineMachineCardProps) {
                         )?.labelKey ?? 'categories.peito',
                     )}
                 </Text>
+                {machine.kind === 'custom' ? (
+                    <Text
+                        style={{
+                            color: t.accent,
+                            fontSize: 10,
+                            fontWeight: '800',
+                            marginTop: 4,
+                            textTransform: 'uppercase',
+                        }}
+                    >
+                        {translate('customMachines.badge')}
+                    </Text>
+                ) : null}
                 {!!machine.description && (
                     <Text
                         style={{

@@ -1,13 +1,14 @@
 import { MachineCategoryKey } from '@/src/constants/categories'
-import { CatalogMachine } from '@/src/dtos/CatalogMachine'
+import { MachineTrackingType } from '@/src/dtos/Machine'
 import { TranslationKey } from '@/src/translates'
 
 export type AddMachineModalProps = {
     visible: boolean
     onClose: () => void
-    onAdd: (machine: AddMachineCatalogMachine) => void
+    onAdd: (machine: AddMachineOption) => void | Promise<void>
     substitutionGroup?: string
     excludedMachineIds?: string[]
+    excludedUserMachineIds?: string[]
     hideCategoryFilters?: boolean
     titleKey?: TranslationKey
     actionLabelKey?: TranslationKey
@@ -15,4 +16,18 @@ export type AddMachineModalProps = {
 
 export type AddMachineCategoryFilter = MachineCategoryKey | 'all'
 
-export type AddMachineCatalogMachine = CatalogMachine
+export type AddMachineSourceFilter = 'custom' | 'catalog'
+
+export type AddMachineOption = {
+    key: string
+    kind: 'catalog' | 'custom'
+    id: string
+    name: string
+    description?: string
+    photo?: string
+    categoryKey: MachineCategoryKey
+    substitutionGroup?: string
+    trackingType: MachineTrackingType
+    requiresWeight: boolean
+    searchTerms: string[]
+}

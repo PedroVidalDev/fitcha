@@ -2,11 +2,11 @@ import {
     type AuthenticatedUser,
     type ChangePasswordInput,
 } from '@/src/@types/auth'
-import { RootStackParamList } from '@/src/router/types'
-import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { MainTabParamList } from '@/src/router/types'
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
 
-export type ProfileScreenProps = NativeStackScreenProps<
-    RootStackParamList,
+export type ProfileScreenProps = BottomTabScreenProps<
+    MainTabParamList,
     'Profile'
 >
 

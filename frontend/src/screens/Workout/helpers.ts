@@ -41,6 +41,12 @@ export function parseReps(value: string): number {
     return Number.isInteger(parsed) ? parsed : Number.NaN
 }
 
+export function buildYouTubeTutorialUrl(machineName: string): string {
+    const query = `${machineName.trim()} how to do exercise`.trim()
+
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
+}
+
 export function getWorkoutDraft(draft?: WorkoutDraft): WorkoutDraft {
     return {
         sets: {

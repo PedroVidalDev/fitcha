@@ -10,6 +10,7 @@ import (
 )
 
 type CreateWorkoutMachineInput struct {
+	UserMachineID    string
 	CatalogMachineID string
 	Name             string
 	Description      string
@@ -20,7 +21,16 @@ type CreateWorkoutMachineInput struct {
 }
 
 func normalizeCreateWorkoutMachineInput(input CreateWorkoutMachineInput) (CreateWorkoutMachineInput, error) {
+	userMachineID := strings.TrimSpace(input.UserMachineID)
 	catalogMachineID := strings.TrimSpace(input.CatalogMachineID)
+	if userMachineID != "" {
+		if catalogMachineID != "" {
+			return CreateWorkoutMachineInput{}, errors.New("informe apenas uma origem para a maquina")
+		}
+
+		return CreateWorkoutMachineInput{UserMachineID: userMachineID}, nil
+	}
+
 	if catalogMachineID != "" {
 		return CreateWorkoutMachineInput{
 			CatalogMachineID: catalogMachineID,
@@ -62,6 +72,19 @@ func normalizeCreateWorkoutMachineInput(input CreateWorkoutMachineInput) (Create
 func resolveUserMachineForInput(tx *gorm.DB, userID uint, input CreateWorkoutMachineInput) (models.UserMachine, error) {
 	userMachineRepo := repositories.NewUserMachineRepository(tx)
 	machineRepo := repositories.NewMachineRepository(tx)
+
+	if input.UserMachineID != "" {
+		userMachine, err := userMachineRepo.FindByIDAndUserID(input.UserMachineID, userID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return models.UserMachine{}, errors.New("maquina personalizada nao encontrada")
+			}
+
+			return models.UserMachine{}, err
+		}
+
+		return userMachine, nil
+	}
 
 	if input.CatalogMachineID != "" {
 		catalogMachine, err := machineRepo.FindByID(input.CatalogMachineID)

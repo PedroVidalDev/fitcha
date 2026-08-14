@@ -22,6 +22,19 @@ type CreateWorkoutSetInput struct {
 	DurationSeconds int
 }
 
+type TransferMachineHistoryInput struct {
+	TargetUserMachineID string
+	TargetCatalogID     string
+	ReplaceInWorkouts   bool
+}
+
+type TransferMachineHistoryResult struct {
+	SourceMachineID  string
+	TargetMachine    models.UserMachine
+	TransferredCount int64
+	UpdatedWorkouts  []models.Workout
+}
+
 type HistoryService struct {
 	db      *gorm.DB
 	history repositories.IHistoryRepository
@@ -36,6 +49,103 @@ func NewHistoryService(db *gorm.DB, historyRepo repositories.IHistoryRepository)
 
 func (s *HistoryService) ListByUserID(userID uint) ([]models.HistoryEntry, error) {
 	return s.history.FindByUserID(userID)
+}
+
+func (s *HistoryService) Delete(userID uint, historyID string) error {
+	historyID = strings.TrimSpace(historyID)
+	if historyID == "" {
+		return errors.New("registro de historico nao informado")
+	}
+
+	if err := s.history.DeleteByIDAndUserID(historyID, userID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("registro de historico nao encontrado")
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (s *HistoryService) TransferMachineHistory(userID uint, sourceMachineID string, input TransferMachineHistoryInput) (TransferMachineHistoryResult, error) {
+	sourceMachineID = strings.TrimSpace(sourceMachineID)
+	targetUserMachineID := strings.TrimSpace(input.TargetUserMachineID)
+	targetCatalogID := strings.TrimSpace(input.TargetCatalogID)
+
+	if sourceMachineID == "" {
+		return TransferMachineHistoryResult{}, errors.New("maquina de origem nao informada")
+	}
+	if (targetUserMachineID == "") == (targetCatalogID == "") {
+		return TransferMachineHistoryResult{}, errors.New("informe apenas uma maquina de destino")
+	}
+
+	var transferResult TransferMachineHistoryResult
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		userMachineRepo := repositories.NewUserMachineRepository(tx)
+		historyRepo := repositories.NewHistoryRepository(tx)
+		workoutRepo := repositories.NewWorkoutRepository(tx)
+
+		sourceMachine, err := userMachineRepo.FindByIDAndUserID(sourceMachineID, userID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("maquina de origem nao encontrada")
+			}
+			return err
+		}
+
+		var targetMachine models.UserMachine
+		if targetUserMachineID != "" {
+			targetMachine, err = userMachineRepo.FindByIDAndUserID(targetUserMachineID, userID)
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("maquina de destino nao encontrada")
+			}
+		} else {
+			targetMachine, err = resolveUserMachineForInput(tx, userID, CreateWorkoutMachineInput{
+				CatalogMachineID: targetCatalogID,
+			})
+		}
+		if err != nil {
+			return err
+		}
+
+		if sourceMachine.ID == targetMachine.ID {
+			return errors.New("selecione uma maquina diferente da atual")
+		}
+		if sourceMachine.EffectiveTrackingType() != targetMachine.EffectiveTrackingType() ||
+			sourceMachine.EffectiveRequiresWeight() != targetMachine.EffectiveRequiresWeight() {
+			return errors.New("a maquina de destino possui um tipo de registro incompativel")
+		}
+
+		transferredCount, err := historyRepo.ReassignAllByUserMachineID(sourceMachine.ID, targetMachine.ID)
+		if err != nil {
+			return err
+		}
+		if transferredCount == 0 {
+			return errors.New("a maquina de origem nao possui historico para transferir")
+		}
+
+		updatedWorkouts := []models.Workout{}
+		if input.ReplaceInWorkouts {
+			updatedWorkouts, err = workoutRepo.ReplaceMachineAssignmentsByUserID(userID, sourceMachine.ID, targetMachine.ID)
+			if err != nil {
+				return err
+			}
+		}
+
+		transferResult = TransferMachineHistoryResult{
+			SourceMachineID:  sourceMachine.ID,
+			TargetMachine:    targetMachine,
+			TransferredCount: transferredCount,
+			UpdatedWorkouts:  updatedWorkouts,
+		}
+		return nil
+	})
+	if err != nil {
+		return TransferMachineHistoryResult{}, err
+	}
+
+	return transferResult, nil
 }
 
 func (s *HistoryService) CreateWorkout(userID uint, results []CreateWorkoutResultInput) ([]models.HistoryEntry, error) {

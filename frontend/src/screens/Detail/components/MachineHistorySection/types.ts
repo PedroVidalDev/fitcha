@@ -4,4 +4,6 @@ import { Machine } from '@/src/dtos/Machine'
 export type MachineHistorySectionProps = {
     machine: Machine
     history: HistoryEntry[]
+    deletingHistoryId?: string
+    onRequestDelete: (entry: HistoryEntry) => void
 }

@@ -3,6 +3,7 @@ package dtos
 import machineDtos "fitcha/internal/dtos/machine"
 
 type AddWorkoutMachineType struct {
+	UserMachineID    string `json:"userMachineId"`
 	CatalogMachineID string `json:"catalogMachineId"`
 	Name             string `json:"name"`
 	Description      string `json:"description"`

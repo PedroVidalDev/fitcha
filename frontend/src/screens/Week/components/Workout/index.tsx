@@ -3,14 +3,21 @@ import { CategoryBadge } from '@/src/components/CategoryBadge'
 import { GradientCard } from '@/src/components/GradientCard'
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
-import { RootStackParamList } from '@/src/router/types'
+import { MainTabParamList, RootStackParamList } from '@/src/router/types'
 import { Ionicons } from '@expo/vector-icons'
-import { useNavigation } from '@react-navigation/native'
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
+import {
+    CompositeNavigationProp,
+    useNavigation,
+} from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { Text, View } from 'react-native'
 import { WorkoutProps } from './types'
 
-type Nav = NativeStackNavigationProp<RootStackParamList, 'Week'>
+type Nav = CompositeNavigationProp<
+    BottomTabNavigationProp<MainTabParamList, 'Week'>,
+    NativeStackNavigationProp<RootStackParamList>
+>
 
 export const Workout = (props: WorkoutProps) => {
     const { index, workout } = props

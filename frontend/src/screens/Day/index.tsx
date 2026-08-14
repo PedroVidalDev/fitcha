@@ -93,6 +93,12 @@ export default function DayScreen(props: DayScreenProps) {
                 visible={isAddModalVisible}
                 onClose={handleCloseAddModal}
                 onAdd={handleAddMachine}
+                excludedMachineIds={machines
+                    .map((machine) => machine.catalogMachineId)
+                    .filter((id): id is string => !!id)}
+                excludedUserMachineIds={machines
+                    .filter((machine) => !machine.catalogMachineId)
+                    .map((machine) => machine.id)}
             />
 
             <DayDeleteMachineModal

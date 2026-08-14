@@ -4,9 +4,12 @@ import { useI18n } from '../../../contexts/I18nContext'
 import { HistoryEntry } from '../../../dtos/HistoryEntry'
 import { Machine } from '../../../dtos/Machine'
 import {
+    deleteMachineHistoryEntry,
     getCachedWorkoutData,
     loadWorkoutData,
+    transferAllMachineHistory,
 } from '../../../services/workoutData'
+import { TransferMachineHistoryInput } from '../../../services/history'
 
 export function useMachineHistory(machineId: string) {
     const { locale, t } = useI18n()
@@ -40,5 +43,22 @@ export function useMachineHistory(machineId: string) {
         void load()
     }, [setStateFromData])
 
-    return { machine, history }
+    const deleteHistoryEntry = useCallback(
+        async (historyId: string) => {
+            const data = await deleteMachineHistoryEntry(machineId, historyId)
+            setStateFromData(data)
+        },
+        [machineId, setStateFromData],
+    )
+
+    const transferHistory = useCallback(
+        async (input: TransferMachineHistoryInput) => {
+            const result = await transferAllMachineHistory(machineId, input)
+            setStateFromData(result.data)
+            return result.response
+        },
+        [machineId, setStateFromData],
+    )
+
+    return { machine, history, deleteHistoryEntry, transferHistory }
 }

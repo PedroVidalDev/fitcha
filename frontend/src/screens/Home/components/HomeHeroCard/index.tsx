@@ -1,15 +1,13 @@
 import { useI18n } from '@/src/contexts/I18nContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
-import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Platform, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, Text, View } from 'react-native'
 import { type HomeHeroCardProps } from './types'
 
 export function HomeHeroCard(props: HomeHeroCardProps) {
-    const { summary, firstName, onOpenWeek } = props
+    const { summary, firstName } = props
     const { t } = useTheme()
     const { t: translate } = useI18n()
-    const btnColor = t.home.buttonText
 
     return (
         <View
@@ -155,39 +153,6 @@ export function HomeHeroCard(props: HomeHeroCardProps) {
                         </Text>
                     </View>
                 </View>
-
-                <TouchableOpacity
-                    activeOpacity={0.82}
-                    onPress={onOpenWeek}
-                    style={{ marginTop: 18 }}
-                >
-                    <LinearGradient
-                        colors={t.gradientAccent}
-                        style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 10,
-                            paddingVertical: 15,
-                            borderRadius: 18,
-                        }}
-                    >
-                        <Ionicons
-                            name='calendar-outline'
-                            size={20}
-                            color={btnColor}
-                        />
-                        <Text
-                            style={{
-                                color: btnColor,
-                                fontSize: 16,
-                                fontWeight: '900',
-                            }}
-                        >
-                            {translate('home.header.openWeek')}
-                        </Text>
-                    </LinearGradient>
-                </TouchableOpacity>
             </LinearGradient>
         </View>
     )
