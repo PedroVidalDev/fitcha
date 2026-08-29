@@ -2,6 +2,7 @@ package main
 
 import (
 	"fitcha/internal/middlewares"
+	"fitcha/internal/repositories"
 	"fitcha/internal/routes"
 	database "fitcha/pkg/db"
 	"fmt"
@@ -23,8 +24,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := gin.Default()
+	r := gin.New()
+
+	errorLogRepo := repositories.NewErrorLogRepository(dbConnection)
+	r.Use(gin.Logger())
+	r.Use(middlewares.Recovery(errorLogRepo))
 	r.Use(middlewares.CORSMiddleware())
+	r.Use(middlewares.ErrorHandler(errorLogRepo))
 
 	routes.SetupRoutes(r, dbConnection)
 

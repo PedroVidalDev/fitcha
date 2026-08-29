@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"crypto/subtle"
+	"errors"
 	dtos "fitcha/internal/dtos/appRelease"
+	"fitcha/internal/middlewares"
 	"fitcha/internal/services"
 	"net/http"
 	"strings"
@@ -25,7 +27,7 @@ func NewAppReleaseController(service *services.AppReleaseService, updateToken st
 func (c *AppReleaseController) GetCurrent(ctx *gin.Context) {
 	appRelease, err := c.service.GetCurrent()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -39,13 +41,13 @@ func (c *AppReleaseController) GetCurrent(ctx *gin.Context) {
 
 func (c *AppReleaseController) UpsertCurrent(ctx *gin.Context) {
 	if !c.isAuthorized(ctx.GetHeader("X-App-Update-Token")) {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "nao autorizado"})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, errors.New("nao autorizado"))
 		return
 	}
 
 	var input dtos.UpdateAppReleaseInput
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -57,7 +59,7 @@ func (c *AppReleaseController) UpsertCurrent(ctx *gin.Context) {
 		ReleasedAt:     input.ReleasedAt,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 

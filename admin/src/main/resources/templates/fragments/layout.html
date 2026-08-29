@@ -50,6 +50,14 @@
                     <span class="nav-icon" aria-hidden="true">M</span>
                     <span>Máquinas</span>
                 </a>
+
+                <span class="nav-section-label">Observabilidade</span>
+                <a th:href="@{/errors}"
+                   class="nav-link"
+                   th:classappend="${activePage == 'errors'} ? ' is-active' : ''">
+                    <span class="nav-icon" aria-hidden="true">E</span>
+                    <span>Erros</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">

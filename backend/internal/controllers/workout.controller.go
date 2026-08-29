@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"errors"
 	machineDtos "fitcha/internal/dtos/machine"
 	dtos "fitcha/internal/dtos/workout"
+	"fitcha/internal/middlewares"
 	"fitcha/internal/services"
 	"net/http"
 
@@ -20,13 +22,13 @@ func NewWorkoutController(service *services.WorkoutService) *WorkoutController {
 func (c *WorkoutController) List(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	workouts, err := c.service.ListByUserID(userID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -37,13 +39,13 @@ func (c *WorkoutController) Create(ctx *gin.Context) {
 	var input dtos.CreateWorkoutType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -52,7 +54,7 @@ func (c *WorkoutController) Create(ctx *gin.Context) {
 		Description: input.Description,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -63,19 +65,19 @@ func (c *WorkoutController) Update(ctx *gin.Context) {
 	var input dtos.UpdateWorkoutType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	workoutID, err := getUintParam(ctx, "workoutId")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "treino invalido"})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, errors.New("treino invalido"))
 		return
 	}
 
@@ -84,7 +86,7 @@ func (c *WorkoutController) Update(ctx *gin.Context) {
 		Description: input.Description,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -94,18 +96,18 @@ func (c *WorkoutController) Update(ctx *gin.Context) {
 func (c *WorkoutController) Delete(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	workoutID, err := getUintParam(ctx, "workoutId")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "treino invalido"})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, errors.New("treino invalido"))
 		return
 	}
 
 	if err := c.service.Delete(userID, workoutID); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -116,19 +118,19 @@ func (c *WorkoutController) AddMachine(ctx *gin.Context) {
 	var input dtos.AddWorkoutMachineType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	workoutID, err := getUintParam(ctx, "workoutId")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "treino invalido"})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, errors.New("treino invalido"))
 		return
 	}
 
@@ -143,7 +145,7 @@ func (c *WorkoutController) AddMachine(ctx *gin.Context) {
 		RequiresWeight:   input.RequiresWeight,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -156,19 +158,19 @@ func (c *WorkoutController) AddMachine(ctx *gin.Context) {
 func (c *WorkoutController) RemoveMachine(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	workoutID, err := getUintParam(ctx, "workoutId")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "treino invalido"})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, errors.New("treino invalido"))
 		return
 	}
 
 	workout, removedMachine, err := c.service.RemoveMachine(userID, workoutID, ctx.Param("machineId"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 

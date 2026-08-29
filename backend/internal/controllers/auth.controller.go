@@ -2,6 +2,7 @@ package controllers
 
 import (
 	dtos "fitcha/internal/dtos/user"
+	"fitcha/internal/middlewares"
 	"fitcha/internal/services"
 	"html/template"
 	"net/http"
@@ -46,14 +47,14 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	var input dtos.CreateUserType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	registerResponse, err := c.service.Register(input.Name, input.Email, input.Password)
 	if err != nil {
 		status, payload := authErrorResponse(err)
-		ctx.JSON(status, payload)
+		middlewares.AbortWithErrorPayload(ctx, status, err, payload)
 		return
 	}
 
@@ -64,14 +65,14 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	var input dtos.LoginType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	authResponse, err := c.service.Login(input.Email, input.Password)
 	if err != nil {
 		status, payload := authErrorResponse(err)
-		ctx.JSON(status, payload)
+		middlewares.AbortWithErrorPayload(ctx, status, err, payload)
 		return
 	}
 
@@ -82,12 +83,12 @@ func (c *AuthController) ResendVerificationEmail(ctx *gin.Context) {
 	var input dtos.ResendVerificationEmailType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := c.service.ResendVerificationEmail(input.Email); err != nil {
-		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+		middlewares.AbortWithErrorPayload(ctx, http.StatusServiceUnavailable, err, gin.H{
 			"error": "nao foi possivel reenviar o e-mail de verificacao",
 		})
 		return
@@ -102,6 +103,7 @@ func (c *AuthController) VerifyEmail(ctx *gin.Context) {
 	err := c.service.VerifyEmail(ctx.Query("token"))
 	if err != nil {
 		status, payload := authErrorResponse(err)
+		middlewares.RecordError(ctx, status, err)
 		renderVerificationHTML(ctx, status, "Falha na verificacao", payload["error"].(string))
 		return
 	}
@@ -118,12 +120,12 @@ func (c *AuthController) RequestPasswordReset(ctx *gin.Context) {
 	var input dtos.RequestPasswordResetType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := c.service.RequestPasswordReset(input.Email); err != nil {
-		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+		middlewares.AbortWithErrorPayload(ctx, http.StatusServiceUnavailable, err, gin.H{
 			"error": "nao foi possivel enviar o e-mail de redefinicao",
 		})
 		return
@@ -138,13 +140,13 @@ func (c *AuthController) ResetPassword(ctx *gin.Context) {
 	var input dtos.ResetPasswordType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := c.service.ResetPassword(input.Token, input.NewPassword); err != nil {
 		status, payload := authErrorResponse(err)
-		ctx.JSON(status, payload)
+		middlewares.AbortWithErrorPayload(ctx, status, err, payload)
 		return
 	}
 
@@ -170,20 +172,20 @@ func (c *AuthController) ChangePassword(ctx *gin.Context) {
 	var input dtos.ChangePasswordType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	err = c.service.ChangePassword(userID, input.CurrentPassword, input.NewPassword)
 	if err != nil {
 		status, payload := authErrorResponse(err)
-		ctx.JSON(status, payload)
+		middlewares.AbortWithErrorPayload(ctx, status, err, payload)
 		return
 	}
 

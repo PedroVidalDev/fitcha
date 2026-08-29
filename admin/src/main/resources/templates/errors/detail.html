@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Detalhe do erro', 'errors', ~{::section})}">
+<section class="page-stack">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">Observabilidade</span>
+            <h2>Detalhe do erro</h2>
+            <p>Log completo da falha capturada pelo backend.</p>
+        </div>
+        <a class="button button-ghost" th:href="@{/errors}">Voltar</a>
+    </div>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h3>Ocorrência</h3>
+        </div>
+        <div class="panel-body">
+            <dl class="detail-grid">
+                <div>
+                    <dt>Ocorrido em</dt>
+                    <dd class="mono-cell" th:text="${error.createdAtText()}">—</dd>
+                </div>
+                <div>
+                    <dt>Método</dt>
+                    <dd th:text="${error.method}">GET</dd>
+                </div>
+                <div>
+                    <dt>Status</dt>
+                    <dd th:text="${error.statusCode}">500</dd>
+                </div>
+                <div>
+                    <dt>Situação</dt>
+                    <dd>
+                        <span class="status-badge"
+                              th:classappend="${error.resolved} ? ' is-active' : ' is-inactive'">
+                            <span></span>
+                            <span th:text="${error.resolved ? 'Resolvido' : 'Pendente'}">Pendente</span>
+                        </span>
+                    </dd>
+                </div>
+                <div class="detail-field-full">
+                    <dt>Rota</dt>
+                    <dd class="mono-cell" th:text="${error.path}">/rota</dd>
+                </div>
+            </dl>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h3>Mensagem</h3>
+        </div>
+        <div class="panel-body">
+            <pre class="log-block" th:text="${error.message}">mensagem</pre>
+        </div>
+    </article>
+
+    <article class="panel" th:if="${error.hasStackTrace()}">
+        <div class="panel-header">
+            <h3>Stack trace</h3>
+        </div>
+        <div class="panel-body">
+            <pre class="log-block" th:text="${error.stackTrace}">stack trace</pre>
+        </div>
+    </article>
+
+    <form th:unless="${error.resolved}"
+          th:action="@{/errors/{id}/resolve(id=${error.id})}"
+          method="post">
+        <button class="button button-primary" type="submit">Marcar como resolvido</button>
+    </form>
+</section>
+</html>

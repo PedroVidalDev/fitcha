@@ -5,6 +5,7 @@ import (
 	machineDtos "fitcha/internal/dtos/machine"
 	paginationDtos "fitcha/internal/dtos/pagination"
 	workoutDtos "fitcha/internal/dtos/workout"
+	"fitcha/internal/middlewares"
 	"fitcha/internal/services"
 	"net/http"
 
@@ -22,13 +23,13 @@ func NewHistoryController(service *services.HistoryService) *HistoryController {
 func (c *HistoryController) List(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	entries, err := c.service.ListByUserID(userID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -38,13 +39,13 @@ func (c *HistoryController) List(ctx *gin.Context) {
 func (c *HistoryController) ListByMachine(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	page, limit, err := getPagination(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -55,7 +56,7 @@ func (c *HistoryController) ListByMachine(ctx *gin.Context) {
 		limit,
 	)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -70,13 +71,13 @@ func (c *HistoryController) ListByMachine(ctx *gin.Context) {
 func (c *HistoryController) GetMachineRecord(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	entry, err := c.service.GetMachineRecord(userID, ctx.Param("machineId"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 	if entry == nil {
@@ -92,12 +93,12 @@ func (c *HistoryController) GetMachineRecord(ctx *gin.Context) {
 func (c *HistoryController) Delete(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := c.service.Delete(userID, ctx.Param("historyId")); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -107,13 +108,13 @@ func (c *HistoryController) Delete(ctx *gin.Context) {
 func (c *HistoryController) TransferMachineHistory(ctx *gin.Context) {
 	var input dtos.TransferMachineHistoryType
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -123,7 +124,7 @@ func (c *HistoryController) TransferMachineHistory(ctx *gin.Context) {
 		ReplaceInWorkouts:   input.ReplaceInWorkouts,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -139,13 +140,13 @@ func (c *HistoryController) CreateWorkout(ctx *gin.Context) {
 	var input dtos.CreateWorkoutType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -169,7 +170,7 @@ func (c *HistoryController) CreateWorkout(ctx *gin.Context) {
 
 	entries, err := c.service.CreateWorkout(userID, results)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 

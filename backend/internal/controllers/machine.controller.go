@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"errors"
 	dtos "fitcha/internal/dtos/machine"
 	paginationDtos "fitcha/internal/dtos/pagination"
+	"fitcha/internal/middlewares"
 	"fitcha/internal/services"
 	"net/http"
 	"os"
@@ -23,13 +25,13 @@ func NewMachineController(service *services.MachineService, photoStorage *servic
 func (c *MachineController) List(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	machines, err := c.service.ListByUserID(userID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -39,7 +41,7 @@ func (c *MachineController) List(ctx *gin.Context) {
 func (c *MachineController) ListCatalog(ctx *gin.Context) {
 	machines, err := c.service.ListCatalog()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -49,18 +51,18 @@ func (c *MachineController) ListCatalog(ctx *gin.Context) {
 func (c *MachineController) Search(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	page, limit, err := getPagination(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 	requiresWeight, err := getOptionalBoolQuery(ctx, "requiresWeight")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -75,7 +77,7 @@ func (c *MachineController) Search(ctx *gin.Context) {
 		Limit:          limit,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -90,12 +92,12 @@ func (c *MachineController) Search(ctx *gin.Context) {
 func (c *MachineController) SearchCatalog(ctx *gin.Context) {
 	page, limit, err := getPagination(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 	requiresWeight, err := getOptionalBoolQuery(ctx, "requiresWeight")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -110,7 +112,7 @@ func (c *MachineController) SearchCatalog(ctx *gin.Context) {
 		Limit:             limit,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -125,13 +127,13 @@ func (c *MachineController) SearchCatalog(ctx *gin.Context) {
 func (c *MachineController) Get(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	machine, err := c.service.Get(userID, ctx.Param("machineId"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -142,13 +144,13 @@ func (c *MachineController) Create(ctx *gin.Context) {
 	var input dtos.CreateMachineType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -161,7 +163,7 @@ func (c *MachineController) Create(ctx *gin.Context) {
 		RequiresWeight: input.RequiresWeight,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -172,13 +174,13 @@ func (c *MachineController) Update(ctx *gin.Context) {
 	var input dtos.UpdateMachineType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -191,7 +193,7 @@ func (c *MachineController) Update(ctx *gin.Context) {
 		RequiresWeight: input.RequiresWeight,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -201,18 +203,18 @@ func (c *MachineController) Update(ctx *gin.Context) {
 func (c *MachineController) Delete(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	machine, err := c.service.Get(userID, ctx.Param("machineId"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := c.service.Delete(userID, machine.ID); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -223,26 +225,26 @@ func (c *MachineController) Delete(ctx *gin.Context) {
 func (c *MachineController) UploadPhoto(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	currentMachine, err := c.service.Get(userID, ctx.Param("machineId"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, 6<<20)
 	fileHeader, err := ctx.FormFile("photo")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "foto nao informada"})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, errors.New("foto nao informada"))
 		return
 	}
 
 	relativeURL, err := c.photoStorage.Save(currentMachine.ID, fileHeader)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -252,7 +254,7 @@ func (c *MachineController) UploadPhoto(ctx *gin.Context) {
 	})
 	if err != nil {
 		c.photoStorage.DeleteByURL(currentMachine.ID, relativeURL)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -263,13 +265,13 @@ func (c *MachineController) UploadPhoto(ctx *gin.Context) {
 func (c *MachineController) DeletePhoto(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	currentMachine, err := c.service.Get(userID, ctx.Param("machineId"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -278,7 +280,7 @@ func (c *MachineController) DeletePhoto(ctx *gin.Context) {
 		Photo: &emptyPhoto,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 

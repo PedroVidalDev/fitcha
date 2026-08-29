@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Erros', 'errors', ~{::section})}">
+<section class="page-stack">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">Observabilidade</span>
+            <h2>Erros do backend</h2>
+            <p>Falhas capturadas pelo backend, com log completo para diagnóstico.</p>
+        </div>
+    </div>
+
+    <article class="panel">
+        <div class="panel-toolbar">
+            <label class="search-field">
+                <span aria-hidden="true">⌕</span>
+                <input type="search" placeholder="Buscar por mensagem, rota ou status" data-table-search="errors-table">
+            </label>
+            <span class="result-count">
+                <strong th:text="${errors.size()}">0</strong>
+                <span th:text="${errors.size() == 1 ? 'erro' : 'erros'}">erros</span>
+            </span>
+        </div>
+
+        <div class="table-wrap" th:if="${!errors.isEmpty()}">
+            <table class="data-table" id="errors-table">
+                <thead>
+                    <tr>
+                        <th>Ocorrido em</th>
+                        <th>Requisição</th>
+                        <th>Mensagem</th>
+                        <th>Situação</th>
+                        <th class="actions-column">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="error : ${errors}"
+                        data-search-row
+                        th:attr="data-search-value=${error.message + ' ' + error.path + ' ' + error.method + ' ' + error.statusCode}">
+                        <td>
+                            <span class="mono-cell" th:text="${error.createdAtText()}">—</span>
+                        </td>
+                        <td>
+                            <div class="identity-cell">
+                                <span class="list-avatar"
+                                      th:classappend="${error.isServerError()} ? ' red' : ''"
+                                      th:text="${error.statusCode}">500</span>
+                                <span>
+                                    <strong th:text="${error.method}">GET</strong>
+                                    <small th:text="${error.path}">/rota</small>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="description-cell"
+                                  th:text="${error.truncatedMessage()}">mensagem</span>
+                        </td>
+                        <td>
+                            <span class="status-badge"
+                                  th:classappend="${error.resolved} ? ' is-active' : ' is-inactive'">
+                                <span></span>
+                                <span th:text="${error.resolved ? 'Resolvido' : 'Pendente'}">Pendente</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="button button-ghost button-small"
+                                   th:href="@{/errors/{id}(id=${error.id})}">Ver</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${errors.isEmpty()}">
+            <span class="empty-icon" aria-hidden="true">E</span>
+            <h3>Nenhum erro registrado</h3>
+            <p>Quando o backend capturar uma falha, ela aparecerá aqui.</p>
+        </div>
+    </article>
+</section>
+</html>

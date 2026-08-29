@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"errors"
 	dtos "fitcha/internal/dtos/credit"
+	"fitcha/internal/middlewares"
 	"fitcha/internal/services"
 	"net/http"
 	"strings"
@@ -21,19 +23,19 @@ func (c *CreditController) CreateCheckout(ctx *gin.Context) {
 	var input dtos.CreateCreditCheckoutType
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	payment, credits, isNew, err := c.service.CreateCheckout(userID, input.CreditQuantity, input.DocumentNumber)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -47,13 +49,13 @@ func (c *CreditController) CreateCheckout(ctx *gin.Context) {
 func (c *CreditController) GetMySummary(ctx *gin.Context) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, err)
 		return
 	}
 
 	payment, credits, err := c.service.GetMySummary(userID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
@@ -81,12 +83,12 @@ func (c *CreditController) MercadoPagoWebhook(ctx *gin.Context) {
 	}
 
 	if !c.service.ValidateWebhookSignature(signature, requestID, resourceID) {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "assinatura de webhook invalida"})
+		middlewares.AbortWithError(ctx, http.StatusUnauthorized, errors.New("assinatura de webhook invalida"))
 		return
 	}
 
 	if err := c.service.ProcessMercadoPagoWebhook(resourceID); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		middlewares.AbortWithError(ctx, http.StatusBadRequest, err)
 		return
 	}
 

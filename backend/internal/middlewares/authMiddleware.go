@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"errors"
 	"fitcha/pkg/auth"
 	"net/http"
 	"strings"
@@ -13,7 +14,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		header := c.GetHeader("Authorization")
 
 		if header == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token dont exist"})
+			AbortWithError(c, http.StatusUnauthorized, errors.New("Token dont exist"))
 			return
 		}
 
@@ -21,7 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		userID, err := auth.ValidateAccessToken(tokenString)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token invalid"})
+			AbortWithError(c, http.StatusUnauthorized, errors.New("Token invalid"))
 			return
 		}
 
