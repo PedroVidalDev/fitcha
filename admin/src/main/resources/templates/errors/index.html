@@ -13,10 +13,23 @@
 
     <article class="panel">
         <div class="panel-toolbar">
-            <label class="search-field">
-                <span aria-hidden="true">⌕</span>
-                <input type="search" placeholder="Buscar por mensagem, rota ou status" data-table-search="errors-table">
-            </label>
+            <div class="panel-toolbar-group">
+                <label class="search-field">
+                    <span aria-hidden="true">⌕</span>
+                    <input type="search" placeholder="Buscar por mensagem, rota ou status" data-table-search="errors-table">
+                </label>
+                <div class="filter-group" role="group" aria-label="Filtro por status">
+                    <a th:href="@{/errors(type='all')}"
+                       class="filter-btn"
+                       th:classappend="${type == 'all'} ? ' is-active' : ''">Todos</a>
+                    <a th:href="@{/errors(type='4xx')}"
+                       class="filter-btn"
+                       th:classappend="${type == '4xx'} ? ' is-active' : ''">400</a>
+                    <a th:href="@{/errors(type='5xx')}"
+                       class="filter-btn"
+                       th:classappend="${type == '5xx'} ? ' is-active' : ''">500</a>
+                </div>
+            </div>
             <span class="result-count">
                 <strong th:text="${errors.size()}">0</strong>
                 <span th:text="${errors.size() == 1 ? 'erro' : 'erros'}">erros</span>

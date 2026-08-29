@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.pedro.fitchaadmin.errorlog.services.ErrorLogService;
@@ -20,8 +21,13 @@ public class ErrorLogController {
     }
 
     @GetMapping
-    public String getErrors(Model model) {
-        model.addAttribute("errors", service.getErrorLogs());
+    public String getErrors(
+            @RequestParam(defaultValue = ErrorLogService.FILTER_5XX) String type,
+            Model model
+    ) {
+        String filter = service.normalizeFilter(type);
+        model.addAttribute("errors", service.getErrorLogs(filter));
+        model.addAttribute("type", filter);
         return "errors/index";
     }
 
