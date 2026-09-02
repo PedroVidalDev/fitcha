@@ -9,7 +9,6 @@ import {
     TransferMachineHistoryInput,
 } from '../../../services/history'
 import {
-    getCachedMachineHistoryData,
     loadMachineHistoryData,
     deleteMachineHistoryData,
     transferMachineHistoryData,
@@ -74,19 +73,6 @@ export function useMachineDetail(machineId: string) {
             const requestId = ++requestIdRef.current
             setIsHistoryLoading(true)
             setHistoryError('')
-
-            const cachedPage = await getCachedMachineHistoryData(
-                machineId,
-                page,
-                HISTORY_PAGE_LIMIT,
-            )
-            if (requestId !== requestIdRef.current) return
-            if (cachedPage) {
-                setRawHistory(cachedPage.items)
-                if (page === 1) setRecentHistory(cachedPage.items)
-                setHistoryPage(cachedPage.page)
-                setHistoryTotalPages(cachedPage.totalPages)
-            }
 
             try {
                 const response = await loadMachineHistoryData(
@@ -161,20 +147,14 @@ export function useMachineDetail(machineId: string) {
 
     const deleteHistoryEntry = useCallback(
         async (historyId: string) => {
-            await deleteMachineHistoryData(machineId, historyId)
+            await deleteMachineHistoryData(historyId)
             const targetPage =
                 rawHistory.length === 1 && historyPage > 1
                     ? historyPage - 1
                     : historyPage
             await Promise.all([loadHistoryPage(targetPage), loadRecord()])
         },
-        [
-            historyPage,
-            loadHistoryPage,
-            loadRecord,
-            machineId,
-            rawHistory.length,
-        ],
+        [historyPage, loadHistoryPage, loadRecord, rawHistory.length],
     )
 
     const transferHistory = useCallback(

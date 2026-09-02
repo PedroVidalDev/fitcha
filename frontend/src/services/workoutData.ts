@@ -13,7 +13,14 @@ import {
 import { getMyMachines } from './machines'
 import { clearScheduledNotifications } from './notifications'
 import { cacheMachines } from './machineCache'
-import { createEmptyAppData, getData, saveData } from './storage'
+import {
+    createEmptyAppData,
+    getData,
+    saveData,
+    saveHistorySummary,
+    saveMachines,
+    saveWorkouts,
+} from './storage'
 import {
     addMachineToWorkout as addMachineToWorkoutRequest,
     createWorkout as createWorkoutRequest,
@@ -699,7 +706,7 @@ export async function createWorkoutPlan(title: string, description?: string) {
 
     upsertWorkout(data, workout)
 
-    await saveData(data)
+    await saveWorkouts(data.workouts, data.workoutOrder)
     isWorkoutDataStale = true
 
     try {
@@ -724,7 +731,7 @@ export async function updateWorkoutPlan(
 
     upsertWorkout(data, workout)
 
-    await saveData(data)
+    await saveWorkouts(data.workouts, data.workoutOrder)
     isWorkoutDataStale = true
 
     return workout
@@ -737,7 +744,7 @@ export async function deleteWorkoutPlan(workoutId: number) {
     delete data.workouts[String(workoutId)]
     data.workoutOrder = data.workoutOrder.filter((id) => id !== workoutId)
 
-    await saveData(data)
+    await saveWorkouts(data.workouts, data.workoutOrder)
     isWorkoutDataStale = true
 
     return data
@@ -756,7 +763,8 @@ export async function addMachineToWorkout(
         data.historySummary.byMachine[response.machine.id] ??
         emptyMachineHistorySummary()
 
-    await saveData(data)
+    await saveMachines(data.machines)
+    await saveWorkouts(data.workouts, data.workoutOrder)
     isWorkoutDataStale = true
 
     return response.machine
@@ -776,7 +784,10 @@ export async function removeMachineFromWorkout(
         delete data.historySummary.byMachine[machineId]
     }
 
-    await saveData(data)
+    await saveWorkouts(data.workouts, data.workoutOrder)
+    if (response.removedMachine) {
+        await saveMachines(data.machines)
+    }
     isWorkoutDataStale = true
 }
 
@@ -813,7 +824,7 @@ export async function saveWorkoutResults(results: WorkoutHistoryInput[]) {
         data.historySummary.workoutDates = sortWorkoutDates(workoutDates)
     })
 
-    await saveData(data)
+    await saveHistorySummary(data.historySummary)
     isWorkoutDataStale = true
 
     return createdEntries.map(toHistoryEntry)

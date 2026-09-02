@@ -29,7 +29,6 @@ import { clearScheduledNotifications } from '../../services/notifications'
 import { clearData } from '../../services/storage'
 import { resetWorkoutSyncState } from '../../services/workoutData'
 import { clearMachineCache } from '../../services/machineCache'
-import { clearCachedMachineHistory } from '../../services/machineHistoryCache'
 
 const AUTH_KEY = 'auth_session'
 const LEGACY_AUTH_KEY = 'auth_user'
@@ -322,7 +321,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await Promise.all([
             clearData(),
             clearMachineCache(),
-            clearCachedMachineHistory(),
             clearScheduledNotifications(),
         ])
         resetWorkoutSyncState()
