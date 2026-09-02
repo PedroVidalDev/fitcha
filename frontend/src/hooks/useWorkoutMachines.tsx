@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { HistoryEntry, HistorySet } from '../dtos/HistoryEntry'
+import { AppData } from '../dtos/AppData'
+import { HistorySet } from '../dtos/HistoryEntry'
 import { Machine } from '../dtos/Machine'
 import { WorkoutPlan } from '../dtos/WorkoutPlan'
 import { getCachedWorkoutData, loadWorkoutData } from '../services/workoutData'
-import { getRecordHistoryEntry } from '../utils/workoutRecords'
 
 type MachineWithHistory = Machine & {
     lastWeight: number | null
@@ -17,12 +17,7 @@ export function useWorkoutMachines(workoutId: number) {
     const [isLoading, setIsLoading] = useState(true)
 
     const setMachinesFromData = useCallback(
-        (data: {
-            workoutOrder: number[]
-            workouts: Record<string, WorkoutPlan>
-            machines: Record<string, Machine>
-            history: Record<string, HistoryEntry[]>
-        }) => {
+        (data: AppData) => {
             const currentWorkout = data.workouts[String(workoutId)] ?? null
             setWorkout(currentWorkout)
 
@@ -35,10 +30,9 @@ export function useWorkoutMachines(workoutId: number) {
                 .map((id) => {
                     const machine = data.machines[id]
                     if (!machine) return null
-                    const hist = data.history[id] ?? []
-                    const lastSets = hist[0]?.sets ?? null
-                    const recordSets =
-                        getRecordHistoryEntry(hist, machine)?.sets ?? null
+                    const summary = data.historySummary.byMachine[id]
+                    const lastSets = summary?.latest?.sets ?? null
+                    const recordSets = summary?.record?.sets ?? null
                     const lastWeight =
                         lastSets && lastSets.length > 0
                             ? Math.max(...lastSets.map((set) => set.weight)) > 0

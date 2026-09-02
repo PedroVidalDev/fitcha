@@ -13,7 +13,10 @@ export function createEmptyAppData(): AppData {
         machines: {},
         workouts: {},
         workoutOrder: [],
-        history: {},
+        historySummary: {
+            workoutDates: [],
+            byMachine: {},
+        },
     }
 }
 
@@ -60,19 +63,27 @@ async function loadState(): Promise<{
 
     const raw = await AsyncStorage.getItem(nextKey)
     if (raw) {
-        cache = JSON.parse(raw) as AppData
-        hasPersistedValue = true
-        return { data: cache, hasPersistedValue }
+        try {
+            cache = JSON.parse(raw) as AppData
+            hasPersistedValue = true
+            return { data: cache, hasPersistedValue }
+        } catch {
+            await AsyncStorage.removeItem(nextKey)
+        }
     }
 
     if (nextKey !== STORAGE_KEY) {
         const legacyRaw = await AsyncStorage.getItem(STORAGE_KEY)
         if (legacyRaw) {
-            cache = JSON.parse(legacyRaw) as AppData
-            hasPersistedValue = true
-            await AsyncStorage.setItem(nextKey, legacyRaw)
-            await AsyncStorage.removeItem(STORAGE_KEY)
-            return { data: cache, hasPersistedValue }
+            try {
+                cache = JSON.parse(legacyRaw) as AppData
+                hasPersistedValue = true
+                await AsyncStorage.setItem(nextKey, legacyRaw)
+                await AsyncStorage.removeItem(STORAGE_KEY)
+                return { data: cache, hasPersistedValue }
+            } catch {
+                await AsyncStorage.removeItem(STORAGE_KEY)
+            }
         }
     }
 
@@ -100,7 +111,12 @@ export async function saveData(data: AppData) {
     cacheKey = key
     cache = data
     hasPersistedValue = true
-    await AsyncStorage.setItem(key, JSON.stringify(data))
+
+    try {
+        await AsyncStorage.setItem(key, JSON.stringify(data))
+    } catch {
+        // Local cache is best-effort; a write failure must not break flows.
+    }
 }
 
 export async function clearData() {

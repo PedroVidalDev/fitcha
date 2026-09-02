@@ -10,7 +10,6 @@ import {
     getHistoryEntryPrimaryMetric,
     getHistoryEntryVolume,
     getHistoryMetricKind,
-    getRecordHistoryEntry,
 } from '../utils/workoutRecords'
 
 type WorkoutDayAggregate = {
@@ -96,14 +95,6 @@ function addDays(date: Date, amount: number) {
     return next
 }
 
-function getDayKey(date: Date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-
-    return `${year}-${month}-${day}`
-}
-
 function diffInDays(from: Date, to: Date) {
     const diffMs =
         startOfLocalDay(from).getTime() - startOfLocalDay(to).getTime()
@@ -126,25 +117,14 @@ function formatRelativeDay(
 }
 
 function buildWorkoutDays(data: AppData) {
-    const workoutDays = new Map<string, WorkoutDayAggregate>()
+    return data.historySummary.workoutDates.map((key) => {
+        const [year, month, day] = key.split('-').map(Number)
 
-    Object.values(data.history).forEach((entries) => {
-        entries.forEach((entry) => {
-            const entryDate = startOfLocalDay(new Date(entry.date))
-            const key = getDayKey(entryDate)
-
-            if (!workoutDays.has(key)) {
-                workoutDays.set(key, {
-                    key,
-                    date: entryDate,
-                })
-            }
-        })
+        return {
+            key,
+            date: new Date(year, month - 1, day),
+        }
     })
-
-    return [...workoutDays.values()].sort(
-        (a, b) => a.date.getTime() - b.date.getTime(),
-    )
 }
 
 function buildShortWorkoutLabel(title: string, index: number) {
@@ -255,14 +235,14 @@ function buildMachineProgress(
 
     if (!machine) return null
 
-    const sortedHistory = [...(data.history[machineId] ?? [])].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    )
+    const summary = data.historySummary.byMachine[machineId]
+    const latestEntry = summary?.latest ?? null
+    const previousEntry = summary?.previous ?? null
+    const firstEntry = summary?.first ?? null
+    const recordEntry = summary?.record ?? null
+    const sessionCount = summary?.sessionCount ?? 0
+    const recent = summary?.recent ?? []
 
-    const latestEntry = sortedHistory[sortedHistory.length - 1]
-    const previousEntry = sortedHistory[sortedHistory.length - 2]
-    const firstEntry = sortedHistory[0]
-    const recordEntry = getRecordHistoryEntry(sortedHistory, machine)
     const metricKind = getHistoryMetricKind(machine)
     const latestMetric = latestEntry
         ? getHistoryEntryPrimaryMetric(latestEntry, machine)
@@ -283,7 +263,7 @@ function buildMachineProgress(
         categoryKey: machine.categoryKey,
         trackingType: machine.trackingType,
         requiresWeight: machine.requiresWeight,
-        sessionCount: sortedHistory.length,
+        sessionCount,
         metricKind,
         latestMetric,
         previousMetric,
@@ -295,9 +275,7 @@ function buildMachineProgress(
                 ? getHistoryEntryVolume(recordEntry)
                 : null,
         deltaFromStart:
-            latestMetric !== null &&
-            firstMetric !== null &&
-            sortedHistory.length > 1
+            latestMetric !== null && firstMetric !== null && sessionCount > 1
                 ? latestMetric - firstMetric
                 : null,
         deltaFromPrevious:
@@ -307,7 +285,7 @@ function buildMachineProgress(
         lastTrainedLabel: latestEntry
             ? formatRelativeDay(new Date(latestEntry.date), now, locale, t)
             : null,
-        points: sortedHistory.slice(-4).map((entry) => ({
+        points: recent.map((entry) => ({
             key: entry.id,
             label: formatRelativeDay(new Date(entry.date), now, locale, t),
             value: getHistoryEntryPrimaryMetric(entry, machine),

@@ -1,7 +1,9 @@
 import { AppData } from '../dtos/AppData'
 import { HistoryEntry, HistorySet } from '../dtos/HistoryEntry'
+import { HistorySummary, MachineHistorySummary } from '../dtos/HistorySummary'
 import { Machine, MachineTrackingType } from '../dtos/Machine'
 import { WorkoutPlan } from '../dtos/WorkoutPlan'
+import { getRecordHistoryEntry } from '../utils/workoutRecords'
 import {
     createWorkoutHistory,
     getMyHistory,
@@ -28,6 +30,7 @@ let workoutDataRevision = 0
 
 type LegacyAppData = Partial<AppData> & {
     days?: Record<number, string[]>
+    history?: Record<string, HistoryEntry[]>
 }
 
 export function resetWorkoutSyncState() {
@@ -41,15 +44,75 @@ export function markWorkoutDataStale() {
     workoutDataRevision += 1
 }
 
+const MAX_WORKOUT_DATES = 365
+
+function emptyMachineHistorySummary(): MachineHistorySummary {
+    return {
+        latest: null,
+        previous: null,
+        first: null,
+        record: null,
+        sessionCount: 0,
+        recent: [],
+    }
+}
+
+function toLocalDayKey(isoDate: string): string {
+    const date = new Date(isoDate)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
+}
+
+function sortWorkoutDates(dates: Iterable<string>): string[] {
+    return [...dates].sort().slice(-MAX_WORKOUT_DATES)
+}
+
+function computeHistorySummary(
+    groupedEntries: Record<string, HistoryEntry[]>,
+    machines: Record<string, Machine>,
+): HistorySummary {
+    const workoutDates = new Set<string>()
+    const byMachine: Record<string, MachineHistorySummary> = {}
+
+    Object.entries(groupedEntries).forEach(([machineId, rawEntries]) => {
+        const entries = [...rawEntries].sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        )
+        const machine = machines[machineId]
+
+        entries.forEach((entry) => workoutDates.add(toLocalDayKey(entry.date)))
+
+        byMachine[machineId] = {
+            latest: entries[entries.length - 1] ?? null,
+            previous: entries[entries.length - 2] ?? null,
+            first: entries[0] ?? null,
+            record: getRecordHistoryEntry(entries, machine),
+            sessionCount: entries.length,
+            recent: entries.slice(-4),
+        }
+    })
+
+    return {
+        workoutDates: sortWorkoutDates(workoutDates),
+        byMachine,
+    }
+}
+
 function buildAppData(
     machines: Machine[],
     workouts: WorkoutPlan[],
     historyEntries: HistoryApiEntry[],
 ): AppData {
     const data = createEmptyAppData()
+    const machineMap: Record<string, Machine> = {}
 
     machines.forEach((machine) => {
-        data.machines[machine.id] = normalizeMachine(machine) ?? machine
+        const normalized = normalizeMachine(machine) ?? machine
+        data.machines[machine.id] = normalized
+        machineMap[machine.id] = normalized
     })
 
     workouts.forEach((workout) => {
@@ -57,13 +120,16 @@ function buildAppData(
         data.workoutOrder.push(workout.id)
     })
 
+    const groupedEntries: Record<string, HistoryEntry[]> = {}
     historyEntries.forEach((entry) => {
-        if (!data.history[entry.machineId]) {
-            data.history[entry.machineId] = []
+        if (!groupedEntries[entry.machineId]) {
+            groupedEntries[entry.machineId] = []
         }
 
-        data.history[entry.machineId].push(toHistoryEntry(entry))
+        groupedEntries[entry.machineId].push(toHistoryEntry(entry))
     })
+
+    data.historySummary = computeHistorySummary(groupedEntries, machineMap)
 
     return data
 }
@@ -290,6 +356,144 @@ function normalizeWorkoutPlan(value: unknown): WorkoutPlan | null {
     }
 }
 
+function normalizeMachineHistorySummary(value: unknown): {
+    summary: MachineHistorySummary
+    changed: boolean
+} {
+    if (!value || typeof value !== 'object') {
+        return { summary: emptyMachineHistorySummary(), changed: true }
+    }
+
+    const candidate = value as Partial<MachineHistorySummary> & {
+        recent?: unknown
+    }
+
+    let changed = false
+
+    const normalizeField = (
+        field: unknown,
+    ): { entry: HistoryEntry | null; changed: boolean } => {
+        if (field == null) {
+            return { entry: null, changed: false }
+        }
+
+        const normalized = normalizeHistoryEntry(field)
+        if (!normalized.entry) {
+            return { entry: null, changed: true }
+        }
+
+        return { entry: normalized.entry, changed: normalized.changed }
+    }
+
+    const latest = normalizeField(candidate.latest)
+    const previous = normalizeField(candidate.previous)
+    const first = normalizeField(candidate.first)
+    const record = normalizeField(candidate.record)
+
+    const sessionCount =
+        typeof candidate.sessionCount === 'number' &&
+        Number.isFinite(candidate.sessionCount) &&
+        candidate.sessionCount >= 0
+            ? Math.trunc(candidate.sessionCount)
+            : 0
+
+    const rawRecent = Array.isArray(candidate.recent) ? candidate.recent : []
+    const recent: HistoryEntry[] = []
+
+    rawRecent.forEach((entry) => {
+        const normalized = normalizeHistoryEntry(entry)
+        if (!normalized.entry) {
+            changed = true
+            return
+        }
+
+        if (normalized.changed) {
+            changed = true
+        }
+
+        recent.push(normalized.entry)
+    })
+
+    if (
+        latest.changed ||
+        previous.changed ||
+        first.changed ||
+        record.changed ||
+        (typeof candidate.sessionCount === 'number'
+            ? candidate.sessionCount !== sessionCount
+            : true) ||
+        !Array.isArray(candidate.recent) ||
+        recent.length !== rawRecent.length
+    ) {
+        changed = true
+    }
+
+    return {
+        summary: {
+            latest: latest.entry,
+            previous: previous.entry,
+            first: first.entry,
+            record: record.entry,
+            sessionCount,
+            recent,
+        },
+        changed,
+    }
+}
+
+function normalizeHistorySummary(value: unknown): {
+    summary: HistorySummary
+    changed: boolean
+} {
+    if (!value || typeof value !== 'object') {
+        return {
+            summary: { workoutDates: [], byMachine: {} },
+            changed: true,
+        }
+    }
+
+    const candidate = value as Partial<HistorySummary>
+    let changed = false
+
+    const rawDates = Array.isArray(candidate.workoutDates)
+        ? candidate.workoutDates
+        : []
+    const workoutDates = rawDates.filter(
+        (date): date is string => typeof date === 'string',
+    )
+
+    if (
+        !Array.isArray(candidate.workoutDates) ||
+        workoutDates.length !== rawDates.length
+    ) {
+        changed = true
+    }
+
+    const byMachine: Record<string, MachineHistorySummary> = {}
+    const rawByMachine =
+        candidate.byMachine && typeof candidate.byMachine === 'object'
+            ? candidate.byMachine
+            : {}
+
+    if (!candidate.byMachine || typeof candidate.byMachine !== 'object') {
+        changed = true
+    }
+
+    Object.entries(rawByMachine).forEach(([machineId, summary]) => {
+        const normalized = normalizeMachineHistorySummary(summary)
+        if (normalized.changed) {
+            changed = true
+        }
+
+        byMachine[machineId] = normalized.summary
+    })
+
+    return {
+        summary: { workoutDates, byMachine },
+        changed,
+    }
+}
+
 function normalizeAppData(rawData: LegacyAppData): {
     data: AppData
     changed: boolean
@@ -362,30 +566,48 @@ function normalizeAppData(rawData: LegacyAppData): {
         changed = true
     }
 
-    Object.entries(rawData?.history ?? {}).forEach(([machineId, entries]) => {
-        if (!Array.isArray(entries)) {
+    if (rawData?.historySummary) {
+        const normalized = normalizeHistorySummary(rawData.historySummary)
+        nextData.historySummary = normalized.summary
+        if (normalized.changed) {
             changed = true
-            return
         }
+    }
 
-        const normalizedEntries: HistoryEntry[] = []
+    if (rawData?.history) {
+        const legacyGrouped: Record<string, HistoryEntry[]> = {}
 
-        entries.forEach((entry) => {
-            const normalized = normalizeHistoryEntry(entry)
-            if (!normalized.entry) {
+        Object.entries(rawData.history).forEach(([machineId, entries]) => {
+            if (!Array.isArray(entries)) {
                 changed = true
                 return
             }
 
-            if (normalized.changed) {
-                changed = true
-            }
+            const normalizedEntries: HistoryEntry[] = []
 
-            normalizedEntries.push(normalized.entry)
+            entries.forEach((entry) => {
+                const normalized = normalizeHistoryEntry(entry)
+                if (!normalized.entry) {
+                    changed = true
+                    return
+                }
+
+                if (normalized.changed) {
+                    changed = true
+                }
+
+                normalizedEntries.push(normalized.entry)
+            })
+
+            legacyGrouped[machineId] = normalizedEntries
         })
 
-        nextData.history[machineId] = normalizedEntries
-    })
+        nextData.historySummary = computeHistorySummary(
+            legacyGrouped,
+            nextData.machines,
+        )
+        changed = true
+    }
 
     return { data: nextData, changed }
 }
@@ -444,7 +666,7 @@ async function syncWorkoutData() {
 
         const nextData = buildAppData(machines, workouts, historyEntries ?? [])
         if (!historyEntries) {
-            nextData.history = cachedData.history
+            nextData.historySummary = cachedData.historySummary
         }
 
         if (syncRevision !== workoutDataRevision) {
@@ -530,7 +752,9 @@ export async function addMachineToWorkout(
 
     data.machines[response.machine.id] = response.machine
     upsertWorkout(data, response.workout)
-    data.history[response.machine.id] = data.history[response.machine.id] ?? []
+    data.historySummary.byMachine[response.machine.id] =
+        data.historySummary.byMachine[response.machine.id] ??
+        emptyMachineHistorySummary()
 
     await saveData(data)
     isWorkoutDataStale = true
@@ -549,7 +773,7 @@ export async function removeMachineFromWorkout(
 
     if (response.removedMachine) {
         delete data.machines[machineId]
-        delete data.history[machineId]
+        delete data.historySummary.byMachine[machineId]
     }
 
     await saveData(data)
@@ -561,11 +785,32 @@ export async function saveWorkoutResults(results: WorkoutHistoryInput[]) {
     const data = await getNormalizedData()
 
     createdEntries.forEach((entry) => {
-        if (!data.history[entry.machineId]) {
-            data.history[entry.machineId] = []
+        const machineId = entry.machineId
+        const existing =
+            data.historySummary.byMachine[machineId] ??
+            emptyMachineHistorySummary()
+        const newEntry = toHistoryEntry(entry)
+        const machineConfig = data.machines[machineId]
+
+        const record = getRecordHistoryEntry(
+            [existing.record, newEntry].filter(
+                (item): item is HistoryEntry => item !== null,
+            ),
+            machineConfig,
+        )
+
+        data.historySummary.byMachine[machineId] = {
+            latest: newEntry,
+            previous: existing.latest,
+            first: existing.first ?? newEntry,
+            record,
+            sessionCount: existing.sessionCount + 1,
+            recent: [...existing.recent, newEntry].slice(-4),
         }
 
-        data.history[entry.machineId].unshift(toHistoryEntry(entry))
+        const workoutDates = new Set(data.historySummary.workoutDates)
+        workoutDates.add(toLocalDayKey(newEntry.date))
+        data.historySummary.workoutDates = sortWorkoutDates(workoutDates)
     })
 
     await saveData(data)
